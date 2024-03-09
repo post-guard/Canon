@@ -1,0 +1,37 @@
+﻿namespace Canon.Core.Enums;
+
+public enum NonTerminatorType
+{
+    ProgramStruct,
+    ProgramHead,
+    ProgramBody,
+    IdentifierList,
+    ConstDeclarations,
+    VarDeclarations,
+    SubprogramDeclarations,
+    CompoundStatement,
+    ConstDeclaration,
+    ConstValue,
+    VarDeclaration,
+    Type,
+    BasicType,
+    Range,
+    Subprogram,
+    SubprogramHead,
+    SubprogramBody,
+    FormalParameter,
+    ParameterList,
+    Parameter,
+    VarParameter,
+    ValueParameter,
+    StatementList,
+    Statement,
+    Variable,
+    Expression,
+    ProcedureCall,
+    ElsePart,
+    ExpressionList,
+    SimpleExpression,
+    Term,
+    Factor
+}

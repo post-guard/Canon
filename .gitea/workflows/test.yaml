@@ -1,0 +1,11 @@
+name: Test canon project
+on: [ push ]
+
+jobs:
+    Test-Canon:
+        runs-on: archlinux
+        steps:
+            - name: Check out repository code
+              uses: https://git.rrricardo.top/actions/checkout@v4
+            - name: Run test code
+              run: dotnet test

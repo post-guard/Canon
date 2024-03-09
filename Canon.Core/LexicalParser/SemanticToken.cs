@@ -33,19 +33,32 @@ public class DelimiterSemanticToken : SemanticToken
     public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
         out DelimiterSemanticToken? token)
     {
-        switch (now.Value)
+        Dictionary<char, DelimiterType> delimiterMap = new()
         {
-            case ',':
-                token = new DelimiterSemanticToken
-                {
-                    LinePos = linePos, CharacterPos = characterPos,
-                    LiteralValue = ",", DelimiterType = DelimiterType.Comma
-                };
-                return true;
-            default:
-                token = null;
-                return false;
+            { ',', DelimiterType.Comma },
+            { '.', DelimiterType.Period },
+            { ':', DelimiterType.Colon },
+            { ';', DelimiterType.Semicolon },
+            { '(', DelimiterType.LeftParenthesis },
+            { ')', DelimiterType.RightParenthesis },
+            { '[', DelimiterType.LeftSquareBracket },
+            { ']', DelimiterType.RightSquareBracket }
+        };
+
+        if (!delimiterMap.TryGetValue(now.Value, out DelimiterType value))
+        {
+            token = null;
+            return false;
         }
+
+        token = new DelimiterSemanticToken
+        {
+            LinePos = linePos,
+            CharacterPos = characterPos,
+            LiteralValue = new string([now.Value]),
+            DelimiterType = value
+        };
+        return true;
     }
 }
 

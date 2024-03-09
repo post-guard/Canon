@@ -19,7 +19,7 @@ public enum DelimiterType
     LeftParenthesis,
     RightParenthesis,
     LeftSquareBracket,
-    RightBracket
+    RightSquareBracket
 }
 
 public enum KeywordType

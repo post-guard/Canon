@@ -16,6 +16,28 @@ public class LrState : IEquatable<LrState>
     /// </summary>
     public Dictionary<TerminatorBase, LrState> Transformer { get; } = [];
 
+    /// <summary>
+    /// 向状态中添加一个迁移规则
+    /// </summary>
+    /// <param name="terminator">迁移的条件</param>
+    /// <param name="next">迁移到达的状态</param>
+    /// <exception cref="InvalidOperationException">如果在状态中已经存在该迁移规则且迁移到的状态和欲设置的状态不同
+    /// 抛出无效操作异常</exception>
+    public void AddTransform(TerminatorBase terminator, LrState next)
+    {
+        if (Transformer.TryGetValue(terminator, out LrState? state))
+        {
+            if (state != next)
+            {
+                throw new InvalidOperationException("A terminator transform to two different states");
+            }
+        }
+        else
+        {
+            Transformer.Add(terminator, next);
+        }
+    }
+
     public bool Equals(LrState? other)
     {
         if (other is null)

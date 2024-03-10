@@ -19,7 +19,9 @@ public enum DelimiterType
     LeftParenthesis,
     RightParenthesis,
     LeftSquareBracket,
-    RightSquareBracket
+    RightSquareBracket,
+    SingleQuotation,
+    DoubleQuotation
 }
 
 public enum KeywordType
@@ -39,4 +41,22 @@ public enum KeywordType
     For,
     To,
     Do,
+}
+
+public enum OperatorType
+{
+    Equal,
+    NotEqual,
+    Less,
+    LessEqual,
+    Greater,
+    GreaterEqual,
+    Plus,
+    Minus,
+    Multiply,
+    Divide,
+    Mod,
+    And,
+    Or,
+    Assign
 }

@@ -2,28 +2,47 @@
 
 using Enums;
 
+/// <summary>
+/// 词法记号基类
+/// </summary>
 public abstract class SemanticToken
 {
     public abstract SemanticTokenType TokenType { get; }
 
+    /// <summary>
+    /// 记号出现的行号
+    /// </summary>
     public required uint LinePos { get; init; }
 
+    /// <summary>
+    /// 记号出现的列号
+    /// </summary>
     public required uint CharacterPos { get; init; }
 
+    /// <summary>
+    /// 记号的字面值
+    /// </summary>
     public required string LiteralValue { get; init; }
 }
 
+/// <summary>
+/// 字符类型记号
+/// </summary>
 public class CharacterSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Character;
 
-    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now, out CharacterSemanticToken? token)
+    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
+        out CharacterSemanticToken? token)
     {
         token = null;
         return false;
     }
 }
 
+/// <summary>
+/// 分隔符类型记号
+/// </summary>
 public class DelimiterSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Delimiter;
@@ -42,7 +61,9 @@ public class DelimiterSemanticToken : SemanticToken
             { '(', DelimiterType.LeftParenthesis },
             { ')', DelimiterType.RightParenthesis },
             { '[', DelimiterType.LeftSquareBracket },
-            { ']', DelimiterType.RightSquareBracket }
+            { ']', DelimiterType.RightSquareBracket },
+            { '\'', DelimiterType.SingleQuotation },
+            { '\"', DelimiterType.DoubleQuotation }
         };
 
         if (!delimiterMap.TryGetValue(now.Value, out DelimiterType value))
@@ -62,6 +83,9 @@ public class DelimiterSemanticToken : SemanticToken
     }
 }
 
+/// <summary>
+/// 关键字类型记号
+/// </summary>
 public class KeywordSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Keyword;
@@ -75,7 +99,7 @@ public class KeywordSemanticToken : SemanticToken
 
         if (now.Next is null)
         {
-            // As there is now keyword shorter than 2 characters.
+            // 没有比两个字符更短的关键字
             token = null;
             return false;
         }
@@ -119,9 +143,14 @@ public class KeywordSemanticToken : SemanticToken
     }
 }
 
+/// <summary>
+/// 操作数类型记号
+/// </summary>
 public class OperatorSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Operator;
+
+    public required OperatorType OperatorType { get; init; }
 
     public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
         out OperatorSemanticToken? token)
@@ -131,6 +160,9 @@ public class OperatorSemanticToken : SemanticToken
     }
 }
 
+/// <summary>
+/// 数值类型记号
+/// </summary>
 public class NumberSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Number;
@@ -143,6 +175,9 @@ public class NumberSemanticToken : SemanticToken
     }
 }
 
+/// <summary>
+/// 标识符类型记号
+/// </summary>
 public class IdentifierSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Identifier;

@@ -8,38 +8,68 @@ public abstract class TerminatorBase
 }
 
 /// <summary>
-/// A terminator in grammar and it always represents a semantic token.
+/// 语法中的一个终结符
+/// 终结符标识词法分析中得到的一个记号
 /// </summary>
 public class Terminator : TerminatorBase, IEquatable<Terminator>
 {
     public override bool IsTerminated => true;
 
-    private readonly bool _isKeyword;
+    private readonly SemanticTokenType _terminatorType;
 
     private readonly KeywordType _keywordType;
     private readonly DelimiterType _delimiterType;
+    private readonly OperatorType _operatorType;
 
     public Terminator(KeywordType keywordType)
     {
-        _isKeyword = true;
+        _terminatorType = SemanticTokenType.Keyword;
         _keywordType = keywordType;
     }
 
     public Terminator(DelimiterType delimiterType)
     {
-        _isKeyword = false;
+        _terminatorType = SemanticTokenType.Delimiter;
         _delimiterType = delimiterType;
     }
 
+    public Terminator(OperatorType operatorType)
+    {
+        _terminatorType = SemanticTokenType.Operator;
+        _operatorType = operatorType;
+    }
+
+    private Terminator(SemanticTokenType type)
+    {
+        _terminatorType = type;
+    }
+
+    /// <summary>
+    /// 标识符终结符单例
+    /// 鉴于在语法中不关心标识符具体内容，因此可以使用单例对象
+    /// </summary>
+    public static Terminator IdentifierTerminator => new(SemanticTokenType.Identifier);
+
+    /// <summary>
+    /// 字符终结符单例
+    /// 鉴于在语法中不关心具体字符，因此可以使用单例对象
+    /// </summary>
+    public static Terminator CharacterTerminator => new(SemanticTokenType.Character);
+
     public override int GetHashCode()
     {
-        if (_isKeyword)
+        int hash = _terminatorType.GetHashCode();
+
+        switch (_terminatorType)
         {
-            return _keywordType.GetHashCode();
-        }
-        else
-        {
-            return _delimiterType.GetHashCode();
+            case SemanticTokenType.Keyword:
+                return hash ^ _keywordType.GetHashCode();
+            case SemanticTokenType.Delimiter:
+                return hash ^ _delimiterType.GetHashCode();
+            case SemanticTokenType.Operator:
+                return hash ^ _operatorType.GetHashCode();
+            default:
+                return hash;
         }
     }
 
@@ -50,18 +80,21 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
             return false;
         }
 
-        if (_isKeyword != other._isKeyword)
+        if (_terminatorType != other._terminatorType)
         {
             return false;
         }
 
-        if (_isKeyword)
+        switch (_terminatorType)
         {
-            return _keywordType == other._keywordType;
-        }
-        else
-        {
-            return _delimiterType == other._delimiterType;
+            case SemanticTokenType.Keyword:
+                return _keywordType == other._keywordType;
+            case SemanticTokenType.Delimiter:
+                return _delimiterType == other._delimiterType;
+            case SemanticTokenType.Operator:
+                return _operatorType == other._operatorType;
+            default:
+                return true;
         }
     }
 
@@ -87,7 +120,7 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
 }
 
 /// <summary>
-/// A non-terminator in grammar like the 'ProgramStruct'.
+/// 语法中的非终结符
 /// </summary>
 public class NonTerminator : TerminatorBase, IEquatable<NonTerminator>
 {

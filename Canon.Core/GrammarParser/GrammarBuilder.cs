@@ -5,7 +5,7 @@ public class GrammarBuilder
     /// <summary>
     /// 指定文法的生成式
     /// </summary>
-    public Dictionary<NonTerminator, List<List<TerminatorBase>>> Generators { get; } = [];
+    public Dictionary<NonTerminator, List<List<TerminatorBase>>> Generators { get; init; } = [];
 
     /// <summary>
     /// 文法的起始符
@@ -108,6 +108,7 @@ public class GrammarBuilder
         {
             // 指定表达式开头是终结符
             Terminator terminator = (Terminator)expressionHead;
+
             result.Add(terminator);
         }
         else
@@ -139,8 +140,18 @@ public class GrammarBuilder
         {
             changed = false;
 
+            // 不能在foreach过程中修改集合
+            // 因此需要在遍历完成之后添加
+            List<Expression> addedExpressions = [];
+
             foreach (Expression e in closure)
             {
+                if (e.Pos >= e.Right.Count)
+                {
+                    // 已经移进到达句型的末尾
+                    continue;
+                }
+
                 TerminatorBase next = e.Right[e.Pos];
 
                 if (next.IsTerminated)
@@ -169,11 +180,19 @@ public class GrammarBuilder
                             Left = nonTerminator, Right = nextExpression, LookAhead = lookAhead
                         };
 
-                        if (closure.Add(newExpression))
+                        if (!closure.Contains(newExpression))
                         {
-                            changed = true;
+                            addedExpressions.Add(newExpression);
                         }
                     }
+                }
+            }
+
+            foreach (Expression addedExpression in addedExpressions)
+            {
+                if (closure.Add(addedExpression))
+                {
+                    changed = true;
                 }
             }
         }
@@ -197,7 +216,8 @@ public class GrammarBuilder
         bool added = true;
         while (added)
         {
-            added = false;
+            // 同样不能在foreach期间修改集合
+            HashSet<LrState> addedStates = [];
 
             foreach (LrState state in Automation)
             {
@@ -206,20 +226,19 @@ public class GrammarBuilder
 
                 foreach (Expression e in state.Expressions)
                 {
+                    if (e.Pos >= e.Right.Count)
+                    {
+                        // 已经移进到达末尾
+                        continue;
+                    }
+
+                    TerminatorBase next = e.Right[e.Pos];
                     Expression nextExpression = new()
                     {
                         Left = e.Left, Right = e.Right, LookAhead = e.LookAhead, Pos = e.Pos
                     };
-
-                    if (nextExpression.Pos >= nextExpression.Right.Count)
-                    {
-                        // 移进符号已经到达句型的末尾
-                        continue;
-                    }
-
                     nextExpression.Pos += 1;
 
-                    TerminatorBase next = nextExpression.Right[nextExpression.Pos];
                     if (!nextExpressions.TryAdd(next, [nextExpression]))
                     {
                         nextExpressions[next].Add(nextExpression);
@@ -241,18 +260,27 @@ public class GrammarBuilder
                     if (Automation.TryGetValue(newState, out LrState? oldState))
                     {
                         // 存在这个项目集闭包
-                        state.Transformer.Add(pair.Key, oldState);
+                        state.AddTransform(pair.Key, oldState);
                     }
                     else
                     {
                         // 不存在这个项目集闭包
-                        Automation.Add(newState);
-                        state.Transformer.Add(pair.Key, newState);
-
-                        added = true;
+                        // 但是需要考虑该状态在addedStates集合中的情况
+                        if (addedStates.TryGetValue(newState, out LrState? addedState))
+                        {
+                            state.AddTransform(pair.Key, addedState);
+                        }
+                        else
+                        {
+                            state.AddTransform(pair.Key, newState);
+                            addedStates.Add(newState);
+                        }
                     }
                 }
             }
+
+            added = addedStates.Count != 0;
+            Automation.UnionWith(addedStates);
         }
 
         return new Grammar { Begin = Begin, BeginState = beginState };

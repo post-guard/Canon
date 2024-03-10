@@ -63,6 +63,11 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
     /// </summary>
     public static Terminator NumberTerminator => new(SemanticTokenType.Number);
 
+    /// <summary>
+    /// 栈底的终结符
+    /// </summary>
+    public static Terminator EndTerminator => new(KeywordType.End);
+
     public override int GetHashCode()
     {
         int hash = _terminatorType.GetHashCode();

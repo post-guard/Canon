@@ -2,6 +2,10 @@
 
 public enum NonTerminatorType
 {
+    /// <summary>
+    /// 拓广文法
+    /// </summary>
+    StartNonTerminator,
     ProgramStruct,
     ProgramHead,
     ProgramBody,

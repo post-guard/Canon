@@ -8,6 +8,10 @@ public enum SemanticTokenType
     Delimiter,
     Identifier,
     Character,
+    /// <summary>
+    /// 语法分析中的栈底符号
+    /// </summary>
+    End
 }
 
 public enum DelimiterType

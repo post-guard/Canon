@@ -1,4 +1,5 @@
 ﻿using Canon.Core.Enums;
+using Canon.Core.LexicalParser;
 
 namespace Canon.Core.GrammarParser;
 
@@ -55,6 +56,12 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
     /// 鉴于在语法中不关心具体字符，因此可以使用单例对象
     /// </summary>
     public static Terminator CharacterTerminator => new(SemanticTokenType.Character);
+
+    /// <summary>
+    /// 数值终结符单例
+    /// 鉴于在语法中不关心具体数值，因此可以使用单例对象
+    /// </summary>
+    public static Terminator NumberTerminator => new(SemanticTokenType.Number);
 
     public override int GetHashCode()
     {
@@ -116,6 +123,46 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
     public static bool operator !=(Terminator a, Terminator b)
     {
         return !a.Equals(b);
+    }
+
+    public static bool operator ==(Terminator a, SemanticToken b)
+    {
+        return a.EqualSemanticToken(b);
+    }
+
+    public static bool operator !=(Terminator a, SemanticToken b)
+    {
+        return !a.EqualSemanticToken(b);
+    }
+
+    public static bool operator ==(SemanticToken a, Terminator b)
+    {
+        return b.EqualSemanticToken(a);
+    }
+
+    public static bool operator !=(SemanticToken a, Terminator b)
+    {
+        return !b.EqualSemanticToken(a);
+    }
+
+    private bool EqualSemanticToken(SemanticToken token)
+    {
+        if (token.TokenType != _terminatorType)
+        {
+            return false;
+        }
+
+        switch (_terminatorType)
+        {
+            case SemanticTokenType.Delimiter:
+                return (token as DelimiterSemanticToken)?.DelimiterType == _delimiterType;
+            case SemanticTokenType.Keyword:
+                return (token as KeywordSemanticToken)?.KeywordType == _keywordType;
+            case SemanticTokenType.Operator:
+                return (token as OperatorSemanticToken)?.OperatorType == _operatorType;
+        }
+
+        return true;
     }
 }
 

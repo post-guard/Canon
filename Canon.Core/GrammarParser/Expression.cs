@@ -1,17 +1,29 @@
 ﻿namespace Canon.Core.GrammarParser;
 
 /// <summary>
-/// An expression in the LR, like 'program_struct -> ~program_head ; program_body.'
-/// The '~' is the shift position now.
+/// LR语法中的一个表达式，例如 'program_struct -> ~program_head ; program_body'
+/// 其中'~'标识当前移进到达的位置
 /// </summary>
 public class Expression : IEquatable<Expression>
 {
+    /// <summary>
+    /// 表达式的左部
+    /// </summary>
     public required NonTerminator Left { get; init; }
 
+    /// <summary>
+    /// 表达式的向前看字符串
+    /// </summary>
     public required Terminator LookAhead { get; init; }
 
+    /// <summary>
+    /// 表达式的右部
+    /// </summary>
     public required List<TerminatorBase> Right { get; init; }
 
+    /// <summary>
+    /// 当前移进的位置
+    /// </summary>
     public int Pos { get; set; }
 
     public bool Equals(Expression? other)

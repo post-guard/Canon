@@ -1,5 +1,6 @@
 ﻿using Canon.Core.Enums;
 using Canon.Core.GrammarParser;
+using Canon.Core.LexicalParser;
 
 namespace Canon.Tests.GrammarParserTests;
 
@@ -106,5 +107,29 @@ public class SimpleGrammarTests
             grammar.BeginState.Transformer.Keys);
         Assert.Contains(new Terminator(DelimiterType.LeftParenthesis), grammar.BeginState.Transformer.Keys);
         Assert.Contains(Terminator.IdentifierTerminator, grammar.BeginState.Transformer.Keys);
+    }
+
+    [Fact]
+    public void AnalyseSingleSentenceTest()
+    {
+        GrammarBuilder builder = new()
+        {
+            Generators = s_simpleGrammar, Begin = new NonTerminator(NonTerminatorType.StartNonTerminator)
+        };
+
+        Grammar grammar = builder.Build();
+        List<SemanticToken> tokens =
+        [
+            new IdentifierSemanticToken { LinePos = 0, CharacterPos = 0, LiteralValue = "n" },
+            new OperatorSemanticToken
+            {
+                LinePos = 0, CharacterPos = 0, LiteralValue = "+", OperatorType = OperatorType.Plus
+            },
+            new IdentifierSemanticToken { LinePos = 0, CharacterPos = 0, LiteralValue = "n" },
+            SemanticToken.End
+        ];
+
+        // 验证分析语句不会抛出错误
+        grammar.Analyse(tokens);
     }
 }

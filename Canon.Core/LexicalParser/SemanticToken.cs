@@ -1,4 +1,6 @@
-﻿namespace Canon.Core.LexicalParser;
+﻿using Canon.Core.GrammarParser;
+
+namespace Canon.Core.LexicalParser;
 
 using Enums;
 
@@ -23,6 +25,39 @@ public abstract class SemanticToken
     /// 记号的字面值
     /// </summary>
     public required string LiteralValue { get; init; }
+
+    public static implicit operator Terminator(SemanticToken token)
+    {
+        switch (token.TokenType)
+        {
+            case SemanticTokenType.Character:
+                return Terminator.CharacterTerminator;
+            case SemanticTokenType.Identifier:
+                return Terminator.IdentifierTerminator;
+            case SemanticTokenType.Number:
+                return Terminator.NumberTerminator;
+            case SemanticTokenType.End:
+                return Terminator.EndTerminator;
+            case SemanticTokenType.Delimiter:
+                return new Terminator(((DelimiterSemanticToken)token).DelimiterType);
+            case SemanticTokenType.Keyword:
+                return new Terminator(((KeywordSemanticToken)token).KeywordType);
+            case SemanticTokenType.Operator:
+                return new Terminator(((OperatorSemanticToken)token).OperatorType);
+            default:
+                throw new ArgumentException("Unknown token type");
+        }
+    }
+
+    /// <summary>
+    /// 栈底符号单例对象
+    /// </summary>
+    public static EndSemanticToken End => new()
+    {
+        LinePos = 0, CharacterPos = 0, LiteralValue = string.Empty
+    };
+
+    public override string ToString() => LiteralValue;
 }
 
 /// <summary>
@@ -188,4 +223,9 @@ public class IdentifierSemanticToken : SemanticToken
         token = null;
         return false;
     }
+}
+
+public class EndSemanticToken : SemanticToken
+{
+    public override SemanticTokenType TokenType => SemanticTokenType.End;
 }

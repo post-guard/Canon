@@ -66,7 +66,7 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
     /// <summary>
     /// 栈底的终结符
     /// </summary>
-    public static Terminator EndTerminator => new(KeywordType.End);
+    public static Terminator EndTerminator => new(SemanticTokenType.End);
 
     public override int GetHashCode()
     {
@@ -82,6 +82,21 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
                 return hash ^ _operatorType.GetHashCode();
             default:
                 return hash;
+        }
+    }
+
+    public override string ToString()
+    {
+        switch (_terminatorType)
+        {
+            case SemanticTokenType.Keyword:
+                return _keywordType.ToString();
+            case SemanticTokenType.Operator:
+                return _operatorType.ToString();
+            case SemanticTokenType.Delimiter:
+                return _delimiterType.ToString();
+            default:
+                return _keywordType.ToString();
         }
     }
 
@@ -189,6 +204,8 @@ public class NonTerminator : TerminatorBase, IEquatable<NonTerminator>
     {
         return _type.GetHashCode();
     }
+
+    public override string ToString() => _type.ToString();
 
     public bool Equals(NonTerminator? other)
     {

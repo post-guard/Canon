@@ -1,4 +1,6 @@
-﻿namespace Canon.Core.GrammarParser;
+﻿using System.Text;
+
+namespace Canon.Core.GrammarParser;
 
 /// <summary>
 /// LR语法中的一个项目集规范族
@@ -74,6 +76,18 @@ public class LrState : IEquatable<LrState>
         }
 
         return hash;
+    }
+
+    public override string ToString()
+    {
+        StringBuilder builder = new();
+
+        foreach (Expression e in Expressions)
+        {
+            builder.Append(e).Append('\n');
+        }
+
+        return builder.ToString();
     }
 
     public static bool operator ==(LrState a, LrState b)

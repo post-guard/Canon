@@ -78,6 +78,26 @@ public class Expression : IEquatable<Expression>
         return hash;
     }
 
+    public override string ToString()
+    {
+        string result = $"{Left} -> ";
+
+        for (int i = 0; i < Right.Count; i++)
+        {
+            if (i == Pos)
+            {
+                result += '~';
+            }
+
+            result += ' ';
+            result += Right[i].ToString();
+        }
+
+        result += $", {LookAhead}";
+
+        return result;
+    }
+
     public static bool operator ==(Expression a, Expression b)
     {
         return a.Equals(b);

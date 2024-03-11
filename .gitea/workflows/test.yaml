@@ -7,5 +7,10 @@ jobs:
         steps:
             - name: Check out repository code
               uses: https://git.rrricardo.top/actions/checkout@v4
+            - name: Cache nuget packages
+              uses: https://git.rrricardo.top/actions/cache@v4
+              with:
+                  path: ~/.nuget/packages
+                  key: ${{ runner.os }}-nuget
             - name: Run test code
               run: dotnet test

@@ -8,10 +8,10 @@ public class Grammar
 
     public required LrState BeginState { get; init; }
 
-    public void Analyse(IEnumerable<SemanticToken> tokens)
+    public SyntaxNode Analyse(IEnumerable<SemanticToken> tokens)
     {
-        Stack<LrState> stack = [];
-        stack.Push(BeginState);
+        Stack<AnalyseState> stack = [];
+        stack.Push(new AnalyseState(BeginState, new SyntaxNode(SemanticToken.End)));
 
         using IEnumerator<SemanticToken> enumerator = tokens.GetEnumerator();
         if (!enumerator.MoveNext())
@@ -21,11 +21,11 @@ public class Grammar
 
         while (true)
         {
-            LrState top = stack.Peek();
+            AnalyseState top = stack.Peek();
 
             // 尝试进行移进
             bool acceptFlag = false, reduceFlag = false;
-            foreach (Expression e in top.Expressions)
+            foreach (Expression e in top.State.Expressions)
             {
                 if (e.Pos == e.Right.Count && e.LookAhead == enumerator.Current)
                 {
@@ -36,21 +36,24 @@ public class Grammar
                     else
                     {
                         reduceFlag = true;
+                        SyntaxNode newNode = new(e.Left.Type);
 
                         for (int i = 0; i < e.Right.Count; i++)
                         {
-                            stack.Pop();
+                            newNode.Children.Add(stack.Pop().Node);
                         }
 
-                        stack.Push(stack.Peek().Transformer[e.Left]);
+                        stack.Push(new AnalyseState(stack.Peek().State.Transformer[e.Left],
+                            newNode));
                     }
+                    break;
                 }
             }
 
             if (acceptFlag)
             {
                 // 接受文法 退出循环
-                break;
+                return top.Node;
             }
 
             if (reduceFlag)
@@ -60,9 +63,9 @@ public class Grammar
             }
 
             // 尝试进行移进
-            if (top.Transformer.TryGetValue(enumerator.Current, out LrState? next))
+            if (top.State.Transformer.TryGetValue(enumerator.Current, out LrState? next))
             {
-                stack.Push(next);
+                stack.Push(new AnalyseState(next, new SyntaxNode(enumerator.Current)));
                 if (enumerator.MoveNext())
                 {
                     continue;
@@ -76,4 +79,6 @@ public class Grammar
             throw new InvalidOperationException("Failed to analyse input grammar");
         }
     }
+
+    private record AnalyseState(LrState State, SyntaxNode Node);
 }

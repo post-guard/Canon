@@ -118,6 +118,7 @@ public class SimpleGrammarTests
         };
 
         Grammar grammar = builder.Build();
+        // n + n
         List<SemanticToken> tokens =
         [
             new IdentifierSemanticToken { LinePos = 0, CharacterPos = 0, LiteralValue = "n" },
@@ -129,7 +130,73 @@ public class SimpleGrammarTests
             SemanticToken.End
         ];
 
-        // 验证分析语句不会抛出错误
-        grammar.Analyse(tokens);
+        // 分析树为
+        //        E
+        //        |
+        //       /\
+        //     / | \
+        //    E  +  T
+        //    |     |
+        //    T     F
+        //    |     |
+        //   F     n
+        //   |
+        //   n
+        SyntaxNode root = grammar.Analyse(tokens);
+        Assert.Equal(NonTerminatorType.ProgramStruct, root.GetNonTerminatorType());
+        Assert.Equal(3, root.Children.Count);
+        Assert.Contains(root.Children, node =>
+        {
+            if (node.IsTerminated && node.GetSemanticToken().TokenType == SemanticTokenType.Operator)
+            {
+                OperatorSemanticToken token = (OperatorSemanticToken)node.GetSemanticToken();
+
+                return token.OperatorType == OperatorType.Plus;
+            }
+
+            return false;
+        });
+        Assert.Equal(9, root.Count());
+    }
+
+    [Fact]
+    public void AnalyseComplexSentenceTest()
+    {
+        GrammarBuilder builder = new()
+        {
+            Generators = s_simpleGrammar, Begin = new NonTerminator(NonTerminatorType.StartNonTerminator)
+        };
+
+        Grammar grammar = builder.Build();
+        // (n + n) * n
+        List<SemanticToken> tokens =
+        [
+            new DelimiterSemanticToken
+            {
+                LinePos = 0, CharacterPos = 0, LiteralValue = "(", DelimiterType = DelimiterType.LeftParenthesis
+            },
+            new IdentifierSemanticToken { LinePos = 0, CharacterPos = 0, LiteralValue = "n" },
+            new OperatorSemanticToken
+            {
+                LinePos = 0, CharacterPos = 0, LiteralValue = "+", OperatorType = OperatorType.Plus
+            },
+            new IdentifierSemanticToken { LinePos = 0, CharacterPos = 0, LiteralValue = "n" },
+            new DelimiterSemanticToken
+            {
+                LinePos = 0, CharacterPos = 0, LiteralValue = ")", DelimiterType = DelimiterType.RightParenthesis
+            },
+            new OperatorSemanticToken
+            {
+                LinePos = 0, CharacterPos = 0, LiteralValue = "*", OperatorType = OperatorType.Multiply
+            },
+            new IdentifierSemanticToken { LinePos = 0, CharacterPos = 0, LiteralValue = "n" },
+            SemanticToken.End
+        ];
+
+        SyntaxNode root = grammar.Analyse(tokens);
+        Assert.Equal(18, root.Count());
+        Assert.False(root.IsTerminated);
+        Assert.Equal(NonTerminatorType.ProgramStruct, root.GetNonTerminatorType());
+        Assert.Single(root.Children);
     }
 }

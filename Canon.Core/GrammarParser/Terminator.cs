@@ -96,7 +96,7 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
             case SemanticTokenType.Delimiter:
                 return _delimiterType.ToString();
             default:
-                return _keywordType.ToString();
+                return _terminatorType.ToString();
         }
     }
 
@@ -189,23 +189,18 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
 /// <summary>
 /// 语法中的非终结符
 /// </summary>
-public class NonTerminator : TerminatorBase, IEquatable<NonTerminator>
+public class NonTerminator(NonTerminatorType type) : TerminatorBase, IEquatable<NonTerminator>
 {
     public override bool IsTerminated => false;
 
-    private readonly NonTerminatorType _type;
-
-    public NonTerminator(NonTerminatorType type)
-    {
-        _type = type;
-    }
+    public NonTerminatorType Type { get; } = type;
 
     public override int GetHashCode()
     {
-        return _type.GetHashCode();
+        return Type.GetHashCode();
     }
 
-    public override string ToString() => _type.ToString();
+    public override string ToString() => Type.ToString();
 
     public bool Equals(NonTerminator? other)
     {
@@ -214,7 +209,7 @@ public class NonTerminator : TerminatorBase, IEquatable<NonTerminator>
             return false;
         }
 
-        return _type == other._type;
+        return Type == other.Type;
     }
 
     public override bool Equals(object? obj)

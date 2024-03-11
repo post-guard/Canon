@@ -24,7 +24,7 @@ public class Expression : IEquatable<Expression>
     /// <summary>
     /// 当前移进的位置
     /// </summary>
-    public int Pos { get; set; }
+    public required int Pos { get; init; }
 
     public bool Equals(Expression? other)
     {
@@ -52,7 +52,8 @@ public class Expression : IEquatable<Expression>
         }
 
         return Left == other.Left
-               && LookAhead == other.LookAhead;
+               && LookAhead == other.LookAhead
+               && Pos == other.Pos;
     }
 
     public override bool Equals(object? obj)
@@ -69,6 +70,7 @@ public class Expression : IEquatable<Expression>
     {
         int hash = Left.GetHashCode();
         hash ^= LookAhead.GetHashCode();
+        hash ^= Pos.GetHashCode();
 
         foreach (TerminatorBase terminator in Right)
         {
@@ -91,6 +93,11 @@ public class Expression : IEquatable<Expression>
 
             result += ' ';
             result += Right[i].ToString();
+        }
+
+        if (Pos == Right.Count)
+        {
+            result += '~';
         }
 
         result += $", {LookAhead}";

@@ -177,7 +177,7 @@ public class GrammarBuilder
                     {
                         Expression newExpression = new()
                         {
-                            Left = nonTerminator, Right = nextExpression, LookAhead = lookAhead
+                            Left = nonTerminator, Right = nextExpression, LookAhead = lookAhead, Pos = 0
                         };
 
                         if (!closure.Contains(newExpression))
@@ -207,7 +207,7 @@ public class GrammarBuilder
 
         Expression begin = new()
         {
-            Left = Begin, Right = Generators[Begin].First(), LookAhead = Terminator.EndTerminator
+            Left = Begin, Right = Generators[Begin].First(), LookAhead = Terminator.EndTerminator, Pos = 0
         };
 
         LrState beginState = new() { Expressions = CalculateClosure(begin) };
@@ -235,9 +235,8 @@ public class GrammarBuilder
                     TerminatorBase next = e.Right[e.Pos];
                     Expression nextExpression = new()
                     {
-                        Left = e.Left, Right = e.Right, LookAhead = e.LookAhead, Pos = e.Pos
+                        Left = e.Left, Right = e.Right, LookAhead = e.LookAhead, Pos = e.Pos + 1
                     };
-                    nextExpression.Pos += 1;
 
                     if (!nextExpressions.TryAdd(next, [nextExpression]))
                     {

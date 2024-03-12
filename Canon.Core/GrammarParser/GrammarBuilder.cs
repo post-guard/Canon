@@ -34,7 +34,7 @@ public class GrammarBuilder
             {
                 foreach (List<TerminatorBase> expression in pair.Value)
                 {
-                    // 对于空产生式直接跳过处理是正确的吗？
+                    // TODO: 对于空产生式直接跳过处理是正确的吗
                     TerminatorBase? expressionHead = expression.FirstOrDefault();
                     if (expressionHead is null)
                     {
@@ -117,9 +117,23 @@ public class GrammarBuilder
             // 将该非终结符的FirstSet加入进来
             NonTerminator nonTerminator = (NonTerminator)expressionHead;
 
-            if (FirstSet.TryGetValue(nonTerminator, out HashSet<Terminator>? firstSet))
+            if (!FirstSet.TryGetValue(nonTerminator, out HashSet<Terminator>? firstSet))
             {
-                result.UnionWith(firstSet);
+                throw new InvalidOperationException($"Failed to get first set for {nonTerminator}");
+            }
+
+            foreach (Terminator terminator in firstSet)
+            {
+                // 如果First中包含空字符串
+                // 递归获得该字符之后的表达式的FirstSet
+                if (terminator == Terminator.EmptyTerminator)
+                {
+                    result.UnionWith(CalculateFirstSetOfExpression(expression[1..]));
+                }
+                else
+                {
+                    result.Add(terminator);
+                }
             }
         }
 
@@ -175,9 +189,11 @@ public class GrammarBuilder
                 {
                     foreach (Terminator lookAhead in lookAheadSet)
                     {
+                        // 在新建Expression的时候就不用把空产生式放进右部里面了
                         Expression newExpression = new()
                         {
-                            Left = nonTerminator, Right = nextExpression, LookAhead = lookAhead, Pos = 0
+                            Left = nonTerminator, Right = IsEmptyOnly(nextExpression) ? [] : nextExpression,
+                            LookAhead = lookAhead, Pos = 0
                         };
 
                         if (!closure.Contains(newExpression))
@@ -207,6 +223,8 @@ public class GrammarBuilder
 
         Expression begin = new()
         {
+            // 这里就不考虑右部可能为空产生式的情况了
+            // 毕竟有拓广文法
             Left = Begin, Right = Generators[Begin].First(), LookAhead = Terminator.EndTerminator, Pos = 0
         };
 
@@ -283,5 +301,17 @@ public class GrammarBuilder
         }
 
         return new Grammar { Begin = Begin, BeginState = beginState };
+    }
+
+    private static bool IsEmptyOnly(List<TerminatorBase> expression)
+    {
+        if (expression.Count != 1 || !expression[0].IsTerminated)
+        {
+            return false;
+        }
+
+        Terminator terminator = (Terminator)expression[0];
+
+        return terminator == Terminator.EmptyTerminator;
     }
 }

@@ -89,7 +89,7 @@ public class SyntaxNode : IEquatable<SyntaxNode>, IEnumerable<SyntaxNode>
         }
         else
         {
-            // 在判等时是否需要判断子节点也相等？
+            // TODO: 在判等时是否需要判断子节点也相等
             return GetNonTerminatorType() == other.GetNonTerminatorType();
         }
     }

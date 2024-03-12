@@ -48,6 +48,17 @@ public class Grammar
                     }
                     break;
                 }
+
+                if (e.Right.Count == 0 && e.LookAhead == enumerator.Current)
+                {
+                    // 考虑空产生式的归约
+                    // 显然空产生式是不能accept的
+                    reduceFlag = true;
+                    SyntaxNode newNode = new(e.Left.Type);
+
+                    stack.Push(new AnalyseState(stack.Peek().State.Transformer[e.Left],
+                        newNode));
+                }
             }
 
             if (acceptFlag)

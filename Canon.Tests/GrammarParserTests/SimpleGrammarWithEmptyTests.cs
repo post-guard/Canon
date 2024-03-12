@@ -1,5 +1,6 @@
 ﻿using Canon.Core.Enums;
 using Canon.Core.GrammarParser;
+using Canon.Core.LexicalParser;
 using Xunit.Abstractions;
 
 namespace Canon.Tests.GrammarParserTests;
@@ -10,12 +11,11 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
     /// 带有空产生式的简单语法(课后题4.18)
     /// S -> A
     /// A -> BA | ε
-    /// B -> aB | b
+    /// B -> aB | a
     /// 为了方便测试指定
     /// A ProgramStruct
     /// B ProgramBody
     /// a Identifier
-    /// b Identifier
     /// </summary>
     // private readonly ITestOutputHelper _testOutputHelper;
 
@@ -34,7 +34,7 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
                     new NonTerminator(NonTerminatorType.ProgramBody),
                     new NonTerminator(NonTerminatorType.ProgramStruct)
                 ],
-                []
+                [Terminator.EmptyTerminator]
             ]
         },
         {
@@ -59,21 +59,45 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
         builder.Build();
 
         Assert.Contains(builder.FirstSet, pair =>
-            pair.Key == new NonTerminator(NonTerminatorType.StartNonTerminator));
-        Assert.Contains(builder.FirstSet, pair =>
-            pair.Key == new NonTerminator(NonTerminatorType.ProgramStruct));
-        Assert.Contains(builder.FirstSet, pair =>
-            pair.Key == new NonTerminator(NonTerminatorType.ProgramBody));
-
-        foreach (HashSet<Terminator> terminators in builder.FirstSet.Values)
         {
-            Assert.Single(terminators);
-            Assert.Contains(Terminator.IdentifierTerminator, terminators);
-        }
+            if (pair.Key == new NonTerminator(NonTerminatorType.StartNonTerminator))
+            {
+                Assert.Equal(2, pair.Value.Count);
+                Assert.Contains(Terminator.IdentifierTerminator, pair.Value);
+                Assert.Contains(Terminator.EmptyTerminator, pair.Value);
+                return true;
+            }
+
+            return false;
+        });
+
+        Assert.Contains(builder.FirstSet, pair =>
+        {
+            if (pair.Key == new NonTerminator(NonTerminatorType.ProgramStruct))
+            {
+                Assert.Equal(2, pair.Value.Count);
+                Assert.Contains(Terminator.IdentifierTerminator, pair.Value);
+                Assert.Contains(Terminator.EmptyTerminator, pair.Value);
+                return true;
+            }
+
+            return true;
+        });
+        Assert.Contains(builder.FirstSet, pair =>
+        {
+            if (pair.Key == new NonTerminator(NonTerminatorType.ProgramBody))
+            {
+                Assert.Single(pair.Value);
+                Assert.Contains(Terminator.IdentifierTerminator, pair.Value);
+                return true;
+            }
+
+            return false;
+        });
     }
 
     [Fact]
-    public void StatsTest()
+    public void StatesTest()
     {
         GrammarBuilder builder = new()
         {
@@ -125,5 +149,29 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
         Assert.Equal(2, state5.Expressions.Count);
         _testOutputHelper.WriteLine("--- 5 ---");
         _testOutputHelper.WriteLine(state5.ToString());
+    }
+
+    [Fact]
+    public void AnalyseSingleSentenceTest()
+    {
+        GrammarBuilder builder = new()
+        {
+            Generators = s_simpleGrammar, Begin = new NonTerminator(NonTerminatorType.StartNonTerminator)
+        };
+
+        Grammar grammar = builder.Build();
+
+        List<SemanticToken> tokens =
+        [
+            new IdentifierSemanticToken { LinePos = 0, CharacterPos = 0, LiteralValue = "a" },
+            new IdentifierSemanticToken { LinePos = 0, CharacterPos = 0, LiteralValue = "a" },
+            SemanticToken.End
+        ];
+
+        SyntaxNode root = grammar.Analyse(tokens);
+
+        Assert.False(root.IsTerminated);
+        Assert.Equal(NonTerminatorType.ProgramStruct, root.GetNonTerminatorType());
+        Assert.Equal(7, root.Count());
     }
 }

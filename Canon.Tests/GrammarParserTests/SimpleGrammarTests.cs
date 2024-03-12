@@ -89,7 +89,7 @@ public class SimpleGrammarTests
     }
 
     [Fact]
-    public void StatsTest()
+    public void StatesTest()
     {
         GrammarBuilder builder = new()
         {

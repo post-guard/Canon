@@ -11,7 +11,11 @@ public enum SemanticTokenType
     /// <summary>
     /// 语法分析中的栈底符号
     /// </summary>
-    End
+    End,
+    /// <summary>
+    /// 语法分析中的空串符号
+    /// </summary>
+    Empty
 }
 
 public enum DelimiterType

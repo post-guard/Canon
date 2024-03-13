@@ -4,6 +4,8 @@ namespace Canon.Core.LexicalParser;
 
 using Enums;
 
+using System.Text;
+
 /// <summary>
 /// 词法记号基类
 /// </summary>
@@ -198,13 +200,69 @@ public class OperatorSemanticToken : SemanticToken
 /// <summary>
 /// 数值类型记号
 /// </summary>
+/// TODO：进制表示（只有$1的十六进制表示）
 public class NumberSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Number;
 
+    public required NumberType NumberType { get; init; }
+    public double Value { get; private init; }
+
     public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
         out NumberSemanticToken? token)
     {
+        StringBuilder buffer = new();
+
+        bool hasDecimalPoint = false;
+        bool hasExponent = false;
+        bool hasMinusSign = false;
+
+        while (now != null && (char.IsDigit(now.Value) || now.Value == '.' || now.Value == 'e' || now.Value == 'E' || now.Value == '-' || now.Value == '+'))
+        {
+            if (now.Value == '.')
+            {
+                if (hasDecimalPoint)
+                {
+                    break;
+                }
+                hasDecimalPoint = true;
+            }
+
+            if (now.Value == 'e' || now.Value == 'E')
+            {
+                if (hasExponent)
+                {
+                    break;
+                }
+                hasExponent = true;
+            }
+
+            if (now.Value == '-' || now.Value == '+')
+            {
+                if (hasMinusSign)
+                {
+                    break;
+                }
+                hasMinusSign = true;
+            }
+
+            buffer.Append(now.Value);
+            now = now.Next;
+        }
+
+        if (double.TryParse(buffer.ToString(), out double value))
+        {
+            token = new NumberSemanticToken
+            {
+                LinePos = linePos,
+                CharacterPos = characterPos,
+                LiteralValue = buffer.ToString(),
+                Value = value,
+                NumberType = hasDecimalPoint || hasExponent ? NumberType.Real : NumberType.Integer
+            };
+            return true;
+        }
+
         token = null;
         return false;
     }

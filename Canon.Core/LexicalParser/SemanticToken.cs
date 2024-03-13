@@ -215,8 +215,9 @@ public class NumberSemanticToken : SemanticToken
 
         bool hasDecimalPoint = false;
         bool hasExponent = false;
+        bool hasMinusSign = false;
 
-        while (now != null && (char.IsDigit(now.Value) || now.Value == '.' || now.Value == 'e' || now.Value == 'E'))
+        while (now != null && (char.IsDigit(now.Value) || now.Value == '.' || now.Value == 'e' || now.Value == 'E' || now.Value == '-' || now.Value == '+'))
         {
             if (now.Value == '.')
             {
@@ -234,6 +235,15 @@ public class NumberSemanticToken : SemanticToken
                     break;
                 }
                 hasExponent = true;
+            }
+
+            if (now.Value == '-' || now.Value == '+')
+            {
+                if (hasMinusSign)
+                {
+                    break;
+                }
+                hasMinusSign = true;
             }
 
             buffer.Append(now.Value);

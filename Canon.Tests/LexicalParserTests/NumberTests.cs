@@ -24,7 +24,7 @@ namespace Canon.Tests.LexicalParserTests
         [InlineData("1E-7", 1E-7, NumberType.Real)]
         [InlineData("1E", 0, NumberType.Real, false)]
         [InlineData("abc", 0, NumberType.Integer, false)]
-        [InlineData("123abc", 0, NumberType.Integer, false)]
+        [InlineData("123abc", 123, NumberType.Integer, true)]
         public void TestParseNumber(string input, double expected, NumberType expectedNumberType, bool expectedResult = true)
         {
             LinkedList<char> content = Utils.GetLinkedList(input);

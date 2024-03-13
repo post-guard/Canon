@@ -1,94 +1,90 @@
-﻿using Canon.Core.LexicalParser;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.LexicalParser;
 
 namespace Canon.Core.GrammarParser;
 
+/// <summary>
+/// 通过LR分析方法建立的语法
+/// </summary>
 public class Grammar
 {
+    /// <summary>
+    /// 起始符
+    /// </summary>
     public required NonTerminator Begin { get; init; }
 
+    /// <summary>
+    /// 语法中的DFA
+    /// </summary>
+    public required HashSet<LrState> Automation { get; init; }
+
+    /// <summary>
+    /// 起始状态
+    /// </summary>
     public required LrState BeginState { get; init; }
 
-    public SyntaxNode Analyse(IEnumerable<SemanticToken> tokens)
+    public GrammarParserBase ToGrammarParser()
     {
-        Stack<AnalyseState> stack = [];
-        stack.Push(new AnalyseState(BeginState, new SyntaxNode(SemanticToken.End)));
+        Dictionary<LrState, Transformer> transformers = [];
 
-        using IEnumerator<SemanticToken> enumerator = tokens.GetEnumerator();
-        if (!enumerator.MoveNext())
+        foreach (LrState state in Automation)
         {
-            throw new InvalidOperationException("Input token list is empty");
-        }
-
-        while (true)
-        {
-            AnalyseState top = stack.Peek();
-
-            // 尝试进行移进
-            bool acceptFlag = false, reduceFlag = false;
-            foreach (Expression e in top.State.Expressions)
+            ITransformer transformer;
+            if (transformers.TryGetValue(state, out Transformer? oldTransformer))
             {
-                if (e.Pos == e.Right.Count && e.LookAhead == enumerator.Current)
+                transformer = oldTransformer;
+            }
+            else
+            {
+                Transformer newTransformer = new();
+                transformers.Add(state, newTransformer);
+                transformer = newTransformer;
+            }
+
+            // 生成归约的迁移表
+            foreach (Expression expression in state.Expressions)
+            {
+                if (expression.Pos == expression.Right.Count)
                 {
-                    if (e.Left == Begin)
-                    {
-                        acceptFlag = true;
-                    }
-                    else
-                    {
-                        reduceFlag = true;
-                        SyntaxNode newNode = new(e.Left.Type);
-
-                        for (int i = 0; i < e.Right.Count; i++)
-                        {
-                            newNode.Children.Add(stack.Pop().Node);
-                        }
-
-                        stack.Push(new AnalyseState(stack.Peek().State.Transformer[e.Left],
-                            newNode));
-                    }
-                    break;
-                }
-
-                if (e.Right.Count == 0 && e.LookAhead == enumerator.Current)
-                {
-                    // 考虑空产生式的归约
-                    // 显然空产生式是不能accept的
-                    reduceFlag = true;
-                    SyntaxNode newNode = new(e.Left.Type);
-
-                    stack.Push(new AnalyseState(stack.Peek().State.Transformer[e.Left],
-                        newNode));
+                    transformer.ReduceTable.TryAdd(expression.LookAhead, new ReduceInformation(
+                        expression.Right.Count, expression.Left));
                 }
             }
 
-            if (acceptFlag)
+            // 生成移进的迁移表
+            foreach (KeyValuePair<TerminatorBase,LrState> pair in state.Transformer)
             {
-                // 接受文法 退出循环
-                return top.Node;
-            }
-
-            if (reduceFlag)
-            {
-                // 归约
-                continue;
-            }
-
-            // 尝试进行移进
-            if (top.State.Transformer.TryGetValue(enumerator.Current, out LrState? next))
-            {
-                stack.Push(new AnalyseState(next, new SyntaxNode(enumerator.Current)));
-                if (enumerator.MoveNext())
+                ITransformer targetTransformer;
+                if (transformers.TryGetValue(pair.Value, out Transformer? oldTransformer2))
                 {
-                    continue;
+                    targetTransformer = oldTransformer2;
                 }
                 else
                 {
-                    throw new InvalidOperationException("Run out of token but not accept");
+                    Transformer newTransformer = new();
+                    transformers.Add(pair.Value, newTransformer);
+                    targetTransformer = newTransformer;
                 }
+                transformer.ShiftTable.TryAdd(pair.Key, targetTransformer);
             }
-
-            throw new InvalidOperationException("Failed to analyse input grammar");
         }
+
+        return new GrammarParser(transformers[BeginState], Begin);
+    }
+
+    private class GrammarParser(ITransformer beginTransformer, NonTerminator begin) : GrammarParserBase
+    {
+        public override ITransformer BeginTransformer { get; } = beginTransformer;
+        public override NonTerminator Begin { get; } = begin;
+    }
+
+    private class Transformer : ITransformer
+    {
+        public IDictionary<TerminatorBase, ITransformer> ShiftTable { get; }
+            = new Dictionary<TerminatorBase, ITransformer>();
+
+        public IDictionary<Terminator, ReduceInformation> ReduceTable { get; }
+            = new Dictionary<Terminator, ReduceInformation>();
     }
 
     private record AnalyseState(LrState State, SyntaxNode Node);

@@ -300,7 +300,7 @@ public class GrammarBuilder
             Automation.UnionWith(addedStates);
         }
 
-        return new Grammar { Begin = Begin, BeginState = beginState };
+        return new Grammar { Begin = Begin, BeginState = beginState, Automation = Automation};
     }
 
     private static bool IsEmptyOnly(List<TerminatorBase> expression)

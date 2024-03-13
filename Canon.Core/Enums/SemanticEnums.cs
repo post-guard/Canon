@@ -68,3 +68,10 @@ public enum OperatorType
     Or,
     Assign
 }
+
+public enum NumberType
+{
+    Integer,
+    Real,
+    Hex
+}

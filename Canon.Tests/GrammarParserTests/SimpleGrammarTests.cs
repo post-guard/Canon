@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.Enums;
 using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
 
@@ -118,6 +119,7 @@ public class SimpleGrammarTests
         };
 
         Grammar grammar = builder.Build();
+        GrammarParserBase parser = grammar.ToGrammarParser();
         // n + n
         List<SemanticToken> tokens =
         [
@@ -142,7 +144,7 @@ public class SimpleGrammarTests
         //   F     n
         //   |
         //   n
-        SyntaxNode root = grammar.Analyse(tokens);
+        SyntaxNode root = parser.Analyse(tokens);
         Assert.Equal(NonTerminatorType.ProgramStruct, root.GetNonTerminatorType());
         Assert.Equal(3, root.Children.Count);
         Assert.Contains(root.Children, node =>
@@ -168,6 +170,8 @@ public class SimpleGrammarTests
         };
 
         Grammar grammar = builder.Build();
+        GrammarParserBase parser = grammar.ToGrammarParser();
+
         // (n + n) * n
         List<SemanticToken> tokens =
         [
@@ -193,7 +197,8 @@ public class SimpleGrammarTests
             SemanticToken.End
         ];
 
-        SyntaxNode root = grammar.Analyse(tokens);
+
+        SyntaxNode root = parser.Analyse(tokens);
         Assert.Equal(18, root.Count());
         Assert.False(root.IsTerminated);
         Assert.Equal(NonTerminatorType.ProgramStruct, root.GetNonTerminatorType());

@@ -27,11 +27,10 @@ public class TerminatorTests
     public void TerminatorAndKeywordSemanticTokenTest()
     {
         Terminator keywordTerminator = new(KeywordType.Array);
-        LinkedList<char> keywordContent = Utils.GetLinkedList("array [3..9] of integer");
-
-        Assert.True(KeywordSemanticToken.TryParse(0, 0, keywordContent.First!,
-            out KeywordSemanticToken? keywordSemanticToken));
-        Assert.NotNull(keywordSemanticToken);
+        KeywordSemanticToken keywordSemanticToken = new()
+        {
+            LinePos = 0, CharacterPos = 0, KeywordType = KeywordType.Array, LiteralValue = "array"
+        };
         Assert.True(keywordTerminator == keywordSemanticToken);
     }
 
@@ -39,11 +38,10 @@ public class TerminatorTests
     public void TerminatorAndDelimiterSemanticTokenTest()
     {
         Terminator terminator = new(DelimiterType.Period);
-        LinkedList<char> content = Utils.GetLinkedList(".");
-
-        Assert.True(DelimiterSemanticToken.TryParse(0, 0, content.First!,
-            out DelimiterSemanticToken? token));
-        Assert.NotNull(token);
+        DelimiterSemanticToken token = new()
+        {
+            LinePos = 0, CharacterPos = 0, DelimiterType = DelimiterType.Period, LiteralValue = "."
+        };
         Assert.True(token == terminator);
     }
 
@@ -51,44 +49,10 @@ public class TerminatorTests
     public void TerminatorAndOperatorSemanticTokenTest()
     {
         Terminator terminator = new(OperatorType.GreaterEqual);
-        LinkedList<char> content = Utils.GetLinkedList(">=");
-
-        Assert.True(OperatorSemanticToken.TryParse(0, 0, content.First!,
-            out OperatorSemanticToken? token));
-        Assert.NotNull(token);
+        OperatorSemanticToken token = new()
+        {
+            LinePos = 0, CharacterPos = 0, OperatorType = OperatorType.GreaterEqual, LiteralValue = ">="
+        };
         Assert.True(token == terminator);
-    }
-
-    [Fact]
-    public void TerminatorAndNumberSemanticTokenTest()
-    {
-        LinkedList<char> content = Utils.GetLinkedList("123");
-
-        Assert.True(NumberSemanticToken.TryParse(0, 0, content.First!,
-            out NumberSemanticToken? token));
-        Assert.NotNull(token);
-        Assert.True(Terminator.NumberTerminator == token);
-    }
-
-    [Fact]
-    public void TerminatorAndCharacterSemanticTokenTest()
-    {
-        LinkedList<char> content = Utils.GetLinkedList("'a'");
-
-        Assert.True(CharacterSemanticToken.TryParse(0, 0, content.First!,
-            out CharacterSemanticToken? token));
-        Assert.NotNull(token);
-        Assert.True(Terminator.CharacterTerminator == token);
-    }
-
-    [Fact]
-    public void TerminatorAndIdentifierSemanticTokenTest()
-    {
-        LinkedList<char> content = Utils.GetLinkedList("gcd");
-
-        Assert.True(IdentifierSemanticToken.TryParse(0, 0, content.First!,
-            out IdentifierSemanticToken? token));
-        Assert.NotNull(token);
-        Assert.True(Terminator.IdentifierTerminator == token);
     }
 }

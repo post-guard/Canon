@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.Enums;
 using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
 using Xunit.Abstractions;
@@ -152,6 +153,23 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
     }
 
     [Fact]
+    public void ParserTest()
+    {
+        GrammarBuilder builder = new()
+        {
+            Generators = s_simpleGrammar, Begin = new NonTerminator(NonTerminatorType.StartNonTerminator)
+        };
+
+        Grammar grammar = builder.Build();
+        GrammarParserBase parser = grammar.ToGrammarParser();
+
+        ITransformer transformer1 = parser.BeginTransformer;
+        Assert.Equal(3, transformer1.ShiftTable.Count);
+        Assert.Single(transformer1.ReduceTable);
+        Assert.Contains(new NonTerminator(NonTerminatorType.ProgramStruct),transformer1.ShiftTable);
+    }
+
+    [Fact]
     public void AnalyseSingleSentenceTest()
     {
         GrammarBuilder builder = new()
@@ -160,6 +178,7 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
         };
 
         Grammar grammar = builder.Build();
+        GrammarParserBase parser = grammar.ToGrammarParser();
 
         List<SemanticToken> tokens =
         [
@@ -168,7 +187,7 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
             SemanticToken.End
         ];
 
-        SyntaxNode root = grammar.Analyse(tokens);
+        SyntaxNode root = parser.Analyse(tokens);
 
         Assert.False(root.IsTerminated);
         Assert.Equal(NonTerminatorType.ProgramStruct, root.GetNonTerminatorType());

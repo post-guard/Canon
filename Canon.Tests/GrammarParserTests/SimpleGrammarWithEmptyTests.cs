@@ -18,7 +18,6 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
     /// B ProgramBody
     /// a Identifier
     /// </summary>
-    // private readonly ITestOutputHelper _testOutputHelper;
 
     private readonly ITestOutputHelper _testOutputHelper = testOutputHelper;
 

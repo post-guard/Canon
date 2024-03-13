@@ -19,7 +19,7 @@ public enum NonTerminatorType
     VarDeclaration,
     Type,
     BasicType,
-    Range,
+    Period,
     Subprogram,
     SubprogramHead,
     SubprogramBody,
@@ -37,5 +37,9 @@ public enum NonTerminatorType
     ExpressionList,
     SimpleExpression,
     Term,
-    Factor
+    Factor,
+    AddOperator,
+    MultiplyOperator,
+    RelationOperator,
+    IdVarPart
 }

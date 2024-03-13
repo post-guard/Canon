@@ -29,7 +29,15 @@ public enum DelimiterType
     LeftSquareBracket,
     RightSquareBracket,
     SingleQuotation,
-    DoubleQuotation
+    DoubleQuotation,
+    /// <summary>
+    /// 访问记录字段用的点 x.a
+    /// </summary>
+    Dot,
+    /// <summary>
+    /// 数组声明上下界之间的分隔符 1..50
+    /// </summary>
+    DoubleDots
 }
 
 public enum KeywordType
@@ -49,6 +57,15 @@ public enum KeywordType
     For,
     To,
     Do,
+    Integer,
+    Real,
+    Boolean,
+    Character,
+    Divide,
+    Not,
+    Mod,
+    And,
+    Or
 }
 
 public enum OperatorType
@@ -63,9 +80,6 @@ public enum OperatorType
     Minus,
     Multiply,
     Divide,
-    Mod,
-    And,
-    Or,
     Assign
 }
 

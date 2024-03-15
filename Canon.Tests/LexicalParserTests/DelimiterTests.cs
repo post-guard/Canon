@@ -3,7 +3,6 @@ using Canon.Core.LexicalParser;
 
 namespace Canon.Tests.LexicalParserTests;
 
-
 public class DelimiterTests
 {
     [Theory]
@@ -17,11 +16,12 @@ public class DelimiterTests
     [InlineData("]asd", DelimiterType.RightSquareBracket)]
     public void SmokeTest(string input, DelimiterType type)
     {
-        LinkedList<char> content = Utils.GetLinkedList(input);
+        Lexer lexer = new(input);
+        List<SemanticToken> tokens = lexer.Tokenize();
 
-        Assert.True(DelimiterSemanticToken.TryParse(0, 0, content.First!,
-            out DelimiterSemanticToken? token));
-        Assert.NotNull(token);
-        Assert.Equal(type, token.DelimiterType);
+        SemanticToken token = tokens[0];
+        Assert.Equal(SemanticTokenType.Delimiter, token.TokenType);
+        DelimiterSemanticToken delimiterSemanticToken = (DelimiterSemanticToken)token;
+        Assert.Equal(type, delimiterSemanticToken.DelimiterType);
     }
 }

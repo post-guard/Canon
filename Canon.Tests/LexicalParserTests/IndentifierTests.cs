@@ -18,20 +18,13 @@ namespace Canon.Tests.LexicalParserTests
         [InlineData("identifier_with_special_chars@#", false)]
         [InlineData("", false)]
         [InlineData(" ", false)]
-        [InlineData("andand",false)]
+        [InlineData("andand", false)]
         public void TestParseIdentifier(string input, bool expectedResult)
         {
-            LinkedList<char> content = Utils.GetLinkedList(input);
-            Assert.Equal(expectedResult, IdentifierSemanticToken.TryParse(0, 0, content.First!,
-                out IdentifierSemanticToken? token));
-            if (expectedResult)
-            {
-                Assert.NotNull(token);
-            }
-            else
-            {
-                Assert.Null(token);
-            }
+            Lexer lexer = new(input);
+            List<SemanticToken> tokens = lexer.Tokenize();
+
+            Assert.Equal(expectedResult, tokens.FirstOrDefault()?.TokenType == SemanticTokenType.Identifier);
         }
     }
 }

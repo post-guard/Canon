@@ -23,11 +23,12 @@ public class KeywordTypeTests
     [InlineData("do", KeywordType.Do)]
     public void SmokeTest(string input, KeywordType type)
     {
-        LinkedList<char> content = Utils.GetLinkedList(input);
+        Lexer lexer = new(input);
+        List<SemanticToken> tokens = lexer.Tokenize();
 
-        Assert.True(KeywordSemanticToken.TryParse(0, 0, content.First!,
-            out KeywordSemanticToken? token));
-        Assert.NotNull(token);
-        Assert.Equal(type, token.KeywordType);
+        SemanticToken token = tokens[0];
+        Assert.Equal(SemanticTokenType.Keyword, token.TokenType);
+        KeywordSemanticToken keywordSemanticToken = (KeywordSemanticToken)token;
+        Assert.Equal(type, keywordSemanticToken.KeywordType);
     }
 }

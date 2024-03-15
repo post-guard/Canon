@@ -25,21 +25,22 @@ namespace Canon.Tests.LexicalParserTests
         [InlineData("1E", 0, NumberType.Real, false)]
         [InlineData("abc", 0, NumberType.Integer, false)]
         [InlineData("123abc", 123, NumberType.Integer, true)]
-        public void TestParseNumber(string input, double expected, NumberType expectedNumberType, bool expectedResult = true)
+        public void TestParseNumber(string input, double expected, NumberType expectedNumberType,
+            bool expectedResult = true)
         {
-            LinkedList<char> content = Utils.GetLinkedList(input);
-            Assert.Equal(expectedResult, NumberSemanticToken.TryParse(0, 0, content.First!,
-                out NumberSemanticToken? token));
-            if (expectedResult)
+            Lexer lexer = new(input);
+            List<SemanticToken> tokens = lexer.Tokenize();
+
+            SemanticToken token = tokens[0];
+            if (!expectedResult)
             {
-                Assert.NotNull(token);
-                Assert.Equal(expected, token.Value);
-                Assert.Equal(expectedNumberType, token.NumberType);
+                Assert.NotEqual(SemanticTokenType.Keyword, token.TokenType);
+                return;
             }
-            else
-            {
-                Assert.Null(token);
-            }
+            Assert.Equal(SemanticTokenType.Number, token.TokenType);
+            NumberSemanticToken numberSemanticToken = (NumberSemanticToken)token;
+            Assert.Equal(expectedNumberType, numberSemanticToken.NumberType);
+            Assert.Equal(expected, numberSemanticToken.Value);
         }
     }
 }

@@ -8,14 +8,12 @@ public enum SemanticTokenType
     Delimiter,
     Identifier,
     Character,
+    Empty,
+    Error,  // 加了一个错误token
     /// <summary>
     /// 语法分析中的栈底符号
     /// </summary>
-    End,
-    /// <summary>
-    /// 语法分析中的空串符号
-    /// </summary>
-    Empty
+    End
 }
 
 public enum DelimiterType
@@ -88,4 +86,12 @@ public enum NumberType
     Integer,
     Real,
     Hex
+}
+
+public enum StateType
+{
+    Word,
+    Digit,
+    Delimiter,
+    Other
 }

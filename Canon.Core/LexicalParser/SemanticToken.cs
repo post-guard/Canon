@@ -129,6 +129,46 @@ public class KeywordSemanticToken : SemanticToken
 
     public required KeywordType KeywordType { get; init; }
 
+    public static readonly Dictionary<string, KeywordType> KeywordTypes = new Dictionary<string, KeywordType>(StringComparer.OrdinalIgnoreCase)
+    {
+        { "program", KeywordType.Program },
+        { "const", KeywordType.Const },
+        { "var", KeywordType.Var },
+        { "procedure", KeywordType.Procedure },
+        { "function", KeywordType.Function },
+        { "begin", KeywordType.Begin },
+        { "end", KeywordType.End },
+        { "array", KeywordType.Array },
+        { "of", KeywordType.Of },
+        { "if", KeywordType.If },
+        { "then", KeywordType.Then },
+        { "else", KeywordType.Else },
+        { "for", KeywordType.For },
+        { "to", KeywordType.To },
+        { "do", KeywordType.Do },
+        { "integer", KeywordType.Integer },
+        { "real", KeywordType.Real },
+        { "boolean", KeywordType.Boolean },
+        { "character", KeywordType.Character },
+        { "div", KeywordType.Divide }, // 注意: Pascal 使用 'div' 而不是 '/'
+        { "not", KeywordType.Not },
+        { "mod", KeywordType.Mod },
+        { "and", KeywordType.And },
+        { "or", KeywordType.Or }
+    };
+
+    public static KeywordType GetKeywordTypeByKeyword(string keyword)
+    {
+        if (KeywordTypes.TryGetValue(keyword, out var keywordType))
+        {
+            return keywordType;
+        }
+        else
+        {
+            throw new ArgumentException($"Unknown keyword: {keyword}");
+        }
+    }
+
     public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
         out KeywordSemanticToken? token)
     {
@@ -200,7 +240,6 @@ public class OperatorSemanticToken : SemanticToken
 /// <summary>
 /// 数值类型记号
 /// </summary>
-/// TODO：进制表示（只有$1的十六进制表示）
 public class NumberSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Number;
@@ -287,3 +326,19 @@ public class EndSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.End;
 }
+
+/// <summary>
+/// 错误类型记号
+/// </summary>
+public class ErrorSemanticToken : SemanticToken
+{
+    public override SemanticTokenType TokenType => SemanticTokenType.Error;
+
+    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
+        out IdentifierSemanticToken? token)
+    {
+        token = null;
+        return false;
+    }
+}
+

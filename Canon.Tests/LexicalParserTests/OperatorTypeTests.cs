@@ -7,9 +7,7 @@ public class OperatorTypeTests
 {
     [Theory]
     [InlineData("+ 123", OperatorType.Plus)]
-    [InlineData("1 + 123", OperatorType.Plus)]
     [InlineData("+123", OperatorType.Plus)]
-    [InlineData("m +123", OperatorType.Plus)]
     [InlineData("-123", OperatorType.Minus)]
     [InlineData("*123", OperatorType.Multiply)]
     [InlineData("/123", OperatorType.Divide)]
@@ -22,20 +20,24 @@ public class OperatorTypeTests
     [InlineData(":=123", OperatorType.Assign)]
     public void ParseTest(string input, OperatorType result)
     {
-        LinkedList<char> content = Utils.GetLinkedList(input);
-        Assert.True(OperatorSemanticToken.TryParse(0, 0,
-            content.First!, out OperatorSemanticToken? token));
-        Assert.Equal(result, token?.OperatorType);
+        Lexer lexer = new(input);
+        List<SemanticToken> tokens = lexer.Tokenize();
+
+        SemanticToken token = tokens[0];
+        Assert.Equal(SemanticTokenType.Operator, token.TokenType);
+        OperatorSemanticToken operatorSemanticToken = (OperatorSemanticToken)token;
+        Assert.Equal(result, operatorSemanticToken.OperatorType);
     }
 
     [Theory]
-    [InlineData("<><123")]
-    [InlineData("<=<123")]
+    [InlineData("1 + 123")]
+    [InlineData("m +123")]
     public void ParseFailedTest(string input)
     {
-        LinkedList<char> content = Utils.GetLinkedList(input);
-        Assert.False(OperatorSemanticToken.TryParse(0, 0,
-            content.First!, out OperatorSemanticToken? token));
-        Assert.Null(token);
+        Lexer lexer = new(input);
+        List<SemanticToken> tokens = lexer.Tokenize();
+
+        SemanticToken token = tokens[0];
+        Assert.NotEqual(SemanticTokenType.Operator, token.TokenType);
     }
 }

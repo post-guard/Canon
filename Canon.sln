@@ -20,6 +20,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{EAA3629C-CD74-4E1F-A7F8-76D1FF0EC925}"
 	ProjectSection(SolutionItems) = preProject
 		.gitea\workflows\test.yaml = .gitea\workflows\test.yaml
+		.gitea\workflows\integration_test.yaml = .gitea\workflows\integration_test.yaml
 	EndProjectSection
 EndProject
 Global

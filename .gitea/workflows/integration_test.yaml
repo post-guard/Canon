@@ -1,0 +1,28 @@
+name: Integration Test
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    Open-Set-Test:
+        runs-on: archlinux
+        steps:
+            -   name: Check out repository code
+                uses: https://git.rrricardo.top/actions/checkout@v4
+            -   name: Use nuget package cache
+                uses: https://git.rrricardo.top/actions/cache@v4
+                with:
+                    path: ~/.nuget/packages
+                    key: ${{ runner.os }}-nuget
+                    save-always: true
+            -   name: Build binary file
+                run: |
+                    dotnet publish
+                    cp ./Canon.Console/bin/Release/net8.0/linux-x64/publish/Canon.Console ./pacss
+            -   name: Build open set binary
+                run: |
+                    python scripts/integration_test.py run
+            -   name: Run open set test
+                run: |
+                    python scripts/integration_test.py test

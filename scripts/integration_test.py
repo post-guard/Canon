@@ -53,6 +53,7 @@ def run_binary():
     binary_files = compile_files()
     for pair in binary_files:
         print("Info: run " + pair[0])
+        print(pair[1])
 
         pascal_result = "open_set/" + pair[0] + ".pas_result"
         c_result = "open_set/" + pair[0] + ".c_result"
@@ -99,7 +100,8 @@ def check_result():
                     print("C: ", c_result)
 
     print(str(pass_result) + "/" + str(len(tests)) + " tests passed!")
-
+    if pass_result != len(tests):
+        sys.exit(-1)
 
 if __name__ == "__main__":
     if sys.argv[1] == "run":

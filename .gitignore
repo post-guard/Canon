@@ -485,7 +485,3 @@ $RECYCLE.BIN/
 
 # Database Source File
 *.db
-
-# Integration Generated File
-open_set/**
-!*.pas

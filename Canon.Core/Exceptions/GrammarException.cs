@@ -1,4 +1,4 @@
-﻿namespace Canon.Core.Exceptions;
+namespace Canon.Core.Exceptions;
 /// <summary>
 /// 语法分析中引发的异常
 /// </summary>

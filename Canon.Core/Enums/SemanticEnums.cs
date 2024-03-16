@@ -95,3 +95,11 @@ public enum StateType
     Delimiter,
     Other
 }
+
+public enum BasicIdType
+{
+    Int,
+    Real,
+    Char,
+    Bool
+}

@@ -7,7 +7,7 @@ public class DelimiterTests
 {
     [Theory]
     [InlineData(",123", DelimiterType.Comma)]
-    [InlineData(".123", DelimiterType.Period)]
+    // [InlineData(".123", DelimiterType.Period)]
     [InlineData(":123", DelimiterType.Colon)]
     [InlineData(";123", DelimiterType.Semicolon)]
     [InlineData("(123)", DelimiterType.LeftParenthesis)]

@@ -1,5 +1,7 @@
+using System.Numerics;
 using System.Text;
 using Canon.Core.Enums;
+using Canon.Core.Exceptions;
 
 namespace Canon.Core.LexicalParser;
 
@@ -17,27 +19,31 @@ public class Lexer(string source)
         "Not", "Mod", "And", "Or"
     ];
 
-    private readonly string[] _delimiter = [";", ",", ":", ".", "(", ")", "[", "]","'","\"",".."];
+    private readonly string[] _delimiter = [";", ",", ":", ".", "(", ")", "[", "]", "'", "\"", ".."];
+
+    private readonly string[] _operator = ["=", "<>", "<", "<=", ">", ">=", "+", "-", "*", "/", ":="];
 
     // 状态机
     private StateType _state;
     private char _ch;
 
     private LinkedList<char> _token = new LinkedList<char>();
+
     // bool save;
     // int saved_state;
     bool _finish;
-    private bool eof;
+
 
     //缓冲区
     private readonly char[] _buffer = new char[2048];
+
     // int start_pos;
     private int _fwdPos;
 
     // 计数器
     private uint _line = 1;
     private uint _chPos;
-    private int _sourcePos;
+
     private readonly Dictionary<SemanticTokenType, int> _tokenCount = new Dictionary<SemanticTokenType, int>
     {
         { SemanticTokenType.Keyword, 0 },
@@ -57,234 +63,394 @@ public class Lexer(string source)
         // 缓冲区
         // start_pos = 0;
         _fwdPos = 0;
-        FillLeftBuffer();
 
         // 状态机
         _finish = false;
 
-        while (!_finish) {
+        while (!_finish)
+        {
             GetChar();
             GetNbc();
+            if (_finish) break;
 
             _token = new LinkedList<char>();
 
-            if (IsLetter()) {
+            if (IsLetter())
+            {
                 _state = StateType.Word;
             }
-            else if (IsDigit()) {
+            else if(_ch == '.')
+            {
+                char next = PeekNextChar();
+                if (next >= '0' && next <= '9')
+                {
+                    _state = StateType.Digit;
+                }
+                else
+                {
+                    _state = StateType.Delimiter;
+                }
+            }
+            else if (IsDigit() || _ch == '$')
+            {
                 _state = StateType.Digit;
             }
-            else if (IsDelimiter()) {
+            else if (IsDelimiter())
+            {
                 _state = StateType.Delimiter;
+            }
+            else if (_ch == '{')
+            {
+                GetChar();
+                while (_ch != '}')
+                {
+                    GetChar();
+                    if (_ch == '\n')
+                    {
+                        _line++;
+                        _chPos = 0;
+                    }
+                    if (_finish)
+                    {
+                        throw new LexemeException(LexemeErrorType.UnclosedComment, _line, _chPos, "The comment is not closed.");
+                    }
+
+                }
+
+                continue;
             }
             else
             {
-                _state = StateType.Other;
+                _state = StateType.Operator;
             }
 
             switch (_state)
             {
-            case StateType.Word: {
-                while (IsDigit() || IsLetter())
+                case StateType.Word:
+                    while (IsDigit() || IsLetter())
+                    {
+                        Cat();
+                        GetChar();
+                    }
+
+                    Retract();
+
+                    if (IsKeyword())
+                    {
+                        KeywordType keywordType =
+                            KeywordSemanticToken.GetKeywordTypeByKeyword(LinkedListToString(_token.First));
+                        MakeToken(keywordType);
+                    }
+                    else
+                    {
+                        MakeToken(SemanticTokenType.Identifier);
+                    }
+
+                    break;
+                case StateType.Digit:
+                    DealNumber();
+                    break;
+                case StateType.Delimiter:
+                    Cat();
+                    switch (_ch)
+                    {
+                        case '.':
+                            {
+                                GetChar();
+                                if (_ch == '.')
+                                {
+                                    Cat();
+                                    MakeToken(DelimiterType.DoubleDots);
+                                    break;
+                                }
+
+                                Retract();
+                                if (IsDot())
+                                {
+                                    MakeToken(DelimiterType.Dot);
+                                }
+                                else
+                                {
+                                    MakeToken(DelimiterType.Period);
+                                }
+                            }
+                            break;
+                        case '\'':
+                        case '\"':
+                            {
+                                // 重置_token，准备收集字符串内容
+                                _token = new LinkedList<char>();
+
+                                GetChar(); // 移动到下一个字符，即字符串的第一个字符
+                                while (_ch != '\'' && _ch != '\"')
+                                {
+                                    Cat(); // 收集字符
+                                    GetChar(); // 移动到下一个字符
+                                    if (_ch == '\n' || _finish)
+                                    {
+                                        throw new LexemeException(LexemeErrorType.UnclosedStringLiteral, _line, _chPos, "The String is not closed.");
+                                    }
+                                }
+
+                                MakeToken(SemanticTokenType.Character); // 或其它适用于字符串字面量的SemanticTokenType
+                                _token = new LinkedList<char>(); // 重置_token
+
+                                if (!(_ch == '\'' || _ch == '\"'))
+                                {
+                                    throw new LexemeException(LexemeErrorType.UnclosedStringLiteral, _line, _chPos, "The String is not closed.");
+                                }
+                            }
+                            break;
+                        case ',':
+                            MakeToken(DelimiterType.Comma);
+                            break;
+                        case ':':
+                            char nextChar = PeekNextChar();
+                            if (nextChar == '=')
+                            {
+                                GetChar();
+                                Cat();
+                                MakeToken(OperatorType.Assign);
+                            }
+                            else
+                            {
+                                MakeToken(DelimiterType.Colon);
+                            }
+
+                            break;
+                        case ';':
+                            MakeToken(DelimiterType.Semicolon);
+                            break;
+                        case '(':
+                            char next = PeekNextChar();
+                            if (next == '*')
+                            {
+                                GetChar();
+                                bool commentClosed = false;
+                                while (!commentClosed)
+                                {
+                                    GetNbc();
+                                    GetChar();
+                                    while (_ch != '*')
+                                    {
+                                        GetNbc();
+                                        GetChar();
+                                        if (_finish)
+                                        {
+                                            throw new LexemeException(LexemeErrorType.UnclosedComment, _line, _chPos, "The comment is not closed.");
+                                        }
+                                    }
+
+                                    GetChar();
+                                    if (_finish)
+                                    {
+                                        throw new LexemeException(LexemeErrorType.UnclosedComment, _line, _chPos, "The comment is not closed.");
+                                    }
+
+                                    if (_ch == ')') commentClosed = true;
+                                }
+                            }
+                            else
+                            {
+                                MakeToken(DelimiterType.LeftParenthesis);
+                            }
+
+                            break;
+                        case ')':
+                            MakeToken(DelimiterType.RightParenthesis);
+                            break;
+                        case '[':
+                            MakeToken(DelimiterType.LeftSquareBracket);
+                            break;
+                        case ']':
+                            MakeToken(DelimiterType.RightSquareBracket);
+                            break;
+                    }
+
+                    break;
+                case StateType.Operator:
+                    DealOther();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+        }
+
+        return _tokens;
+    }
+
+    private void DealNumber()
+    {
+        // 十六进制
+        if (_ch == '$')
+        {
+            Cat();
+
+            GetChar();
+            while (!NumberShouldBreak())
+            {
+                // 假设IsHexDigit方法能够识别十六进制数字
+                if (IsHexDigit())
                 {
                     Cat();
                     GetChar();
                 }
-                Retract();
-
-                if (IsKeyword())
+                else if(NumberShouldBreak())
                 {
-                    KeywordType keywordType =
-                        KeywordSemanticToken.GetKeywordTypeByKeyword(LinkedListToString(_token.First));
-                    MakeToken(keywordType);
+                    break;
                 }
-                else {
-                    MakeToken(SemanticTokenType.Identifier);
+                else
+                {
+                    throw new LexemeException(LexemeErrorType.IllegalNumberFormat, _line, _chPos, "Illegal hex numbers!");
                 }
-                break;
             }
+            MakeToken(NumberType.Hex);
+            return;
+        }
 
-            case StateType.Digit:
+        // 非十六进制
+        if(IsDigit() || _ch == '.')
+        {
+            while (!NumberShouldBreak())
+            {
+                // 含小数部分
+                if (_ch == '.')
                 {
-                    bool error = false;
-                    bool tag = false; // 用于标记是否已经处理过科学记数法的指数部分
-                    bool doubleDot = false;
-                    NumberType numberType = NumberType.Integer;
-
-                    while (IsDigit() || _ch == '.' || _ch == 'E' || _ch == '+' || _ch == '-' || _ch == 'e' || IsLetter()) {
-                        if (_ch != '.')
-                        {
-                            Cat();
-                        }
-
-
-                        if (_ch == '0' && !tag) {
-                            GetChar();
-                            if (_ch == 'x' || _ch == 'X') {
-                                numberType = NumberType.Hex;    // 标识十六进制
-                                Cat();
-                                while (IsHexDigit()) { // 假设IsHexDigit方法能够识别十六进制数字
-                                    Cat();
-                                }
-                                break;
-                            }
-                            Retract(); // 如果不是'x'或'X'，回退一个字符
-                        }
-                        else if (_ch == '.') {
-                            GetChar();
-                            if (_ch == '.') {
-                                Retract(); // 回退到第一个'.'
-                                Retract(); // 回退到'.'之前的数字
-                                doubleDot = true;
-                                break;
-                            }
-                            Retract();
-                            Cat();
-                            numberType = NumberType.Real;
-                        }
-                        else if ((_ch == 'e' || _ch == 'E') && !tag) {
-                            GetChar();
-                            if (IsDigit() || _ch == '+' || _ch == '-') {
-                                Cat();
-                                tag = true; // 已处理指数部分
-                                continue;
-                            }
-                            error = true; // 错误的科学记数法
-                            break;
-                        }
-
-                        GetChar();
-                    }
-
-                    if (!error) {
-                        MakeToken(numberType);
-                        if (doubleDot)
-                        {
-                            break;
-                        }
-                        Retract();
-                    }
-                    else
+                    // 检查是否是符号 “..”
+                    char next = PeekNextChar();
+                    if (next == '.')
                     {
                         Retract();
-                        PrintError(0,_token.First,_line);
-                        _tokenCount[SemanticTokenType.Error]++;
+                        break;
                     }
-                    break;
-                }
 
-            case StateType.Delimiter:
-                Cat();
-                switch (_ch)
-                {
-                case '.':
+                    // 不是符号 “..”,进入小数点后的判断
+                    Cat();  // 记录“.”
+
+                    // “.”后不应为空，至少应该有一位小数
+                    GetChar();
+                    if (NumberShouldBreak())
                     {
-                        GetChar();
-                        if (_ch == '.')
+                        throw new LexemeException(LexemeErrorType.IllegalNumberFormat, _line, _chPos, "Illegal numbers!");
+                    }
+
+                    // 读取小数点后的数字
+                    while (!NumberShouldBreak())
+                    {
+                        if (IsDigit())
                         {
                             Cat();
-                            MakeToken(DelimiterType.DoubleDots);
+                            GetChar();
+                        }
+                        else if (_ch == 'e' || _ch == 'E')
+                        {
+                            DealE();
                             break;
                         }
-                        Retract();
-                        if (IsPeriod())
+                        else if(NumberShouldBreak())
                         {
-
-                        }else if (IsDot())
-                        {
-
-                        }
-                    }
-                    break;
-                case '\'':
-                case '\"':
-                    {
-                        if(_ch == '\'') MakeToken(DelimiterType.SingleQuotation);
-                        else if(_ch == '\"') MakeToken(DelimiterType.DoubleQuotation);
-
-                        // 重置_token，准备收集字符串内容
-                        _token = new LinkedList<char>();
-
-                        GetChar(); // 移动到下一个字符，即字符串的第一个字符
-                        while (_ch != '\'' && _ch != '\"')
-                        {
-                            Cat(); // 收集字符
-                            GetChar(); // 移动到下一个字符
-                        }
-
-                        // 在退出循环时，_ch为'或EOF，此时_token包含字符串内容
-                        // 创建字符内容的token，注意这里使用SemanticTokenType.String表示字符串字面量
-                        MakeToken(SemanticTokenType.Character); // 或其它适用于字符串字面量的SemanticTokenType
-                        _token = new LinkedList<char>(); // 重置_token
-
-                        if (_ch == '\'' && _ch != '\n')
-                        {
-                            // 识别并创建最后一个单引号的token
-                            Cat();
-                            MakeToken(DelimiterType.SingleQuotation);
-                        }
-                        else if (_ch == '\"')
-                        {
-                            Cat();
-                            MakeToken(DelimiterType.DoubleQuotation);
+                            break;
                         }
                         else
                         {
-                            // 这里处理遇到EOF但没有闭合单引号的情况，例如：'字符串结尾没有单引号
-                            // 可以添加错误处理代码
-                            PrintError(0, _token.First, _line); // 假设这个方法用于打印错误
+                            throw new LexemeException(LexemeErrorType.IllegalNumberFormat, _line, _chPos, "Illegal number.");
                         }
                     }
-                    break;
-                case ',':
-                    MakeToken(DelimiterType.Comma);
-                    break;
-                case ':':
-                    MakeToken(DelimiterType.Colon);
-                    break;
-                case ';':
-                    MakeToken(DelimiterType.Semicolon);
-                    break;
-                case '(':
-                    MakeToken(DelimiterType.LeftParenthesis);
-                    break;
-                case ')':
-                    MakeToken(DelimiterType.RightParenthesis);
-                    break;
-                case '[':
-                    MakeToken(DelimiterType.LeftSquareBracket);
-                    break;
-                case ']':
-                    MakeToken(DelimiterType.RightSquareBracket);
+                    MakeToken(NumberType.Real);
+                    return;
+                }
+
+                // 不含小数部分，含科学计数法
+                if (_ch == 'e' || _ch == 'E')
+                {
+                    DealE();
+                    MakeToken(NumberType.Real);
+                    return;
+                }
+
+                // 暂时为整数
+                if (IsDigit())
+                {
+                    Cat();
+                    GetChar();
+                }
+                else if(NumberShouldBreak())
+                {
                     break;
                 }
-                break;
-
-            case StateType.Other:
-                DealOther();
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
+                else
+                {
+                    throw new LexemeException(LexemeErrorType.IllegalNumberFormat, _line, _chPos, "Illegal number.");
+                }
             }
-
+            MakeToken(NumberType.Integer);
         }
-        PrintResult();
-        return _tokens;
+
+    }
+
+    private void DealE()
+    {
+        Cat();
+        GetChar();
+        if (IsDigit() || _ch == '+' || _ch == '-')
+        {
+            Cat();
+        }
+        else
+        {
+            throw new LexemeException(LexemeErrorType.IllegalNumberFormat, _line, _chPos, "Illegal number.");
+        }
+
+        // 读取e后的数字
+        GetChar();
+        while (!NumberShouldBreak())
+        {
+            if (IsDigit())
+            {
+                Cat();
+                GetChar();
+            }
+            else
+            {
+                throw new LexemeException(LexemeErrorType.IllegalNumberFormat, _line, _chPos, "Illegal number.");
+            }
+        }
+    }
+
+    bool NumberShouldBreak()
+    {
+        if (_ch == ' ' || _ch == '\n' || _ch == '\t' || _ch == '\r' || (IsDelimiter() && _ch!='.') || IsOperator() || _finish)
+        {
+            Retract();
+            return true;
+        }
+
+        return false;
+    }
+
+    private bool IsOperator()
+    {
+        foreach (var o in _operator)
+        {
+            if (o.Contains(_ch))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     private bool IsDot()
     {
-        SemanticToken tokenBefore = _tokens.Last();
-        if (tokenBefore.TokenType == SemanticTokenType.Identifier) return true;
+        if (_tokens.Count != 0)
+        {
+            SemanticToken tokenBefore = _tokens.Last();
+            if (tokenBefore.TokenType == SemanticTokenType.Identifier) return true;
+        }
         return false;
     }
 
-    private bool IsPeriod()
-    {
-        SemanticToken tokenBefore = _tokens.Last();
-        if (tokenBefore.TokenType == SemanticTokenType.Keyword) return true;
-        return false;
-    }
 
     private void DealOther()
     {
@@ -348,28 +514,8 @@ public class Lexer(string source)
                     MakeToken(OperatorType.Greater);
                 }
                 break;
-            case ':':
-                Cat();
-                GetChar();
-                if (_ch == '=')
-                {
-                    // 识别 :=
-                    Cat();
-                    MakeToken(OperatorType.Assign);
-                }
-                else
-                {
-                    // 这里应该被识别为delimiter逻辑上
-                    Cat();
-                    PrintError(1, _token.First, _line);
-                    _tokenCount[SemanticTokenType.Error]++;
-                }
-                break;
             default:
-                Cat();
-                PrintError(1, _token.First, _line);
-                _tokenCount[SemanticTokenType.Error]++;
-                break;
+                throw new LexemeException(LexemeErrorType.UnknownCharacterOrString, _line, _chPos, "Illegal lexeme.");
         }
     }
 
@@ -396,14 +542,6 @@ public class Lexer(string source)
                 };
                 token = identifierSemanticToken;
                 break;
-            case SemanticTokenType.Error:
-                ErrorSemanticToken errorSemanticToken = new ErrorSemanticToken()
-                {
-                    LinePos = _line, CharacterPos = _chPos, LiteralValue = LinkedListToString(_token.First),
-                };
-                token = errorSemanticToken;
-                break;
-
             default:
                 throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null);
         }
@@ -449,6 +587,32 @@ public class Lexer(string source)
         Console.WriteLine(LinkedListToString(_token.First));
     }
 
+    private void MakeToken(NumberType numberType)
+    {
+        string temp = LinkedListToString(_token.First);
+        string result;
+        if (numberType == NumberType.Hex)
+        {
+            result = string.Concat("0x", temp.AsSpan(1, temp.Length - 1));
+        }
+        else
+        {
+            result = temp;
+        }
+
+        NumberSemanticToken numberSemanticToken = new NumberSemanticToken()
+        {
+            LinePos = _line,
+            CharacterPos = _chPos,
+            LiteralValue = result,
+            NumberType = numberType
+        };
+        _tokens.Add(numberSemanticToken);
+        _tokenCount[SemanticTokenType.Number]++;
+        Console.WriteLine($"<{SemanticTokenType.Number}> <{numberType}>");
+        Console.WriteLine(LinkedListToString(_token.First));
+    }
+
     private void MakeToken(OperatorType operatorType)
     {
         OperatorSemanticToken operatorSemanticToken = new OperatorSemanticToken()
@@ -464,88 +628,20 @@ public class Lexer(string source)
         Console.WriteLine(LinkedListToString(_token.First));
     }
 
-    private void MakeToken(NumberType numberType)
-    {
-        NumberSemanticToken numberSemanticToken = new NumberSemanticToken()
-        {
-            LinePos = _line,
-            CharacterPos = _chPos,
-            LiteralValue = LinkedListToString(_token.First),
-            NumberType = numberType
-        };
-        _tokens.Add(numberSemanticToken);
-        _tokenCount[SemanticTokenType.Number]++;
-        Console.WriteLine($"<{SemanticTokenType.Number}> <{numberType}>");
-        Console.WriteLine(LinkedListToString(_token.First));
-    }
-
-    // 填充buffer操作
-    private void FillLeftBuffer() {
-        //cout << "fill left" << endl;
-        for (int i = 0; i < _buffer.Length / 2; i++) {
-            _buffer[i] = '$';
-        }
-
-        // 确保source字符串足够长，避免超出范围
-        int lengthToCopy = Math.Min(_buffer.Length / 2 - 1, source.Length - _sourcePos);
-
-        // 使用Array.Copy方法
-        Array.Copy(source.ToCharArray(), _sourcePos, _buffer, 0, lengthToCopy);
-
-        _sourcePos += lengthToCopy;
-
-        if (_sourcePos == source.Length) {
-            eof = true;
-        }
-    }
-
-    private void FillRightBuffer() {
-        //cout << "fill right" << endl;
-        for (int i = _buffer.Length / 2; i < _buffer.Length; i++) {
-            _buffer[i] = '$';
-        }
-
-        // 确保source字符串足够长，避免超出范围
-        int lengthToCopy = Math.Min(_buffer.Length / 2 - 1, source.Length - _sourcePos);
-
-        // 使用Array.Copy方法
-        Array.Copy(source.ToCharArray(), _sourcePos, _buffer, _buffer.Length / 2, lengthToCopy);
-
-        _sourcePos += lengthToCopy;
-
-        if (_sourcePos == source.Length) {
-            eof = true;
-        }
-    }
-
-    private void PrintBuffer() {
-        for (int i = 0; i < _buffer.Length; i++) {
-            Console.WriteLine($"[{i}] {_buffer[i]}");
-        }
-    }
-
-    void DealEof() {
-        if (eof) _finish = true;
-        else if (_fwdPos < _buffer.Length / 2) {
-            FillRightBuffer();
-            _fwdPos = _buffer.Length / 2;
-        }
-        else {
-            FillLeftBuffer();
-            // start_pos = 0;
-            _fwdPos = 0;
-        }
-    }
-
-    // 读取buffer操作
+    // 读取字符操作
     void GetChar() {
-        if (_fwdPos >= 0 && _fwdPos < _buffer.Length) _ch = _buffer[_fwdPos];
-        _chPos++;
-        if (_ch == '$') {
-            DealEof();
-            if (_fwdPos >= 0 && _fwdPos < _buffer.Length) _ch = _buffer[_fwdPos];
+        if (_fwdPos >= 0 && _fwdPos < source.Length)
+        {
+            _ch = source[_fwdPos];
+            _chPos++;
+            _fwdPos++;
         }
-        if (_fwdPos < _buffer.Length) _fwdPos++;
+        else if (_fwdPos == source.Length)
+        {
+            _ch = '\0';
+            _chPos++;
+            _finish = true;
+        }
     }
 
     private void GetNbc() {
@@ -622,23 +718,24 @@ public class Lexer(string source)
         {
             if (delimiter.Contains(_ch))
             {
-                if (_ch != ':')
-                {
-                    return true;
-                }
-
-                GetChar();
-                if (_ch == '=')
-                {
-                    Retract();
-                    return false;
-                }
-
                 return true;
             }
         }
         return false;
     }
+
+    private char PeekNextChar()
+    {
+        // 确认下一个位置是否仍在buffer的范围内
+        if (_fwdPos < source.Length)
+        {
+            return source[_fwdPos];
+        }
+        return '\0';
+
+    }
+
+
 
     private void PrintToken(SemanticTokenType type, LinkedListNode<char> token, uint line)
     {

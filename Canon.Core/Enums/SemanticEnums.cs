@@ -93,7 +93,7 @@ public enum StateType
     Word,
     Digit,
     Delimiter,
-    Other
+    Operator
 }
 
 public enum BasicIdType

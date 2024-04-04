@@ -21,6 +21,7 @@ public class KeywordTypeTests
     [InlineData("for", KeywordType.For)]
     [InlineData("to", KeywordType.To)]
     [InlineData("do", KeywordType.Do)]
+    [InlineData("DO", KeywordType.Do)]
     public void SmokeTest(string input, KeywordType type)
     {
         Lexer lexer = new(input);

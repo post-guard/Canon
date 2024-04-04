@@ -4,12 +4,10 @@ namespace Canon.Core.LexicalParser;
 
 using Enums;
 
-using System.Text;
-
 /// <summary>
 /// 词法记号基类
 /// </summary>
-public abstract class SemanticToken
+public abstract class SemanticToken : IEquatable<SemanticToken>
 {
     public abstract SemanticTokenType TokenType { get; }
 
@@ -59,7 +57,34 @@ public abstract class SemanticToken
         LinePos = 0, CharacterPos = 0, LiteralValue = string.Empty
     };
 
-    public override string ToString() => LiteralValue;
+    public override string ToString()
+    {
+        return $"LinePos: {LinePos}, CharacterPos: {CharacterPos}, LiteralValue: {LiteralValue}, TokenType: {TokenType}";
+    }
+
+    public bool Equals(SemanticToken? other)
+    {
+        if (other == null)
+            return false;
+
+        return LinePos == other.LinePos &&
+               CharacterPos == other.CharacterPos &&
+               LiteralValue == other.LiteralValue &&
+               TokenType == other.TokenType;
+    }
+
+    public override bool Equals(object? obj)
+    {
+        return obj is SemanticToken semanticTokenObj && Equals(semanticTokenObj);
+    }
+
+    public override int GetHashCode()
+    {
+        return LinePos.GetHashCode() ^
+               CharacterPos.GetHashCode() ^
+               LiteralValue.GetHashCode() ^
+               TokenType.GetHashCode();
+    }
 }
 
 /// <summary>
@@ -117,6 +142,11 @@ public class DelimiterSemanticToken : SemanticToken
             DelimiterType = value
         };
         return true;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode() ^ this.DelimiterType.GetHashCode();
     }
 }
 
@@ -218,6 +248,11 @@ public class KeywordSemanticToken : SemanticToken
         token = null;
         return false;
     }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode() ^ this.KeywordType.GetHashCode();
+    }
 }
 
 /// <summary>
@@ -229,11 +264,43 @@ public class OperatorSemanticToken : SemanticToken
 
     public required OperatorType OperatorType { get; init; }
 
+    public static readonly Dictionary<string, OperatorType> OperatorTypes = new Dictionary<string, OperatorType>
+    {
+        { "=", OperatorType.Equal },
+        { "<>", OperatorType.NotEqual },
+        { "<", OperatorType.Less },
+        { "<=", OperatorType.LessEqual },
+        { ">", OperatorType.Greater },
+        { ">=", OperatorType.GreaterEqual },
+        { "+", OperatorType.Plus },
+        { "-", OperatorType.Minus },
+        { "*", OperatorType.Multiply },
+        { "/", OperatorType.Divide },
+        { ":=", OperatorType.Assign }
+    };
+
+    public static OperatorType GetOperatorTypeByOperator(string operatorSymbol)
+    {
+        if (OperatorTypes.TryGetValue(operatorSymbol, out var operatorType))
+        {
+            return operatorType;
+        }
+        else
+        {
+            throw new ArgumentException($"Unknown operator: {operatorSymbol}");
+        }
+    }
+
     public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
         out OperatorSemanticToken? token)
     {
         token = null;
         return false;
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode() ^ this.OperatorType.GetHashCode();
     }
 }
 
@@ -245,65 +312,10 @@ public class NumberSemanticToken : SemanticToken
     public override SemanticTokenType TokenType => SemanticTokenType.Number;
 
     public required NumberType NumberType { get; init; }
-    public double Value { get; private init; }
 
-    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
-        out NumberSemanticToken? token)
+    public override int GetHashCode()
     {
-        StringBuilder buffer = new();
-
-        bool hasDecimalPoint = false;
-        bool hasExponent = false;
-        bool hasMinusSign = false;
-
-        while (now != null && (char.IsDigit(now.Value) || now.Value == '.' || now.Value == 'e' || now.Value == 'E' || now.Value == '-' || now.Value == '+'))
-        {
-            if (now.Value == '.')
-            {
-                if (hasDecimalPoint)
-                {
-                    break;
-                }
-                hasDecimalPoint = true;
-            }
-
-            if (now.Value == 'e' || now.Value == 'E')
-            {
-                if (hasExponent)
-                {
-                    break;
-                }
-                hasExponent = true;
-            }
-
-            if (now.Value == '-' || now.Value == '+')
-            {
-                if (hasMinusSign)
-                {
-                    break;
-                }
-                hasMinusSign = true;
-            }
-
-            buffer.Append(now.Value);
-            now = now.Next;
-        }
-
-        if (double.TryParse(buffer.ToString(), out double value))
-        {
-            token = new NumberSemanticToken
-            {
-                LinePos = linePos,
-                CharacterPos = characterPos,
-                LiteralValue = buffer.ToString(),
-                Value = value,
-                NumberType = hasDecimalPoint || hasExponent ? NumberType.Real : NumberType.Integer
-            };
-            return true;
-        }
-
-        token = null;
-        return false;
+        return base.GetHashCode() ^ this.NumberType.GetHashCode();
     }
 }
 

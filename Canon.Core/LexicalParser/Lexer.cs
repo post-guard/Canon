@@ -101,7 +101,6 @@ public class Lexer(string source)
             }
             else if (_ch == '{')
             {
-                GetChar();
                 while (_ch != '}')
                 {
                     GetChar();

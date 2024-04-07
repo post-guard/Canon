@@ -1,107 +1,109 @@
-﻿using Canon.Core.Exceptions;
+﻿using System.Diagnostics.CodeAnalysis;
 
 namespace Canon.Core.SemanticParser;
+
 /// <summary>
 ///符号表类
 /// </summary>
 public class SymbolTable
 {
-    public Dictionary<string, SymbolTableEntry> Entries;
+    /// <summary>
+    /// 符号表
+    /// </summary>
+    private readonly Dictionary<string, Symbol> _symbols = [];
 
-    public TypeTable TypesTable;    //当前符号表对应的类型表
+    /// <summary>
+    /// 类型表
+    /// </summary>
+    private readonly TypeTable _typeTable = new();
 
-    public SymbolTable? PreTable;  //直接外围符号表
+    /// <summary>
+    /// 父符号表
+    /// </summary>
+    private readonly SymbolTable? _parent;
 
-    public SymbolTable()
+    /// <summary>
+    /// 获得当前符号表的所有父符号表
+    /// </summary>
+    public IEnumerable<SymbolTable> ParentTables => GetParents();
+
+    public SymbolTable() {}
+
+    private SymbolTable(SymbolTable parent)
     {
-        Entries = new Dictionary<string, SymbolTableEntry>();
-        TypesTable = new TypeTable();
-        PreTable = null;
+        _parent = parent;
     }
 
-    public SymbolTable(SymbolTable preTable)
+    public SymbolTable CreateChildTable()
     {
-        Entries = new Dictionary<string, SymbolTableEntry>();
-        TypesTable = new TypeTable();
-        PreTable = preTable;
+        return new SymbolTable(this);
     }
 
     /// <summary>
-    /// 向符号表里插入一个表项
+    /// 尝试向符号表中添加符号
     /// </summary>
-    public void AddEntry(string idName, IdentifierType type, bool isConst, bool isVarParam)
-    {
-        if (Check(idName))
-        {
-            throw new SemanticException("failed to insert to SymbolTable! " +  idName + " is defined repeatedly");
-        }
-
-        Entries.Add(idName, new SymbolTableEntry(idName, type, isConst, isVarParam));
-    }
-
-    public void AddEntry(string idName, IdentifierType type, SymbolTable subTable)
-    {
-        if (Check(idName))
-        {
-            throw new SemanticException("failed to insert to SymbolTable! " +  idName + " is defined repeatedly");
-        }
-
-        Entries.Add(idName, new SymbolTableEntry(idName, type, subTable));
-    }
-
+    /// <param name="symbol">欲添加的符号</param>
+    /// <returns>是否添加成功</returns>
+    public bool TryAddSymbol(Symbol symbol) => _symbols.TryAdd(symbol.SymbolName, symbol);
 
     /// <summary>
-    ///检查符号表，看是否有变量重复声明
+    /// 尝试从符号表极其父符号表查找符号
     /// </summary>
-    /// <param name="idName">查询的id名称</param>
-    /// <returns>如果变量重复声明，返回true</returns>
-    public bool Check(string idName)
+    /// <param name="name">需要查找的符号名称</param>
+    /// <param name="symbol">查找到的符号</param>
+    /// <returns>是否查找到符号</returns>
+    public bool TryGetSymbol(string name, [NotNullWhen(true)] out Symbol? symbol)
     {
-        return Entries.ContainsKey(idName);
-    }
-
-    /// <summary>
-    /// 在符号表里查找，看当前引用变量是否声明
-    /// </summary>
-    /// <param name="idName">查询的id名称</param>
-    /// <returns>如果有定义，返回true</returns>
-    public bool Find(string idName)
-    {
-        if (Entries.ContainsKey(idName))
-        {
-            return true;
-        }
-        if (PreTable is not null && PreTable.Entries.ContainsKey(idName))
+        if (_symbols.TryGetValue(name, out symbol))
         {
             return true;
         }
 
-        throw new SemanticException("identifier "+ idName + " is not defined!");
+        foreach (SymbolTable table in ParentTables)
+        {
+            if (table._symbols.TryGetValue(name, out symbol))
+            {
+                return true;
+            }
+        }
+
+        symbol = null;
+        return false;
     }
 
     /// <summary>
-    /// 通过id名获取id的类型
+    /// 从符号表极其父表的类型表中查找类型
     /// </summary>
-    /// <param name="idName">id名字</param>
-    /// <returns>id在符号表里的类型</returns>
-    public IdentifierType GetIdTypeByName(string idName)
+    /// <param name="typeName">欲查找的类型名称</param>
+    /// <param name="type">查找到的类型</param>
+    /// <returns>是否查找到类型</returns>
+    public bool TryGetType(string typeName, [NotNullWhen(true)] out PascalType? type)
     {
-        if (Entries.ContainsKey(idName))
+        if (_typeTable.TryGetType(typeName, out type))
         {
-            return Entries[idName].Type;
-        }
-        if (PreTable is not null && PreTable.Entries.ContainsKey(idName))
-        {
-            return PreTable.Entries[idName].Type;
+            return true;
         }
 
-        throw new SemanticException("identifier "+ idName + " is not defined!");
+        foreach (SymbolTable parent in ParentTables)
+        {
+            if (parent._typeTable.TryGetType(typeName, out type))
+            {
+                return true;
+            }
+        }
+
+        type = null;
+        return false;
     }
 
-
-
-    public bool IsConst(string idName)
+    private IEnumerable<SymbolTable> GetParents()
     {
-        return Find(idName) && Entries[idName].IsConst;
+        SymbolTable? now = _parent;
+
+        while (now is not null)
+        {
+            yield return now;
+            now = now._parent;
+        }
     }
 }

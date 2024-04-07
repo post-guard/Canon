@@ -1,66 +1,37 @@
-﻿using System.Security;
-using Canon.Core.Enums;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Security;
 using Canon.Core.Exceptions;
 
 namespace Canon.Core.SemanticParser;
+
 /// <summary>
 /// 类型表
 /// </summary>
 public class TypeTable
 {
-    private Dictionary<string, IdentifierType> EntryDict { get; init; }
-
-    public TypeTable()
+    private readonly Dictionary<string, PascalType> _types = new()
     {
-        EntryDict = new Dictionary<string, IdentifierType>();
-        //加入4种基本类型
-        EntryDict.Add("integer", new BasicType(BasicIdType.Int));
-        EntryDict.Add("real", new BasicType(BasicIdType.Real));
-        EntryDict.Add("char", new BasicType(BasicIdType.Char));
-        EntryDict.Add("boolean", new BasicType(BasicIdType.Bool));
-    }
-
+        { PascalBasicType.Integer.TypeName, PascalBasicType.Integer },
+        { PascalBasicType.Boolean.TypeName, PascalBasicType.Boolean },
+        { PascalBasicType.Character.TypeName, PascalBasicType.Character },
+        { PascalBasicType.Real.TypeName, PascalBasicType.Real }
+    };
 
     /// <summary>
-    /// 判断类型表里是否已经有该类型
+    /// 根据类型名称查找类型表
     /// </summary>
-    /// <param name="typeName">类型名称</param>
-    /// <returns>如果有，返回true</returns>
-    public bool Check(string typeName)
+    /// <param name="typeName">想要查找的类型名称</param>
+    /// <param name="type">查找到的类型</param>
+    /// <returns>是否查找到类型</returns>
+    public bool TryGetType(string typeName, [NotNullWhen(true)] out PascalType? type)
     {
-        return EntryDict.ContainsKey(typeName);
-    }
+        if (!_types.ContainsKey(typeName))
+        {
+            type = null;
+            return false;
+        }
 
-    /// <summary>
-    /// 往类型表里添加类型
-    /// </summary>
-    /// <param name="typeName">类型名称</param>
-    /// <param name="identifierType">类型的类别(一般是记录)</param>
-    public void AddEntry(string typeName, IdentifierType identifierType)
-    {
-        if (!Check(typeName))
-        {
-            EntryDict.Add(typeName, identifierType);
-        }
-        else
-        {
-            throw new SemanticException("Failed to add to TypeTable! Types were repeatedly defined");
-        }
+        type = _types[typeName];
+        return true;
     }
-
-    /// <summary>
-    /// 由类型名获取类型
-    /// </summary>
-    public IdentifierType GetTypeByName(string typeName)
-    {
-        if (Check(typeName))
-        {
-            return EntryDict[typeName];
-        }
-        else
-        {
-            throw new SecurityException("Failed to get type from typeTable! Type is not existed");
-        }
-    }
-
 }

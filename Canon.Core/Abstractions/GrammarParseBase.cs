@@ -1,5 +1,7 @@
-﻿using Canon.Core.GrammarParser;
+﻿using Canon.Core.Enums;
+using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
+using Canon.Core.SyntaxNodes;
 
 namespace Canon.Core.Abstractions;
 
@@ -12,10 +14,10 @@ public abstract class GrammarParserBase
 
     public abstract NonTerminator Begin { get; }
 
-    public SyntaxNode Analyse(IEnumerable<SemanticToken> tokens)
+    public SyntaxNodeBase Analyse(IEnumerable<SemanticToken> tokens)
     {
         Stack<AnalyseState> stack = [];
-        stack.Push(new AnalyseState(BeginTransformer, new SyntaxNode(SemanticToken.End)));
+        stack.Push(new AnalyseState(BeginTransformer, SyntaxNodeBase.Create(SemanticToken.End)));
 
         using IEnumerator<SemanticToken> enumerator = tokens.GetEnumerator();
         if (!enumerator.MoveNext())
@@ -37,21 +39,24 @@ public abstract class GrammarParserBase
                     return top.Node;
                 }
 
-                SyntaxNode newNode = new(information.Left.Type);
+                List<SyntaxNodeBase> children = [];
+                NonTerminatorType leftType = information.Left.Type;
                 for (int i = 0; i < information.Length; i++)
                 {
-                    newNode.Children.Add(stack.Pop().Node);
+                    children.Add(stack.Pop().Node);
                 }
 
+                // 为了符合生成式的顺序而倒序
+                children.Reverse();
                 stack.Push(new AnalyseState(stack.Peek().State.ShiftTable[information.Left],
-                    newNode));
+                    SyntaxNodeBase.Create(leftType, children)));
                 continue;
             }
 
             // 如果没有成功归约就进行移进
             if (top.State.ShiftTable.TryGetValue(enumerator.Current, out ITransformer? next))
             {
-                stack.Push(new AnalyseState(next, new SyntaxNode(enumerator.Current)));
+                stack.Push(new AnalyseState(next, SyntaxNodeBase.Create(enumerator.Current)));
                 if (enumerator.MoveNext())
                 {
                     continue;
@@ -66,5 +71,5 @@ public abstract class GrammarParserBase
         }
     }
 
-    private record AnalyseState(ITransformer State, SyntaxNode Node);
+    private record AnalyseState(ITransformer State, SyntaxNodeBase Node);
 }

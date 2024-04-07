@@ -1,5 +1,4 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.LexicalParser;
 
 namespace Canon.Core.GrammarParser;
 
@@ -86,6 +85,4 @@ public class Grammar
         public IDictionary<Terminator, ReduceInformation> ReduceTable { get; }
             = new Dictionary<Terminator, ReduceInformation>();
     }
-
-    private record AnalyseState(LrState State, SyntaxNode Node);
 }

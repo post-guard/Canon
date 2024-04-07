@@ -1,11 +1,10 @@
 ﻿using Canon.Core.Enums;
-using Canon.Core.GrammarParser;
 
-namespace Canon.Tests.GrammarParserTests;
+namespace Canon.Core.GrammarParser;
 
-public partial class PascalGrammarTests
+public static class PascalGrammar
 {
-    private static readonly Dictionary<NonTerminator, List<List<TerminatorBase>>> s_pascalGrammar = new()
+    public static readonly Dictionary<NonTerminator, List<List<TerminatorBase>>> Grammar = new()
     {
         {
             // ProgramStart -> ProgramStruct

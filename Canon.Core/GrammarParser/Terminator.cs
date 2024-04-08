@@ -6,6 +6,13 @@ namespace Canon.Core.GrammarParser;
 public abstract class TerminatorBase
 {
     public abstract bool IsTerminated { get; }
+
+    /// <summary>
+    /// 生成能产生该符号的C#代码
+    /// 用于预生成分析表
+    /// </summary>
+    /// <returns>产生该符号的C#代码</returns>
+    public abstract string GenerateCode();
 }
 
 /// <summary>
@@ -43,6 +50,29 @@ public class Terminator : TerminatorBase, IEquatable<Terminator>
     private Terminator(SemanticTokenType type)
     {
         _terminatorType = type;
+    }
+
+    public override string GenerateCode()
+    {
+        switch (_terminatorType)
+        {
+            case SemanticTokenType.Keyword:
+                return $"new Terminator(KeywordType.{_keywordType})";
+            case SemanticTokenType.Delimiter:
+                return $"new Terminator(DelimiterType.{_delimiterType})";
+            case SemanticTokenType.Operator:
+                return $"new Terminator(OperatorType.{_operatorType})";
+            case SemanticTokenType.Identifier:
+                return "Terminator.IdentifierTerminator";
+            case SemanticTokenType.Character:
+                return "Terminator.CharacterTerminator";
+            case SemanticTokenType.Number:
+                return "Terminator.NumberTerminator";
+            case SemanticTokenType.End:
+                return "Terminator.EndTerminator";
+        }
+
+        throw new InvalidOperationException();
     }
 
     /// <summary>
@@ -203,6 +233,11 @@ public class NonTerminator(NonTerminatorType type) : TerminatorBase, IEquatable<
     public override int GetHashCode()
     {
         return Type.GetHashCode();
+    }
+
+    public override string GenerateCode()
+    {
+        return $"new NonTerminator(NonTerminatorType.{Type})";
     }
 
     public override string ToString() => Type.ToString();

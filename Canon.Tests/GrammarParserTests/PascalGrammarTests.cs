@@ -1,31 +1,13 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.Enums;
-using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
+using Canon.Tests.GeneratedParserTests;
 
 namespace Canon.Tests.GrammarParserTests;
 
 public class PascalGrammarTests
 {
-    private readonly GrammarBuilder _builder = new()
-    {
-        Generators = PascalGrammar.Grammar, Begin = new NonTerminator(NonTerminatorType.StartNonTerminator)
-    };
-
-    private readonly GrammarParserBase _parser;
-
-    public PascalGrammarTests()
-    {
-        Grammar grammar = _builder.Build();
-        _parser = grammar.ToGrammarParser();
-    }
-
-    [Fact]
-    public void GrammarTest()
-    {
-        Assert.NotNull(_parser);
-    }
+    private readonly GrammarParserBase _parser = GeneratedGrammarParser.Instance;
 
     [Fact]
     public void DoNothingTest()

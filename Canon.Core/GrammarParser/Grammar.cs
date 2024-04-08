@@ -79,6 +79,8 @@ public class Grammar
 
     private class Transformer : ITransformer
     {
+        public string Name => string.Empty;
+
         public IDictionary<TerminatorBase, ITransformer> ShiftTable { get; }
             = new Dictionary<TerminatorBase, ITransformer>();
 

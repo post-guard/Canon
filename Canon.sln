@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{CA16
 	ProjectSection(SolutionItems) = preProject
 		scripts\build.sh = scripts\build.sh
 		scripts\integration_test.py = scripts\integration_test.py
+		scripts\Dockerfile-build = scripts\Dockerfile-build
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canon.Tests", "Canon.Tests\Canon.Tests.csproj", "{E5F2B97B-3766-466D-9309-BA361F0CE15E}"

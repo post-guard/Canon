@@ -1,0 +1,17 @@
+FROM ubuntu:20.04
+
+RUN sed -i 's/http:\/\/archive.ubuntu.com/http:\/\/mirrors.tuna.tsinghua.edu.cn\/ubuntu/g' /etc/apt/sources.list
+RUN apt update \
+    && apt upgrade -y \
+    && apt install libc6 libgcc-s1 libgssapi-krb5-2 libicu66 libssl1.1 libstdc++6 zlib1g curl clang zlib1g-dev -y
+RUN useradd user -m
+USER user:user
+WORKDIR /home/user
+RUN curl --request GET -sL \
+    --url 'https://dot.net/v1/dotnet-install.sh'\
+    --output 'dotnet-install.sh' \
+    && chmod +x dotnet-install.sh \
+    && ./dotnet-install.sh --channel 8.0
+RUN echo 'export DOTNET_ROOT=$HOME/.dotnet' >> /home/user/.bashrc
+RUN echo 'export PATH=$PATH:$DOTNET_ROOT:$DOTNET_ROOT/tools' >> /home/user/.bashrc
+

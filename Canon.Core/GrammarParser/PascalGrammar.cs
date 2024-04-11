@@ -109,9 +109,7 @@ public static class PascalGrammar
                     Terminator.NumberTerminator,
                 ],
                 [
-                    new Terminator(DelimiterType.SingleQuotation),
                     Terminator.CharacterTerminator,
-                    new Terminator(DelimiterType.SingleQuotation),
                 ]
             ]
         },

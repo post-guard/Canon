@@ -1,9 +1,11 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public abstract class SyntaxNodeBase
+public abstract class SyntaxNodeBase : ICCodeGenerator
 {
     public abstract bool IsTerminated { get; }
 
@@ -17,6 +19,14 @@ public abstract class SyntaxNodeBase
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 语法树节点基类对于生成C代码的默认实现
+    /// </summary>
+    public virtual void GenerateCCode(CCodeBuilder builder)
+    {
+
     }
 
     public static SyntaxNodeBase Create(SemanticToken token)

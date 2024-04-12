@@ -7,11 +7,11 @@ namespace Canon.Generator.GrammarGenerator;
 public class GeneratedGrammarParser(
     Dictionary<string, GeneratedTransformer> transformers,
     string beginState,
-    NonTerminator begin) : GrammarParserBase
+    NonTerminator begin) : IGrammarParser
 {
-    public override ITransformer BeginTransformer => transformers[beginState];
+    public ITransformer BeginTransformer => transformers[beginState];
 
-    public override NonTerminator Begin => begin;
+    public NonTerminator Begin => begin;
 
     public string GenerateCode(string namespaceValue)
     {
@@ -74,7 +74,7 @@ public class GeneratedGrammarParser(
                        """);
         builder.Append('\n');
 
-        builder.Append("public class GeneratedGrammarParser : GrammarParserBase\n")
+        builder.Append("public class GeneratedGrammarParser : IGrammarParser\n")
             .Append("{\n");
 
         builder.Append("\tprivate static readonly Dictionary<string, GeneratedTransformer> s_transformers = new()\n")
@@ -104,10 +104,10 @@ public class GeneratedGrammarParser(
                        """);
         builder.Append("\n");
 
-        builder.Append('\t').Append("public override ITransformer BeginTransformer => ")
+        builder.Append('\t').Append("public ITransformer BeginTransformer => ")
             .Append($"s_transformers[\"{beginState}\"];\n");
 
-        builder.Append('\t').Append("public override NonTerminator Begin => ")
+        builder.Append('\t').Append("public NonTerminator Begin => ")
             .Append(begin.GenerateCode()).Append(";\n");
 
         builder.Append("}\n");

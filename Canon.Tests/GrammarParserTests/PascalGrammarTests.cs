@@ -9,7 +9,7 @@ namespace Canon.Tests.GrammarParserTests;
 
 public class PascalGrammarTests
 {
-    private readonly GrammarParserBase _parser = GeneratedGrammarParser.Instance;
+    private readonly IGrammarParser _parser = GeneratedGrammarParser.Instance;
 
     [Fact]
     public void DoNothingTest()
@@ -24,8 +24,9 @@ public class PascalGrammarTests
         List<SemanticToken> tokens = lexer.Tokenize();
         tokens.Add(SemanticToken.End);
 
-        ProgramStruct root = _parser.Analyse(tokens).Convert<ProgramStruct>();
+        ProgramStruct root = _parser.Analyse(tokens);
         Assert.Equal("DoNothing", root.Head.ProgramName.LiteralValue);
+        Assert.Equal(15, root.Count());
     }
 
     [Fact]
@@ -43,7 +44,7 @@ public class PascalGrammarTests
         List<SemanticToken> tokens = lexer.Tokenize();
         tokens.Add(SemanticToken.End);
 
-        ProgramStruct root = _parser.Analyse(tokens).Convert<ProgramStruct>();
+        ProgramStruct root = _parser.Analyse(tokens);
         Assert.Equal("Add", root.Head.ProgramName.LiteralValue);
     }
 
@@ -63,11 +64,11 @@ public class PascalGrammarTests
         List<SemanticToken> tokens = lexer.Tokenize();
         tokens.Add(SemanticToken.End);
 
-        ProgramStruct root = _parser.Analyse(tokens).Convert<ProgramStruct>();
+        ProgramStruct root = _parser.Analyse(tokens);
         Assert.Equal("exFunction", root.Head.ProgramName.LiteralValue);
     }
 
-    private static GrammarParserBase GenerateGrammarParser()
+    private static IGrammarParser GenerateGrammarParser()
     {
         GrammarBuilder builder = new()
         {

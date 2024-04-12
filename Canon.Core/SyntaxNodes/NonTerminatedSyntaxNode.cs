@@ -21,12 +21,14 @@ public abstract class NonTerminatedSyntaxNode : SyntaxNodeBase, IEnumerable<Synt
             {
                 yield return child;
             }
-
-            NonTerminatedSyntaxNode nonTerminatedNode = child.Convert<NonTerminatedSyntaxNode>();
-
-            foreach (SyntaxNodeBase node in nonTerminatedNode)
+            else
             {
-                yield return node;
+                NonTerminatedSyntaxNode nonTerminatedNode = child.Convert<NonTerminatedSyntaxNode>();
+
+                foreach (SyntaxNodeBase node in nonTerminatedNode)
+                {
+                    yield return node;
+                }
             }
         }
     }

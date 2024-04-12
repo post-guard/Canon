@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -19,5 +20,10 @@ public class ProgramStruct : NonTerminatedSyntaxNode
     public static ProgramStruct Create(List<SyntaxNodeBase> children)
     {
         return new ProgramStruct { Children = children };
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        builder.AddString("#include <PascalCoreLib.h>");
     }
 }

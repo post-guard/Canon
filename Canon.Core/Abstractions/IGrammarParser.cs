@@ -8,13 +8,19 @@ namespace Canon.Core.Abstractions;
 /// <summary>
 /// 语法分析器接口
 /// </summary>
-public abstract class GrammarParserBase
+public interface IGrammarParser
 {
-    public abstract ITransformer BeginTransformer { get; }
+    public ITransformer BeginTransformer { get; }
 
-    public abstract NonTerminator Begin { get; }
+    public NonTerminator Begin { get; }
 
-    public SyntaxNodeBase Analyse(IEnumerable<SemanticToken> tokens)
+    /// <summary>
+    /// 分析指定的词法记号流并构建对应的语法树
+    /// </summary>
+    /// <param name="tokens">输入的词法记号流</param>
+    /// <returns>语法树的根节点</returns>
+    /// <exception cref="InvalidOperationException">语法分析错误</exception>
+    public ProgramStruct Analyse(IEnumerable<SemanticToken> tokens)
     {
         Stack<AnalyseState> stack = [];
         stack.Push(new AnalyseState(BeginTransformer, SyntaxNodeBase.Create(SemanticToken.End)));
@@ -36,7 +42,7 @@ public abstract class GrammarParserBase
                 {
                     // 如果是归约到起始符
                     // 那么就直接返回不继续进行归约
-                    return top.Node;
+                    return top.Node.Convert<ProgramStruct>();
                 }
 
                 List<SyntaxNodeBase> children = [];

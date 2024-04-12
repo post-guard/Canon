@@ -159,7 +159,7 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
         };
 
         Grammar grammar = builder.Build();
-        GrammarParserBase parser = grammar.ToGrammarParser();
+        IGrammarParser parser = grammar.ToGrammarParser();
 
         ITransformer transformer1 = parser.BeginTransformer;
         Assert.Equal(3, transformer1.ShiftTable.Count);

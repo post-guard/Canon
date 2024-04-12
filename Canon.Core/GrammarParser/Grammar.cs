@@ -22,7 +22,7 @@ public class Grammar
     /// </summary>
     public required LrState BeginState { get; init; }
 
-    public GrammarParserBase ToGrammarParser()
+    public IGrammarParser ToGrammarParser()
     {
         Dictionary<LrState, Transformer> transformers = [];
 
@@ -71,10 +71,10 @@ public class Grammar
         return new GrammarParser(transformers[BeginState], Begin);
     }
 
-    private class GrammarParser(ITransformer beginTransformer, NonTerminator begin) : GrammarParserBase
+    private class GrammarParser(ITransformer beginTransformer, NonTerminator begin) : IGrammarParser
     {
-        public override ITransformer BeginTransformer { get; } = beginTransformer;
-        public override NonTerminator Begin { get; } = begin;
+        public ITransformer BeginTransformer { get; } = beginTransformer;
+        public NonTerminator Begin { get; } = begin;
     }
 
     private class Transformer : ITransformer

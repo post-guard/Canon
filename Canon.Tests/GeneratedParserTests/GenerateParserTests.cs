@@ -11,7 +11,7 @@ public class GenerateParserTests
         Generators = PascalGrammar.Grammar, Begin = new NonTerminator(NonTerminatorType.StartNonTerminator)
     };
 
-    private readonly GrammarParserBase _parser;
+    private readonly IGrammarParser _parser;
 
     public GenerateParserTests()
     {

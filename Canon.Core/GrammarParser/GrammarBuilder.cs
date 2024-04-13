@@ -20,6 +20,61 @@ public class GrammarBuilder
     public HashSet<LrState> Automation { get; } = [];
 
     /// <summary>
+    /// 向指定非终结符的FirstSet中添加指定符号的FirstSet
+    /// </summary>
+    /// <param name="target">指定的非终结符</param>
+    /// <param name="t">指定的符号</param>
+    /// <param name="changed">标记是否改变了FirstSet</param>
+    private void AddFirstSetOfTerminatorBase(NonTerminator target, TerminatorBase t, ref bool changed)
+    {
+        if (t.IsTerminated)
+        {
+            Terminator terminator = (Terminator)t;
+
+            if (FirstSet.TryGetValue(target, out HashSet<Terminator>? firstSet))
+            {
+                if (firstSet.Add(terminator))
+                {
+                    changed = true;
+                }
+            }
+            else
+            {
+                FirstSet.Add(target, [terminator]);
+                changed = true;
+            }
+        }
+        else
+        {
+            NonTerminator nonTerminator = (NonTerminator)t;
+
+            if (!FirstSet.TryGetValue(nonTerminator, out HashSet<Terminator>? firstSet))
+            {
+                return;
+            }
+
+            if (!FirstSet.ContainsKey(target))
+            {
+                FirstSet.Add(target, []);
+                changed = true;
+            }
+
+            foreach (Terminator i in firstSet)
+            {
+                if (i == Terminator.EmptyTerminator)
+                {
+                    continue;
+                }
+
+                if (FirstSet[target].Add(i))
+                {
+                    changed = true;
+                }
+            }
+        }
+    }
+
+    /// <summary>
     /// 构建文法中所有非终结符的First集合
     /// </summary>
     private void BuildFirstSet()
@@ -34,53 +89,44 @@ public class GrammarBuilder
             {
                 foreach (List<TerminatorBase> expression in pair.Value)
                 {
-                    // TODO: 对于空产生式直接跳过处理是正确的吗
-                    TerminatorBase? expressionHead = expression.FirstOrDefault();
-                    if (expressionHead is null)
+                    TerminatorBase expressionHead = expression.First();
+                    AddFirstSetOfTerminatorBase(pair.Key, expressionHead, ref changed);
+
+                    // 处理空产生式
+                    for (int i = 0; i < expression.Count; i++)
                     {
-                        continue;
-                    }
-
-
-                    if (expressionHead.IsTerminated)
-                    {
-                        // 产生式的第一个字符是终结符
-                        // 将这个终结符加入该非终结符的First集合
-                        Terminator terminator = (Terminator)expressionHead;
-
-                        if (FirstSet.TryAdd(pair.Key, [terminator]))
+                        if (!expression[i].IsTerminated)
                         {
-                            changed = true;
+                            NonTerminator nonTerminator = (NonTerminator)expression[i];
+
+                            // 可以推出空产生式
+                            // 则将下一个符号的FirstSet加入该符号的集合中
+                            if (!FirstSet.TryGetValue(nonTerminator, out HashSet<Terminator>? firstSet))
+                            {
+                                break;
+                            }
+
+                            if (!firstSet.Contains(Terminator.EmptyTerminator))
+                            {
+                                break;
+                            }
+
+                            if (i + 1 < expression.Count)
+                            {
+                                // 还有下一个符号
+                                // 就把下一个符号的FirstSet加入
+                                AddFirstSetOfTerminatorBase(pair.Key, expression[i + 1], ref changed);
+                            }
+                            else
+                            {
+                                // 没有下一个符号了
+                                // 就需要加入空串
+                                AddFirstSetOfTerminatorBase(pair.Key, Terminator.EmptyTerminator, ref changed);
+                            }
                         }
                         else
                         {
-                            if (FirstSet[pair.Key].Add(terminator))
-                            {
-                                changed = true;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        NonTerminator nonTerminator = (NonTerminator)expressionHead;
-                        // 产生式的第一个字符是非终结符
-                        // 将该非终结符的结果合并到该
-                        if (FirstSet.TryGetValue(nonTerminator, out HashSet<Terminator>? value))
-                        {
-                            foreach (Terminator first in value)
-                            {
-                                if (FirstSet.TryAdd(pair.Key, [first]))
-                                {
-                                    changed = true;
-                                }
-                                else
-                                {
-                                    if (FirstSet[pair.Key].Add(first))
-                                    {
-                                        changed = true;
-                                    }
-                                }
-                            }
+                            break;
                         }
                     }
                 }

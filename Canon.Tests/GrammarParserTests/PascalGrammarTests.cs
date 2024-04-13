@@ -68,14 +68,23 @@ public class PascalGrammarTests
         Assert.Equal("exFunction", root.Head.ProgramName.LiteralValue);
     }
 
-    private static IGrammarParser GenerateGrammarParser()
+    [Fact]
+    public void SubprogramTest()
     {
-        GrammarBuilder builder = new()
-        {
-            Generators = PascalGrammar.Grammar, Begin = new NonTerminator(NonTerminatorType.StartNonTerminator)
-        };
+        const string program = """
+                               program main;
+                               procedure test;
+                               begin
+                               end;
+                               begin
+                               end.
+                               """;
 
-        Grammar grammar = builder.Build();
-        return grammar.ToGrammarParser();
+        Lexer lexer = new(program);
+        List<SemanticToken> tokens = lexer.Tokenize();
+        tokens.Add(SemanticToken.End);
+
+        ProgramStruct root = _parser.Analyse(tokens);
+        Assert.Equal("main", root.Head.ProgramName.LiteralValue);
     }
 }

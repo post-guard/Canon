@@ -59,4 +59,15 @@ public class GenerateParserTests
             }
         }
     }
+
+    [Fact]
+    public void SubprogramDeclarationsFirstSetTest()
+    {
+        Assert.True(_builder.FirstSet.TryGetValue(
+            new NonTerminator(NonTerminatorType.SubprogramDeclarations), out HashSet<Terminator>? firstSet));
+        Assert.NotNull(firstSet);
+        Assert.Contains(Terminator.EmptyTerminator, firstSet);
+        Assert.Contains(new Terminator(KeywordType.Procedure), firstSet);
+        Assert.Contains(new Terminator(KeywordType.Function), firstSet);
+    }
 }

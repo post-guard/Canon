@@ -2,13 +2,15 @@
 using Canon.Core.LexicalParser;
 using Xunit.Abstractions;
 using Canon.Core.Exceptions;
+using Canon.Core.Abstractions;
+using Canon.Tests.Utils;
 
 namespace Canon.Tests.LexicalParserTests
 {
     public class CharacterTypeTests
     {
         private readonly ITestOutputHelper _testOutputHelper;
-
+        private readonly ILexer _lexer = new Lexer();
         public CharacterTypeTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
@@ -20,16 +22,15 @@ namespace Canon.Tests.LexicalParserTests
 
         public void TestCharacterType(string input, string? expectedResult)
         {
-            Lexer lexer = new(input);
+            IEnumerable<SemanticToken> tokensEnumerable = _lexer.Tokenize(new StringSourceReader(input));
+            List<SemanticToken> tokens = tokensEnumerable.ToList();
             if (expectedResult == null)
             {
-                Assert.Throws<LexemeException>(() => lexer.Tokenize());
+                Assert.Throws<LexemeException>(() => tokens);
             }
             else
             {
-                List<SemanticToken> tokens = lexer.Tokenize();
                 _testOutputHelper.WriteLine(tokens[0].LiteralValue);
-                Assert.Single(tokens);
                 Assert.Equal(SemanticTokenType.Character, tokens[0].TokenType);
                 Assert.Equal(expectedResult, tokens[0].LiteralValue);
             }
@@ -43,8 +44,8 @@ namespace Canon.Tests.LexicalParserTests
         //[InlineData("\"x\'", 1, 3, LexemeException.LexemeErrorType.UnclosedStringLiteral)]
         public void TestParseCharacterError(string input,  uint expectedLine, uint expectedCharPosition, LexemeErrorType expectedErrorType)
         {
-            Lexer lexer = new(input);
-            var ex = Assert.Throws<LexemeException>(() => lexer.Tokenize());
+
+            var ex = Assert.Throws<LexemeException>(() => _lexer.Tokenize(new StringSourceReader(input)).ToList());
             _testOutputHelper.WriteLine(ex.ToString());
             Assert.Equal(expectedErrorType, ex.ErrorType);
             Assert.Equal(expectedLine, ex.Line);

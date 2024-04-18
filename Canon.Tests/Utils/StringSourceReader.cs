@@ -6,10 +6,11 @@ namespace Canon.Tests.Utils;
 /// <summary>
 /// 从字符串中读取源代码
 /// </summary>
-public sealed class StringSourceReader(string source) : ISourceReader, IDisposable
+public sealed class StringSourceReader(string source) : ISourceReader
 {
-    private readonly IEnumerator<char> _enumerator =
-        source.GetEnumerator();
+    private int _pos = -1;
+
+    private uint _lastPos;
 
     public uint Line { get; private set; } = 1;
 
@@ -17,31 +18,70 @@ public sealed class StringSourceReader(string source) : ISourceReader, IDisposab
 
     public string FileName => "string";
 
-    public bool TryReadChar([NotNullWhen(true)] out char? c)
+    public char Current
     {
-        if (Pos != 0 || Line != 1)
+        get
         {
-            // 不是第一次读取
-            if (_enumerator.Current == '\n')
+            if (_pos == -1)
             {
-                Pos = 0;
-                Line += 1;
+                throw new InvalidOperationException("Reader at before the start.");
+            }
+            else
+            {
+                return source[_pos];
             }
         }
+    }
 
-        if (!_enumerator.MoveNext())
+    public bool Retract()
+    {
+        if (_pos <= 0)
+        {
+            return false;
+        }
+
+        _pos -= 1;
+        if (Current == '\n')
+        {
+            Line -= 1;
+            // TODO: 如果一直回退就完蛋了
+            Pos = _lastPos;
+        }
+        else
+        {
+            Pos -= 1;
+        }
+        return true;
+    }
+
+    public bool MoveNext()
+    {
+        if (_pos >= source.Length - 1)
+        {
+            return false;
+        }
+
+        if (_pos != -1 && Current == '\n')
+        {
+            Line += 1;
+            _lastPos = Pos;
+            Pos = 0;
+        }
+
+        _pos += 1;
+        Pos += 1;
+        return true;
+    }
+
+    public bool TryPeekChar([NotNullWhen(true)] out char? c)
+    {
+        if (_pos >= source.Length - 1)
         {
             c = null;
             return false;
         }
 
-        Pos += 1;
-        c = _enumerator.Current;
+        c = source[_pos + 1];
         return true;
-    }
-
-    public void Dispose()
-    {
-        _enumerator.Dispose();
     }
 }

@@ -339,18 +339,4 @@ public class EndSemanticToken : SemanticToken
     public override SemanticTokenType TokenType => SemanticTokenType.End;
 }
 
-/// <summary>
-/// 错误类型记号
-/// </summary>
-public class ErrorSemanticToken : SemanticToken
-{
-    public override SemanticTokenType TokenType => SemanticTokenType.Error;
-
-    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
-        out IdentifierSemanticToken? token)
-    {
-        token = null;
-        return false;
-    }
-}
 

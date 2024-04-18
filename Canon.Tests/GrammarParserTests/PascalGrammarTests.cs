@@ -4,12 +4,14 @@ using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
 using Canon.Tests.GeneratedParserTests;
+using Canon.Tests.Utils;
 
 namespace Canon.Tests.GrammarParserTests;
 
 public class PascalGrammarTests
 {
     private readonly IGrammarParser _parser = GeneratedGrammarParser.Instance;
+    private readonly ILexer _lexer = new Lexer();
 
     [Fact]
     public void DoNothingTest()
@@ -20,9 +22,7 @@ public class PascalGrammarTests
                          end.
                          """;
 
-        Lexer lexer = new(program);
-        List<SemanticToken> tokens = lexer.Tokenize();
-        tokens.Add(SemanticToken.End);
+        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
 
         ProgramStruct root = _parser.Analyse(tokens);
         Assert.Equal("DoNothing", root.Head.ProgramName.LiteralValue);
@@ -39,10 +39,7 @@ public class PascalGrammarTests
                                a := 1 + 1
                                end.
                                """;
-
-        Lexer lexer = new(program);
-        List<SemanticToken> tokens = lexer.Tokenize();
-        tokens.Add(SemanticToken.End);
+        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
 
         ProgramStruct root = _parser.Analyse(tokens);
         Assert.Equal("Add", root.Head.ProgramName.LiteralValue);
@@ -59,10 +56,7 @@ public class PascalGrammarTests
                                writeln( str, ret );
                                end.
                                """;
-
-        Lexer lexer = new(program);
-        List<SemanticToken> tokens = lexer.Tokenize();
-        tokens.Add(SemanticToken.End);
+        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
 
         ProgramStruct root = _parser.Analyse(tokens);
         Assert.Equal("exFunction", root.Head.ProgramName.LiteralValue);
@@ -79,10 +73,7 @@ public class PascalGrammarTests
                                begin
                                end.
                                """;
-
-        Lexer lexer = new(program);
-        List<SemanticToken> tokens = lexer.Tokenize();
-        tokens.Add(SemanticToken.End);
+        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
 
         ProgramStruct root = _parser.Analyse(tokens);
         Assert.Equal("main", root.Head.ProgramName.LiteralValue);

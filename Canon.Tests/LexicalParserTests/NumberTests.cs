@@ -2,12 +2,14 @@
 using Canon.Core.LexicalParser;
 using Canon.Core.Exceptions;
 using Xunit.Abstractions;
-
+using Canon.Tests.Utils;
+using Canon.Core.Abstractions;
 namespace Canon.Tests.LexicalParserTests
 {
 
     public class NumberTests
     {
+        private readonly ILexer _lexer = new Lexer();
         private readonly ITestOutputHelper _testOutputHelper;
         public NumberTests(ITestOutputHelper testOutputHelper)
         {
@@ -31,8 +33,8 @@ namespace Canon.Tests.LexicalParserTests
         [InlineData("$123", "0x123", NumberType.Hex)]
         public void TestParseNumber(string input, string expected, NumberType expectedNumberType)
         {
-            Lexer lexer = new(input);
-            List<SemanticToken> tokens = lexer.Tokenize();
+            IEnumerable<SemanticToken> tokensEnumerable = _lexer.Tokenize(new StringSourceReader(input));
+            List<SemanticToken> tokens = tokensEnumerable.ToList();
             SemanticToken token = tokens[0];
             Assert.Equal(SemanticTokenType.Number, token.TokenType);
             NumberSemanticToken numberSemanticToken = (NumberSemanticToken)token;
@@ -41,14 +43,13 @@ namespace Canon.Tests.LexicalParserTests
         }
 
         [Theory]
-        [InlineData("1E",  1, 3, LexemeErrorType.IllegalNumberFormat)]
+        [InlineData("1E",  1, 2, LexemeErrorType.IllegalNumberFormat)]
         [InlineData("123abc",  1, 4, LexemeErrorType.IllegalNumberFormat)]
         [InlineData("123.45.67",  1, 7, LexemeErrorType.IllegalNumberFormat)]
         [InlineData("123identifier", 1, 4, LexemeErrorType.IllegalNumberFormat)]
         public void TestParseNumberError(string input,  uint expectedLine, uint expectedCharPosition, LexemeErrorType expectedErrorType)
         {
-            Lexer lexer = new(input);
-            var ex = Assert.Throws<LexemeException>(() => lexer.Tokenize());
+            var ex = Assert.Throws<LexemeException>(() => _lexer.Tokenize(new StringSourceReader(input)).ToList());
             _testOutputHelper.WriteLine(ex.ToString());
             Assert.Equal(expectedErrorType, ex.ErrorType);
             Assert.Equal(expectedLine, ex.Line);

@@ -9,7 +9,6 @@ public enum SemanticTokenType
     Identifier,
     Character,
     Empty,
-    Error,  // 加了一个错误token
     /// <summary>
     /// 语法分析中的栈底符号
     /// </summary>
@@ -90,10 +89,15 @@ public enum NumberType
 
 public enum StateType
 {
+    Start,
+    Comment,
     Word,
-    Digit,
+    Num,
     Delimiter,
-    Operator
+    Operator,
+    BreakPoint,
+    Unknown,
+    Done
 }
 
 public enum BasicIdType

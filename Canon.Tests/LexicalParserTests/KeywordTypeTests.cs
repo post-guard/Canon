@@ -1,10 +1,14 @@
 ﻿using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
+using Canon.Tests.Utils;
+using Canon.Core.Abstractions;
 
 namespace Canon.Tests.LexicalParserTests;
 
 public class KeywordTypeTests
 {
+    private readonly ILexer _lexer = new Lexer();
+
     [Theory]
     [InlineData("program", KeywordType.Program)]
     [InlineData("const", KeywordType.Const)]
@@ -24,8 +28,8 @@ public class KeywordTypeTests
     [InlineData("DO", KeywordType.Do)]
     public void SmokeTest(string input, KeywordType type)
     {
-        Lexer lexer = new(input);
-        List<SemanticToken> tokens = lexer.Tokenize();
+        IEnumerable<SemanticToken> tokensEnumerable = _lexer.Tokenize(new StringSourceReader(input));
+        List<SemanticToken> tokens = tokensEnumerable.ToList();
 
         SemanticToken token = tokens[0];
         Assert.Equal(SemanticTokenType.Keyword, token.TokenType);

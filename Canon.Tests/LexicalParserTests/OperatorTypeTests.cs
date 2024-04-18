@@ -1,10 +1,13 @@
 ﻿using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
-
+using Canon.Tests.Utils;
+using Canon.Core.Abstractions;
 namespace Canon.Tests.LexicalParserTests;
 
 public class OperatorTypeTests
 {
+    private readonly ILexer _lexer = new Lexer();
+
     [Theory]
     [InlineData("+ 123", OperatorType.Plus, true)]
     [InlineData("+123", OperatorType.Plus, true)]
@@ -22,8 +25,8 @@ public class OperatorTypeTests
     [InlineData("m +123", OperatorType.Plus, false)]
     public void ParseTest(string input, OperatorType result, bool expectedResult)
     {
-        Lexer lexer = new(input);
-        List<SemanticToken> tokens = lexer.Tokenize();
+        IEnumerable<SemanticToken> tokensEnumerable = _lexer.Tokenize(new StringSourceReader(input));
+        List<SemanticToken> tokens = tokensEnumerable.ToList();
 
         SemanticToken token = tokens[0];
         if (!expectedResult)

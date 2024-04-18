@@ -1,10 +1,13 @@
 ﻿using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
-
+using Canon.Tests.Utils;
+using Canon.Core.Abstractions;
 namespace Canon.Tests.LexicalParserTests;
 
 public class DelimiterTests
 {
+    private readonly ILexer _lexer = new Lexer();
+
     [Theory]
     [InlineData(",123", DelimiterType.Comma)]
     // [InlineData(".123", DelimiterType.Period)]
@@ -16,8 +19,8 @@ public class DelimiterTests
     [InlineData("]asd", DelimiterType.RightSquareBracket)]
     public void SmokeTest(string input, DelimiterType type)
     {
-        Lexer lexer = new(input);
-        List<SemanticToken> tokens = lexer.Tokenize();
+        IEnumerable<SemanticToken> tokensEnumerable = _lexer.Tokenize(new StringSourceReader(input));
+        List<SemanticToken> tokens = tokensEnumerable.ToList();
 
         SemanticToken token = tokens[0];
         Assert.Equal(SemanticTokenType.Delimiter, token.TokenType);

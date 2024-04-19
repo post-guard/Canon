@@ -12,11 +12,12 @@ public class GenerateParserTests
     };
 
     private readonly IGrammarParser _parser;
+    private readonly Grammar _grammar;
 
     public GenerateParserTests()
     {
-        Grammar grammar = _builder.Build();
-        _parser = grammar.ToGrammarParser();
+        _grammar = _builder.Build();
+        _parser = _grammar.ToGrammarParser();
     }
 
     [Fact]
@@ -41,7 +42,7 @@ public class GenerateParserTests
 
             visited.Add(generatedTransformer.Name);
 
-            foreach (KeyValuePair<TerminatorBase,ITransformer> pair in originTransformer.ShiftTable)
+            foreach (KeyValuePair<TerminatorBase, ITransformer> pair in originTransformer.ShiftTable)
             {
                 Assert.True(generatedTransformer.ShiftTable.TryGetValue(pair.Key, out ITransformer? nextTransformer));
                 Assert.NotNull(nextTransformer);
@@ -49,7 +50,7 @@ public class GenerateParserTests
                 transformerQueue.Enqueue((pair.Value, nextTransformer));
             }
 
-            foreach (KeyValuePair<Terminator,ReduceInformation> pair in originTransformer.ReduceTable)
+            foreach (KeyValuePair<Terminator, ReduceInformation> pair in originTransformer.ReduceTable)
             {
                 Assert.True(generatedTransformer.ReduceTable.TryGetValue(pair.Key, out ReduceInformation? information));
                 Assert.NotNull(information);

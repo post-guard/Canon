@@ -1,0 +1,28 @@
+name: Build Docker Image
+on:
+    push:
+        branches:
+            - master
+
+jobs:
+    Build-Canon:
+        runs-on: archlinux
+        steps:
+            -   uses: https://git.rrricardo.top/actions/checkout@v4
+                name: Check out code
+                with:
+                    github-server-url: 'https://git.rrricardo.top'
+            -   name: Cache nuget packages
+                uses: https://git.rrricardo.top/actions/cache@v4
+                with:
+                    path: ~/.nuget/packages
+                    key: ${{ runner.os }}-nuget
+                    save-always: true
+            -   name: Build .net assembly
+                run: |
+                    cd Canon.Server
+                    dotnet publish
+            -   name: Build docker image
+                run: |
+                    cd Canon.Server
+                    docker build . -t canon-server:latestjj

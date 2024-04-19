@@ -34,4 +34,9 @@ public abstract class NonTerminatedSyntaxNode : SyntaxNodeBase, IEnumerable<Synt
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+    public override string ToString()
+    {
+        return Type.ToString();
+    }
 }

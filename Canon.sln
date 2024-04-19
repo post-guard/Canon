@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{CA16
 		scripts\build.sh = scripts\build.sh
 		scripts\integration_test.py = scripts\integration_test.py
 		scripts\Dockerfile-build = scripts\Dockerfile-build
+		scripts\docker-compose.yaml = scripts\docker-compose.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canon.Tests", "Canon.Tests\Canon.Tests.csproj", "{E5F2B97B-3766-466D-9309-BA361F0CE15E}"
@@ -22,7 +23,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "workflows", "workflows", "{
 	ProjectSection(SolutionItems) = preProject
 		.gitea\workflows\test.yaml = .gitea\workflows\test.yaml
 		.gitea\workflows\integration_test.yaml = .gitea\workflows\integration_test.yaml
+		.gitea\workflows\build.yaml = .gitea\workflows\build.yaml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canon.Visualization", "Canon.Visualization\Canon.Visualization.csproj", "{23644467-2BCB-422D-8942-C20AF4A7F429}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canon.Server", "Canon.Server\Canon.Server.csproj", "{401112EA-1A87-4D1C-9B6D-085309F4137E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Canon.Generator", "Canon.Generator\Canon.Generator.csproj", "{32C103C4-589C-4DC2-B173-55B1799B62CE}"
 EndProject
@@ -47,6 +53,14 @@ Global
 		{E5F2B97B-3766-466D-9309-BA361F0CE15E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E5F2B97B-3766-466D-9309-BA361F0CE15E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E5F2B97B-3766-466D-9309-BA361F0CE15E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23644467-2BCB-422D-8942-C20AF4A7F429}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23644467-2BCB-422D-8942-C20AF4A7F429}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23644467-2BCB-422D-8942-C20AF4A7F429}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23644467-2BCB-422D-8942-C20AF4A7F429}.Release|Any CPU.Build.0 = Release|Any CPU
+		{401112EA-1A87-4D1C-9B6D-085309F4137E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{401112EA-1A87-4D1C-9B6D-085309F4137E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{401112EA-1A87-4D1C-9B6D-085309F4137E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{401112EA-1A87-4D1C-9B6D-085309F4137E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{32C103C4-589C-4DC2-B173-55B1799B62CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{32C103C4-589C-4DC2-B173-55B1799B62CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{32C103C4-589C-4DC2-B173-55B1799B62CE}.Release|Any CPU.ActiveCfg = Release|Any CPU

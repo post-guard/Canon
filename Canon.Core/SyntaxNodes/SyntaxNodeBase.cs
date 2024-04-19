@@ -29,6 +29,11 @@ public abstract class SyntaxNodeBase : ICCodeGenerator
 
     }
 
+    public override string ToString()
+    {
+        return IsTerminated.ToString();
+    }
+
     public static SyntaxNodeBase Create(SemanticToken token)
     {
         return new TerminatedSyntaxNode { Token = token };

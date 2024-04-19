@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+    mongodb:
+        image: mongo:7.0-jammy
+        container_name: canon_database
+
+    canon:
+        image: canon-server:latest
+        container_name: canon_server
+        environment:
+            ConnectionStrings__MongoDB: "mongodb://mongodb"
+            TZ: "Asia/Shanghai"
+            ASPNETCORE_ENVIRONMENT: "Development"
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.canon.rule=Host(`canon.rrricardo.top`)"
+            - "traefik.http.services.canon.loadbalancer.server.port=8080"
+            - "com.centurylinklabs.watchtower.enable=true"
+            - "com.centurylinklabs.watchtower.no-pull=true"

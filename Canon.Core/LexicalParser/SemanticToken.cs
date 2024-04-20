@@ -54,12 +54,13 @@ public abstract class SemanticToken : IEquatable<SemanticToken>
     /// </summary>
     public static EndSemanticToken End => new()
     {
-        LinePos = 0, CharacterPos = 0, LiteralValue = string.Empty
+        LinePos = uint.MaxValue, CharacterPos = uint.MaxValue, LiteralValue = string.Empty
     };
 
     public override string ToString()
     {
-        return $"LinePos: {LinePos}, CharacterPos: {CharacterPos}, LiteralValue: {LiteralValue}, TokenType: {TokenType}";
+        return
+            $"LinePos: {LinePos}, CharacterPos: {CharacterPos}, LiteralValue: {LiteralValue}, TokenType: {TokenType}";
     }
 
     public bool Equals(SemanticToken? other)
@@ -93,13 +94,6 @@ public abstract class SemanticToken : IEquatable<SemanticToken>
 public class CharacterSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Character;
-
-    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
-        out CharacterSemanticToken? token)
-    {
-        token = null;
-        return false;
-    }
 }
 
 /// <summary>
@@ -146,7 +140,7 @@ public class DelimiterSemanticToken : SemanticToken
 
     public override int GetHashCode()
     {
-        return base.GetHashCode() ^ this.DelimiterType.GetHashCode();
+        return base.GetHashCode() ^ DelimiterType.GetHashCode();
     }
 }
 
@@ -159,33 +153,34 @@ public class KeywordSemanticToken : SemanticToken
 
     public required KeywordType KeywordType { get; init; }
 
-    public static readonly Dictionary<string, KeywordType> KeywordTypes = new Dictionary<string, KeywordType>(StringComparer.OrdinalIgnoreCase)
-    {
-        { "program", KeywordType.Program },
-        { "const", KeywordType.Const },
-        { "var", KeywordType.Var },
-        { "procedure", KeywordType.Procedure },
-        { "function", KeywordType.Function },
-        { "begin", KeywordType.Begin },
-        { "end", KeywordType.End },
-        { "array", KeywordType.Array },
-        { "of", KeywordType.Of },
-        { "if", KeywordType.If },
-        { "then", KeywordType.Then },
-        { "else", KeywordType.Else },
-        { "for", KeywordType.For },
-        { "to", KeywordType.To },
-        { "do", KeywordType.Do },
-        { "integer", KeywordType.Integer },
-        { "real", KeywordType.Real },
-        { "boolean", KeywordType.Boolean },
-        { "character", KeywordType.Character },
-        { "div", KeywordType.Divide }, // 注意: Pascal 使用 'div' 而不是 '/'
-        { "not", KeywordType.Not },
-        { "mod", KeywordType.Mod },
-        { "and", KeywordType.And },
-        { "or", KeywordType.Or }
-    };
+    public static readonly Dictionary<string, KeywordType> KeywordTypes =
+        new Dictionary<string, KeywordType>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "program", KeywordType.Program },
+            { "const", KeywordType.Const },
+            { "var", KeywordType.Var },
+            { "procedure", KeywordType.Procedure },
+            { "function", KeywordType.Function },
+            { "begin", KeywordType.Begin },
+            { "end", KeywordType.End },
+            { "array", KeywordType.Array },
+            { "of", KeywordType.Of },
+            { "if", KeywordType.If },
+            { "then", KeywordType.Then },
+            { "else", KeywordType.Else },
+            { "for", KeywordType.For },
+            { "to", KeywordType.To },
+            { "do", KeywordType.Do },
+            { "integer", KeywordType.Integer },
+            { "real", KeywordType.Real },
+            { "boolean", KeywordType.Boolean },
+            { "character", KeywordType.Character },
+            { "div", KeywordType.Divide }, // 注意: Pascal 使用 'div' 而不是 '/'
+            { "not", KeywordType.Not },
+            { "mod", KeywordType.Mod },
+            { "and", KeywordType.And },
+            { "or", KeywordType.Or }
+        };
 
     public static KeywordType GetKeywordTypeByKeyword(string keyword)
     {
@@ -197,56 +192,6 @@ public class KeywordSemanticToken : SemanticToken
         {
             throw new ArgumentException($"Unknown keyword: {keyword}");
         }
-    }
-
-    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
-        out KeywordSemanticToken? token)
-    {
-        string buffer = new([now.Value]);
-
-        if (now.Next is null)
-        {
-            // 没有比两个字符更短的关键字
-            token = null;
-            return false;
-        }
-
-        now = now.Next;
-        buffer += now.Value;
-
-        switch (buffer)
-        {
-            case "do":
-                token = new KeywordSemanticToken
-                {
-                    LinePos = linePos,
-                    CharacterPos = characterPos,
-                    LiteralValue = "do",
-                    KeywordType = KeywordType.Do
-                };
-                return true;
-            case "Of":
-                token = new KeywordSemanticToken
-                {
-                    LinePos = linePos,
-                    CharacterPos = characterPos,
-                    LiteralValue = "of",
-                    KeywordType = KeywordType.Of
-                };
-                return true;
-            case "If":
-                token = new KeywordSemanticToken
-                {
-                    LinePos = linePos,
-                    CharacterPos = characterPos,
-                    LiteralValue = "if",
-                    KeywordType = KeywordType.If
-                };
-                return true;
-        }
-
-        token = null;
-        return false;
     }
 
     public override int GetHashCode()
@@ -291,16 +236,9 @@ public class OperatorSemanticToken : SemanticToken
         }
     }
 
-    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
-        out OperatorSemanticToken? token)
-    {
-        token = null;
-        return false;
-    }
-
     public override int GetHashCode()
     {
-        return base.GetHashCode() ^ this.OperatorType.GetHashCode();
+        return base.GetHashCode() ^ OperatorType.GetHashCode();
     }
 }
 
@@ -315,7 +253,7 @@ public class NumberSemanticToken : SemanticToken
 
     public override int GetHashCode()
     {
-        return base.GetHashCode() ^ this.NumberType.GetHashCode();
+        return base.GetHashCode() ^ NumberType.GetHashCode();
     }
 }
 
@@ -326,17 +264,13 @@ public class IdentifierSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Identifier;
 
-    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
-        out IdentifierSemanticToken? token)
-    {
-        token = null;
-        return false;
-    }
+    /// <summary>
+    /// 标识符名称
+    /// </summary>
+    public string IdentifierName => LiteralValue.ToLower();
 }
 
 public class EndSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.End;
 }
-
-

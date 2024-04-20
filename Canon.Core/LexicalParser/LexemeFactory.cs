@@ -4,60 +4,57 @@ namespace Canon.Core.LexicalParser;
 
 public static class LexemeFactory
 {
-
-    public static SemanticToken MakeToken(SemanticTokenType tokenType,string literal,uint _line,uint _chPos)
+    public static SemanticToken MakeToken(SemanticTokenType tokenType,string literal,uint line,uint chPos)
     {
         SemanticToken? token;
         switch (tokenType)
         {
             case SemanticTokenType.Character:
-                CharacterSemanticToken characterSemanticToken = new CharacterSemanticToken()
+                CharacterSemanticToken characterSemanticToken = new()
                 {
-                    LinePos = _line, CharacterPos = _chPos, LiteralValue = literal,
+                    LinePos = line, CharacterPos = chPos, LiteralValue = literal,
                 };
                 token = characterSemanticToken;
                 break;
             case SemanticTokenType.Identifier:
-                IdentifierSemanticToken identifierSemanticToken = new IdentifierSemanticToken()
+                IdentifierSemanticToken identifierSemanticToken = new()
                 {
-                    LinePos = _line, CharacterPos = _chPos, LiteralValue = literal,
+                    LinePos = line, CharacterPos = chPos, LiteralValue = literal,
                 };
                 token = identifierSemanticToken;
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(tokenType), tokenType, null);
+                throw new InvalidOperationException("Can only create Character or Identifier SemanticToken.");
         }
 
         return token;
-
-
     }
 
-    public static KeywordSemanticToken MakeToken(KeywordType keywordType,string literal,uint _line,uint _chPos)
+    public static KeywordSemanticToken MakeToken(KeywordType keywordType,string literal,uint line,uint chPos)
     {
-        KeywordSemanticToken keywordSemanticToken = new KeywordSemanticToken
+        KeywordSemanticToken keywordSemanticToken = new()
         {
-            LinePos = _line,
-            CharacterPos = _chPos,
+            LinePos = line,
+            CharacterPos = chPos,
             LiteralValue = literal,
             KeywordType = keywordType
         };
         return keywordSemanticToken;
     }
 
-    public static DelimiterSemanticToken MakeToken(DelimiterType delimiterType,string literal,uint _line,uint _chPos)
+    public static DelimiterSemanticToken MakeToken(DelimiterType delimiterType,string literal,uint line,uint chPos)
     {
-        DelimiterSemanticToken delimiterSemanticToken = new DelimiterSemanticToken()
+        DelimiterSemanticToken delimiterSemanticToken = new()
         {
-            LinePos = _line,
-            CharacterPos = _chPos,
+            LinePos = line,
+            CharacterPos = chPos,
             LiteralValue = literal,
             DelimiterType = delimiterType
         };
         return delimiterSemanticToken;
     }
 
-    public static NumberSemanticToken MakeToken(NumberType numberType,string literal,uint _line,uint _chPos)
+    public static NumberSemanticToken MakeToken(NumberType numberType,string literal,uint line,uint chPos)
     {
         string temp = literal;
         string result;
@@ -70,10 +67,10 @@ public static class LexemeFactory
             result = temp;
         }
 
-        NumberSemanticToken numberSemanticToken = new NumberSemanticToken()
+        NumberSemanticToken numberSemanticToken = new()
         {
-            LinePos = _line,
-            CharacterPos = _chPos,
+            LinePos = line,
+            CharacterPos = chPos,
             LiteralValue = result,
             NumberType = numberType
         };
@@ -81,12 +78,12 @@ public static class LexemeFactory
 
     }
 
-    public static OperatorSemanticToken MakeToken(OperatorType operatorType,string literal,uint _line,uint _chPos)
+    public static OperatorSemanticToken MakeToken(OperatorType operatorType,string literal,uint line,uint chPos)
     {
-        OperatorSemanticToken operatorSemanticToken = new OperatorSemanticToken()
+        OperatorSemanticToken operatorSemanticToken = new()
         {
-            LinePos = _line,
-            CharacterPos = _chPos,
+            LinePos = line,
+            CharacterPos = chPos,
             LiteralValue = literal,
             OperatorType = operatorType
         };

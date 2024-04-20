@@ -13,5 +13,7 @@ jobs:
                   path: ~/.nuget/packages
                   key: ${{ runner.os }}-nuget
                   save-always: true
+            - name: Build code
+              run: dotnet build
             - name: Run test code
               run: dotnet test

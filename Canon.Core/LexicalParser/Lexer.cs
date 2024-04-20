@@ -22,21 +22,10 @@ public class Lexer : ILexer
     private uint _line = 1;
     private uint _chPos;
 
-    // Token统计信息
-    private readonly Dictionary<SemanticTokenType, int> _tokenCount = new()
-    {
-        { SemanticTokenType.Keyword, 0 },
-        { SemanticTokenType.Number, 0 },
-        { SemanticTokenType.Operator, 0 },
-        { SemanticTokenType.Delimiter, 0 },
-        { SemanticTokenType.Identifier, 0 },
-        { SemanticTokenType.Character, 0 },
-        { SemanticTokenType.End, 0 }
-    };
-
     public IEnumerable<SemanticToken> Tokenize(ISourceReader reader)
     {
         _reader = reader;
+        _state = StateType.Start;
 
         while (_state != StateType.Done)
         {
@@ -526,7 +515,11 @@ public class Lexer : ILexer
                 break;
         }
 
-        AddToTokens(_semanticToken);
+        if (_semanticToken is null)
+        {
+            throw new InvalidOperationException();
+        }
+        _tokens.Add(_semanticToken);
         _state = StateType.Start;
     }
 
@@ -614,9 +607,6 @@ public class Lexer : ILexer
     private void AddToTokens(SemanticToken semanticToken)
     {
         _tokens.Add(semanticToken);
-        _tokenCount[semanticToken.TokenType]++;
-        Console.WriteLine($"<{semanticToken.TokenType}>");
-        Console.WriteLine(semanticToken.LiteralValue);
     }
 
     private void Cat()

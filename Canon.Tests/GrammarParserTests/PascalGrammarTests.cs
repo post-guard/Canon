@@ -78,4 +78,20 @@ public class PascalGrammarTests
         ProgramStruct root = _parser.Analyse(tokens);
         Assert.Equal("main", root.Head.ProgramName.LiteralValue);
     }
+
+    [Fact]
+    public void CharacterTest()
+    {
+        const string program = """
+                               program varTest;
+                               var a : char;
+                               begin
+                               end.
+                               """;
+
+        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
+
+        ProgramStruct root = _parser.Analyse(tokens);
+        Assert.Equal("vartest", root.Head.ProgramName.IdentifierName);
+    }
 }

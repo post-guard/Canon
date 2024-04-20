@@ -1,4 +1,7 @@
-﻿using Canon.Console;
+﻿using System.CommandLine;
+using Canon.Console.Extensions;
 
-Compiler compiler = new(args);
-await compiler.Compile();
+RootCommand rootCommand = new("Canon Pascal Compiler (PASCC).");
+rootCommand.SetCompile();
+
+await rootCommand.InvokeAsync(args);

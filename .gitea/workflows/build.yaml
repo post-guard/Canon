@@ -25,4 +25,4 @@ jobs:
             -   name: Build docker image
                 run: |
                     cd Canon.Server
-                    docker build . -t canon-server:latestjj
+                    docker build . -t canon-server:latest

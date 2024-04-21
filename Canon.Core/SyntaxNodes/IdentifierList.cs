@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
@@ -53,6 +54,22 @@ public class IdentifierList : NonTerminatedSyntaxNode
                 yield return (IdentifierSemanticToken)identifier.Children[0].Convert<TerminatedSyntaxNode>().Token;
                 break;
             }
+        }
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        //用逗号分隔输出的expression
+        using var enumerator = Identifiers.Reverse().GetEnumerator();
+
+        if (enumerator.MoveNext())
+        {
+            builder.AddString(" " + enumerator.Current.IdentifierName);
+        }
+
+        while (enumerator.MoveNext())
+        {
+            builder.AddString(", " + enumerator.Current.IdentifierName);
         }
     }
 }

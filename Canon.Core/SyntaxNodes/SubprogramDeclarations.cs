@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -29,6 +30,14 @@ public class SubprogramDeclarations : NonTerminatedSyntaxNode
 
             yield return declarations.Children[1].Convert<Subprogram>();
             declarations = declarations.Children[0].Convert<SubprogramDeclarations>();
+        }
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        foreach (var subprogram in Subprograms)
+        {
+            subprogram.GenerateCCode(builder);
         }
     }
 }

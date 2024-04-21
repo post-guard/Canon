@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -19,5 +20,11 @@ public class ValueParameter : NonTerminatedSyntaxNode
     public static ValueParameter Create(List<SyntaxNodeBase> children)
     {
         return new ValueParameter { Children = children };
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        //可能涉及符号表访问
+        builder.AddString("valueParam ");
     }
 }

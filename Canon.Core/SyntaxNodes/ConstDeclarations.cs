@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
@@ -38,6 +39,40 @@ public class ConstDeclarations : NonTerminatedSyntaxNode
             {
                 break;
             }
+        }
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        foreach (var pair in ConstValues.Reverse())
+        {
+            builder.AddString(" const");
+            //获取常量类型
+            var token = pair.Item2.Children[0].Convert<TerminatedSyntaxNode>().Token;
+            var tokenType = token.TokenType;
+            if (tokenType == SemanticTokenType.Number)
+            {
+                if (token.Convert<NumberSemanticToken>().NumberType == NumberType.Integer)
+                {
+                    builder.AddString(" int ");
+                }
+                else
+                {
+                    builder.AddString(" double ");
+                }
+            }
+            else if (tokenType == SemanticTokenType.Character)
+            {
+                builder.AddString(" char ");
+            }
+            else
+            {
+                builder.AddString(" bool ");
+            }
+
+            builder.AddString(pair.Item1.IdentifierName + " =");
+            pair.Item2.GenerateCCode(builder);
+            builder.AddString(";");
         }
     }
 }

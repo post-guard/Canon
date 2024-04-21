@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
@@ -28,5 +29,27 @@ public class ProcedureCall : NonTerminatedSyntaxNode
         {
             yield return expression;
         }
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        builder.AddString(ProcedureId.IdentifierName + "(");
+
+        //用逗号分隔输出的expression
+        using (var enumerator = Arguments.GetEnumerator())
+        {
+            if (enumerator.MoveNext())
+            {
+                enumerator.Current.GenerateCCode(builder);
+            }
+
+            while (enumerator.MoveNext())
+            {
+                builder.AddString(", ");
+                enumerator.Current.GenerateCCode(builder);
+            }
+        }
+
+        builder.AddString(")");
     }
 }

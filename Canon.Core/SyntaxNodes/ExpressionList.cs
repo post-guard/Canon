@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -50,5 +51,23 @@ public class ExpressionList : NonTerminatedSyntaxNode
                 break;
             }
         }
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        //用逗号分隔输出的expression
+        using var enumerator = Expressions.GetEnumerator();
+
+        if (enumerator.MoveNext())
+        {
+            enumerator.Current.GenerateCCode(builder);
+        }
+
+        while (enumerator.MoveNext())
+        {
+            builder.AddString(", ");
+            enumerator.Current.GenerateCCode(builder);
+        }
+
     }
 }

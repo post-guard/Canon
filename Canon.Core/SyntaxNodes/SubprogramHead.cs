@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
@@ -41,5 +42,29 @@ public class SubprogramHead : NonTerminatedSyntaxNode
         }
 
         return new SubprogramHead { Children = children, IsProcedure = isProcedure };
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        //可能要用到符号表
+        if (IsProcedure)
+        {
+            builder.AddString("void ");
+        }
+        else
+        {
+            //返回类型暂时未知
+            builder.AddString("int ");
+        }
+
+        builder.AddString(SubprogramName.LiteralValue);
+
+        builder.AddString("(");
+        foreach (var param in Parameters)
+        {
+
+        }
+
+        builder.AddString(")");
     }
 }

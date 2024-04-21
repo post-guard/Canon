@@ -24,6 +24,7 @@ public class ProgramStruct : NonTerminatedSyntaxNode
 
     public override void GenerateCCode(CCodeBuilder builder)
     {
-        builder.AddString("#include <PascalCoreLib.h>");
+        builder.AddString("#include <PascalCoreLib.h> #include <stdbool.h>");
+        Body.GenerateCCode(builder);
     }
 }

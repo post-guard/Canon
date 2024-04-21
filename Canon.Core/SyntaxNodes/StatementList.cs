@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -45,6 +46,18 @@ public class StatementList : NonTerminatedSyntaxNode
             {
                 yield return list.Children[0].Convert<Statement>();
                 break;
+            }
+        }
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        foreach (var statement in Statements.Reverse())
+        {
+            if (statement.Children.Count > 0)
+            {
+                statement.GenerateCCode(builder);
+                builder.AddString(";");
             }
         }
     }

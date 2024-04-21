@@ -49,6 +49,16 @@ public abstract class SemanticToken : IEquatable<SemanticToken>
         }
     }
 
+    public T Convert<T>() where T : SemanticToken
+    {
+        if (this is T result)
+        {
+            return result;
+        }
+
+        throw new InvalidOperationException("Can not convert target type0");
+    }
+
     /// <summary>
     /// 栈底符号单例对象
     /// </summary>

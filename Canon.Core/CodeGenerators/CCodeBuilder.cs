@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Canon.Core.SemanticParser;
 
 namespace Canon.Core.CodeGenerators;
 
@@ -8,6 +9,11 @@ namespace Canon.Core.CodeGenerators;
 public class CCodeBuilder
 {
     private readonly StringBuilder _builder = new();
+
+    /// <summary>
+    /// 符号表
+    /// </summary>
+    public SymbolTable SymbolTable { get; } = new();
 
     public void AddString(string code)
     {

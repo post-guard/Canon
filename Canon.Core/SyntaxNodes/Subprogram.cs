@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.CodeGenerators;
+using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -19,5 +20,15 @@ public class Subprogram : NonTerminatedSyntaxNode
     public static Subprogram Create(List<SyntaxNodeBase> children)
     {
         return new Subprogram { Children = children };
+    }
+
+    public override void GenerateCCode(CCodeBuilder builder)
+    {
+        //子函数头
+        Head.GenerateCCode(builder);
+        //子函数体
+        builder.AddString("{");
+        Body.GenerateCCode(builder);
+        builder.AddString("}");
     }
 }

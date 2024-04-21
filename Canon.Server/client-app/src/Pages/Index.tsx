@@ -21,7 +21,7 @@ export function Index() {
         compiledCode: "",
         sourceCode: "",
         id: "",
-        imageAddress: ""
+        imageAddress: "pic/uncompiled.png"
     });
     const handleValueChange = (value: string) => {
         setInputValue(value);

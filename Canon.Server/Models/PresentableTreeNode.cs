@@ -1,7 +1,7 @@
 ﻿using Canon.Core.SyntaxNodes;
 using SkiaSharp;
 
-namespace Canon.Visualization.Models;
+namespace Canon.Server.Models;
 
 /// <summary>
 /// 展示树节点
@@ -9,7 +9,7 @@ namespace Canon.Visualization.Models;
 /// </summary>
 public class PresentableTreeNode
 {
-    public float X { get; set; } = -1;
+    public float X { get; set; }
     public float Y { get; set; }
 
     public SKPoint Position => new(X, Y);

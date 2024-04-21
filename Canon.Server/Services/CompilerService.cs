@@ -2,7 +2,6 @@
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
 using Canon.Server.Models;
-using Canon.Visualization.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace Canon.Server.Services;

@@ -24,7 +24,6 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Canon.Core\Canon.Core.csproj" />
-      <ProjectReference Include="..\Canon.Visualization\Canon.Visualization.csproj" />
     </ItemGroup>
 
 </Project>

@@ -2,7 +2,6 @@ using Canon.Core.Abstractions;
 using Canon.Core.LexicalParser;
 using Canon.Server.Extensions;
 using Canon.Server.Services;
-using Canon.Visualization.Services;
 using Microsoft.EntityFrameworkCore;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);

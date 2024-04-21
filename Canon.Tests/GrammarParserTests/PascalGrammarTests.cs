@@ -84,8 +84,9 @@ public class PascalGrammarTests
     {
         const string program = """
                                program varTest;
-                               var a : char;
+                               var a : integer;
                                begin
+                               a := 9 div 1;
                                end.
                                """;
 

@@ -4,6 +4,7 @@ import {CSSProperties, useState} from "react";
 import {OutputField} from "./OutputField.tsx";
 import createClient from "openapi-fetch";
 import * as openapi from '../openapi';
+import {enqueueSnackbar} from "notistack";
 
 const client = createClient<openapi.paths>();
 
@@ -23,6 +24,7 @@ export function Index() {
         id: "",
         imageAddress: "pic/uncompiled.png"
     });
+    //const {enqueueSnackbar} = useSnackbar();
     const handleValueChange = (value: string) => {
         setInputValue(value);
     };
@@ -43,6 +45,10 @@ export function Index() {
                 id: data.id,
                 imageAddress: data.imageAddress
             })
+            enqueueSnackbar("编译成功", {variant: "success", anchorOrigin: {vertical: 'top', horizontal: 'right'}});
+        } else {
+            // error
+            enqueueSnackbar("编译失败", {variant: "error", anchorOrigin: {vertical: 'top', horizontal: 'right'}});
         }
     }
 
@@ -72,12 +78,12 @@ export function Index() {
 
         <div className={"content"}
              style={contentClassCss}>
-            <Grid container spacing={2} style = {{width: "100%",height: "100%"}}>
-                <Grid item xs={12} sm={6} style = {{width: "100%",height: "100%"}}>
+            <Grid container spacing={2} style={{width: "100%", height: "100%"}}>
+                <Grid item xs={12} sm={6} style={{width: "100%", height: "100%"}}>
                     <InputField onValueChange={handleValueChange}>
                     </InputField>
                 </Grid>
-                <Grid item xs={12} sm={6} style = {{width: "100%",height: "100%"}}>
+                <Grid item xs={12} sm={6} style={{width: "100%", height: "100%"}}>
                     <OutputField imgPath={outputValue.imageAddress}>
                     </OutputField>
                 </Grid>

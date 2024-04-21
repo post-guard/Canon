@@ -1,6 +1,6 @@
 ﻿using SkiaSharp;
 
-namespace Canon.Visualization.Models;
+namespace Canon.Server.Models;
 
 public sealed class Brush(SKCanvas canvas) : IDisposable
 {

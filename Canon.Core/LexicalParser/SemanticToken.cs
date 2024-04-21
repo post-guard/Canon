@@ -105,39 +105,6 @@ public class DelimiterSemanticToken : SemanticToken
 
     public required DelimiterType DelimiterType { get; init; }
 
-    public static bool TryParse(uint linePos, uint characterPos, LinkedListNode<char> now,
-        out DelimiterSemanticToken? token)
-    {
-        Dictionary<char, DelimiterType> delimiterMap = new()
-        {
-            { ',', DelimiterType.Comma },
-            { '.', DelimiterType.Period },
-            { ':', DelimiterType.Colon },
-            { ';', DelimiterType.Semicolon },
-            { '(', DelimiterType.LeftParenthesis },
-            { ')', DelimiterType.RightParenthesis },
-            { '[', DelimiterType.LeftSquareBracket },
-            { ']', DelimiterType.RightSquareBracket },
-            { '\'', DelimiterType.SingleQuotation },
-            { '\"', DelimiterType.DoubleQuotation }
-        };
-
-        if (!delimiterMap.TryGetValue(now.Value, out DelimiterType value))
-        {
-            token = null;
-            return false;
-        }
-
-        token = new DelimiterSemanticToken
-        {
-            LinePos = linePos,
-            CharacterPos = characterPos,
-            LiteralValue = new string([now.Value]),
-            DelimiterType = value
-        };
-        return true;
-    }
-
     public override int GetHashCode()
     {
         return base.GetHashCode() ^ DelimiterType.GetHashCode();
@@ -153,50 +120,9 @@ public class KeywordSemanticToken : SemanticToken
 
     public required KeywordType KeywordType { get; init; }
 
-    public static readonly Dictionary<string, KeywordType> KeywordTypes =
-        new Dictionary<string, KeywordType>(StringComparer.OrdinalIgnoreCase)
-        {
-            { "program", KeywordType.Program },
-            { "const", KeywordType.Const },
-            { "var", KeywordType.Var },
-            { "procedure", KeywordType.Procedure },
-            { "function", KeywordType.Function },
-            { "begin", KeywordType.Begin },
-            { "end", KeywordType.End },
-            { "array", KeywordType.Array },
-            { "of", KeywordType.Of },
-            { "if", KeywordType.If },
-            { "then", KeywordType.Then },
-            { "else", KeywordType.Else },
-            { "for", KeywordType.For },
-            { "to", KeywordType.To },
-            { "do", KeywordType.Do },
-            { "integer", KeywordType.Integer },
-            { "real", KeywordType.Real },
-            { "boolean", KeywordType.Boolean },
-            { "character", KeywordType.Character },
-            { "div", KeywordType.Divide }, // 注意: Pascal 使用 'div' 而不是 '/'
-            { "not", KeywordType.Not },
-            { "mod", KeywordType.Mod },
-            { "and", KeywordType.And },
-            { "or", KeywordType.Or }
-        };
-
-    public static KeywordType GetKeywordTypeByKeyword(string keyword)
-    {
-        if (KeywordTypes.TryGetValue(keyword, out var keywordType))
-        {
-            return keywordType;
-        }
-        else
-        {
-            throw new ArgumentException($"Unknown keyword: {keyword}");
-        }
-    }
-
     public override int GetHashCode()
     {
-        return base.GetHashCode() ^ this.KeywordType.GetHashCode();
+        return base.GetHashCode() ^ KeywordType.GetHashCode();
     }
 }
 
@@ -208,33 +134,6 @@ public class OperatorSemanticToken : SemanticToken
     public override SemanticTokenType TokenType => SemanticTokenType.Operator;
 
     public required OperatorType OperatorType { get; init; }
-
-    public static readonly Dictionary<string, OperatorType> OperatorTypes = new Dictionary<string, OperatorType>
-    {
-        { "=", OperatorType.Equal },
-        { "<>", OperatorType.NotEqual },
-        { "<", OperatorType.Less },
-        { "<=", OperatorType.LessEqual },
-        { ">", OperatorType.Greater },
-        { ">=", OperatorType.GreaterEqual },
-        { "+", OperatorType.Plus },
-        { "-", OperatorType.Minus },
-        { "*", OperatorType.Multiply },
-        { "/", OperatorType.Divide },
-        { ":=", OperatorType.Assign }
-    };
-
-    public static OperatorType GetOperatorTypeByOperator(string operatorSymbol)
-    {
-        if (OperatorTypes.TryGetValue(operatorSymbol, out var operatorType))
-        {
-            return operatorType;
-        }
-        else
-        {
-            throw new ArgumentException($"Unknown operator: {operatorSymbol}");
-        }
-    }
 
     public override int GetHashCode()
     {
@@ -270,6 +169,9 @@ public class IdentifierSemanticToken : SemanticToken
     public string IdentifierName => LiteralValue.ToLower();
 }
 
+/// <summary>
+/// 终结符记号
+/// </summary>
 public class EndSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.End;

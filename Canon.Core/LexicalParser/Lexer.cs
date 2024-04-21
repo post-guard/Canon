@@ -231,10 +231,8 @@ public class Lexer : ILexer
         Retract();
 
         string tokenString = GetCurrentTokenString();
-        if (LexRules.IsKeyword(tokenString))
+        if (LexRules.GetKeywordTypeByKeywprd(tokenString, out KeywordType keywordType))
         {
-            KeywordType keywordType =
-                KeywordSemanticToken.GetKeywordTypeByKeyword(GetCurrentTokenString());
 
             _semanticToken = LexemeFactory.MakeToken(keywordType, tokenString, _line, _chPos);
         }

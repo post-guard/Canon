@@ -1,74 +1,76 @@
-﻿namespace Canon.Core.LexicalParser;
+﻿using Canon.Core.Enums;
+
+namespace Canon.Core.LexicalParser;
 
 public static class LexRules
 {
     // 保留关键字
-    private static readonly string[] _keywords =
-    [
-        "Program", "Const", "Var", "Procedure",
-        "Function", "Begin", "End", "Array",
-        "Of", "If", "Then", "Else",
-        "For", "To", "Do", "Integer",
-        "Real", "Boolean", "Character", "Divide",
-        "Not", "Mod", "And", "Or"
-    ];
+    private static readonly Dictionary<string, KeywordType> s_keywordTypes =
+        new(StringComparer.OrdinalIgnoreCase)
+        {
+            { "program", KeywordType.Program },
+            { "const", KeywordType.Const },
+            { "var", KeywordType.Var },
+            { "procedure", KeywordType.Procedure },
+            { "function", KeywordType.Function },
+            { "begin", KeywordType.Begin },
+            { "end", KeywordType.End },
+            { "array", KeywordType.Array },
+            { "of", KeywordType.Of },
+            { "if", KeywordType.If },
+            { "then", KeywordType.Then },
+            { "else", KeywordType.Else },
+            { "for", KeywordType.For },
+            { "to", KeywordType.To },
+            { "do", KeywordType.Do },
+            { "integer", KeywordType.Integer },
+            { "real", KeywordType.Real },
+            { "boolean", KeywordType.Boolean },
+            { "char", KeywordType.Character },
+            { "div", KeywordType.Divide }, // 注意: Pascal 使用 'div' 而不是 '/'
+            { "not", KeywordType.Not },
+            { "mod", KeywordType.Mod },
+            { "and", KeywordType.And },
+            { "or", KeywordType.Or }
+        };
 
-    private static readonly string[] _delimiter = [";", ",", ":", ".", "(", ")", "[", "]", "'", "\"", ".."];
+    public static bool GetKeywordTypeByKeywprd(string keyword, out KeywordType type)
+        => s_keywordTypes.TryGetValue(keyword, out type);
 
-    private static readonly string[] _operator = ["=", "<>", "<", "<=", ">", ">=", "+", "-", "*", "/", ":="];
+
+    private static readonly HashSet<char> s_delimiter = [';', ',', ':', '.', '(', ')', '[', ']', '\'', '"'];
+
+    private static readonly HashSet<string> s_operator = ["=", "<>", "<", "<=", ">", ">=", "+", "-", "*", "/", ":="];
 
     // 判断字符
-    public static bool IsDigit(char _ch) {
-        if (_ch >= '0' && _ch <= '9') return true;
-        return false;
-    }
-
-    public static bool IsHexDigit(char _ch)
+    public static bool IsDigit(char ch)
     {
-        if ((_ch >= '0' && _ch <= '9') || (_ch<= 'F' && _ch >= 'A')) return true;
+        if (ch is >= '0' and <= '9') return true;
         return false;
     }
 
-    public static bool IsLetter(char _ch) {
-        if ((_ch >= 'A' && _ch <= 'Z') || (_ch >= 'a' && _ch <= 'z' || _ch == '_')) {
+    public static bool IsHexDigit(char ch)
+    {
+        if (ch is >= '0' and <= '9' || ch is <= 'F' and >= 'A') return true;
+        return false;
+    }
+
+    public static bool IsLetter(char ch)
+    {
+        if (ch is >= 'A' and <= 'Z' || (ch is >= 'a' and <= 'z' || ch == '_'))
+        {
             return true;
         }
+
         return false;
     }
-
-    public static bool IsKeyword(string tokenString)
-    {
-
-        foreach (var t in _keywords)
-        {
-            if (string.Equals(tokenString, t, StringComparison.OrdinalIgnoreCase)) return true;
-        }
-        return false;
-    }
-
 
     public static bool IsDelimiter(char ch)
-    {
-        foreach (var delimiter in _delimiter)
-        {
-            if (delimiter.Contains(ch))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+        => s_delimiter.Contains(ch);
 
     public static bool IsOperator(char ch)
     {
-        foreach (var o in _operator)
-        {
-            if (o.Contains(ch))
-            {
-                return true;
-            }
-        }
-        return false;
+        return s_operator.Any(op => op.Contains(ch));
     }
 
     public static bool IsBreakPoint(char ch)

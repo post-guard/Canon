@@ -15,15 +15,18 @@ public class AddOperator : NonTerminatedSyntaxNode
 
     public override void GenerateCCode(CCodeBuilder builder)
     {
-        var operatorType = Children[0].Convert<TerminatedSyntaxNode>().Token.
-            Convert<OperatorSemanticToken>().OperatorType;
-        if (operatorType == OperatorType.Plus)
+        var token = Children[0].Convert<TerminatedSyntaxNode>().Token;
+        if (token.TokenType == SemanticTokenType.Operator)
         {
-            builder.AddString(" +");
-        }
-        else if (operatorType == OperatorType.Minus)
-        {
-            builder.AddString(" -");
+            var operatorType = token.Convert<OperatorSemanticToken>().OperatorType;
+            if (operatorType == OperatorType.Plus)
+            {
+                builder.AddString(" +");
+            }
+            else if (operatorType == OperatorType.Minus)
+            {
+                builder.AddString(" -");
+            }
         }
         else
         {

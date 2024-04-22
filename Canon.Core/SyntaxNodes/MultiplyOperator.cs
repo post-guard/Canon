@@ -25,7 +25,7 @@ public class MultiplyOperator : NonTerminatedSyntaxNode
             }
             else if (operatorType == OperatorType.Divide)
             {
-                //实数除法，需要将操作数强转为float
+                //实数除法，需要将操作数强转为double
                 builder.AddString(" /(double)");
             }
         }

@@ -1,8 +1,8 @@
 ﻿using Canon.Core.Abstractions;
 using Canon.Core.CodeGenerators;
+using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
-using Canon.Tests.GeneratedParserTests;
 using Canon.Tests.Utils;
 using Xunit.Abstractions;
 

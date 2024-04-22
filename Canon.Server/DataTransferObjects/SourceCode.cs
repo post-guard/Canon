@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Canon.Server.Models;
+namespace Canon.Server.DataTransferObjects;
 
 public class SourceCode
 {

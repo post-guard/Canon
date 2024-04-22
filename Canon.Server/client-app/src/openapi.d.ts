@@ -5,6 +5,53 @@
 
 
 export interface paths {
+    "/api/Compiler": {
+        get: {
+            parameters: {
+                query?: {
+                    start?: number;
+                    end?: number;
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    content: {
+                        "text/plain": components["schemas"]["CompileResponse"][];
+                        "application/json": components["schemas"]["CompileResponse"][];
+                        "text/json": components["schemas"]["CompileResponse"][];
+                    };
+                };
+            };
+        };
+        post: {
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["SourceCode"];
+                    "text/json": components["schemas"]["SourceCode"];
+                    "application/*+json": components["schemas"]["SourceCode"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    content: {
+                        "text/plain": components["schemas"]["CompileResponse"];
+                        "application/json": components["schemas"]["CompileResponse"];
+                        "text/json": components["schemas"]["CompileResponse"];
+                    };
+                };
+            };
+        };
+        delete: {
+            responses: {
+                /** @description No Content */
+                204: {
+                    content: never;
+                };
+            };
+        };
+    };
     "/api/Compiler/{compileId}": {
         get: {
             parameters: {
@@ -23,23 +70,23 @@ export interface paths {
                 };
             };
         };
-    };
-    "/api/Compiler": {
-        post: {
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["SourceCode"];
-                    "text/json": components["schemas"]["SourceCode"];
-                    "application/*+json": components["schemas"]["SourceCode"];
+        delete: {
+            parameters: {
+                path: {
+                    compileId: string;
                 };
             };
             responses: {
-                /** @description Success */
-                200: {
+                /** @description No Content */
+                204: {
+                    content: never;
+                };
+                /** @description Not Found */
+                404: {
                     content: {
-                        "text/plain": components["schemas"]["CompileResponse"];
-                        "application/json": components["schemas"]["CompileResponse"];
-                        "text/json": components["schemas"]["CompileResponse"];
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
@@ -71,6 +118,16 @@ export interface components {
             sourceCode: string;
             compiledCode: string;
             imageAddress: string;
+            compileTime: string;
+        };
+        ProblemDetails: {
+            type?: string | null;
+            title?: string | null;
+            /** Format: int32 */
+            status?: number | null;
+            detail?: string | null;
+            instance?: string | null;
+            [key: string]: unknown;
         };
         SourceCode: {
             code: string;

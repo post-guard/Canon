@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using MongoDB.Bson;
 
-namespace Canon.Server.Models;
+namespace Canon.Server.Entities;
 
 public class CompileResult
 {
@@ -16,4 +16,6 @@ public class CompileResult
     public string SytaxTreeImageFilename { get; set; } = string.Empty;
 
     public string CompiledCode { get; set; } = string.Empty;
+
+    public DateTime CompileTime { get; set; }
 }

@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Canon.Core.Abstractions;
+using Canon.Server.DataTransferObjects;
 
 namespace Canon.Server.Models;
 

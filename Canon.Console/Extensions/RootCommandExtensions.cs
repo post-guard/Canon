@@ -2,6 +2,7 @@
 using Canon.Console.Models;
 using Canon.Console.Services;
 using Canon.Core.Abstractions;
+using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;

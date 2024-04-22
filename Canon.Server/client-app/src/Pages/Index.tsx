@@ -1,55 +1,102 @@
 import {AppBar, Button, Grid, Toolbar, Typography} from "@mui/material";
 import {InputField} from "./InputField.tsx";
-import {CSSProperties, useState} from "react";
+import {CSSProperties, useEffect, useState} from "react";
 import {OutputField} from "./OutputField.tsx";
 import createClient from "openapi-fetch";
 import * as openapi from '../openapi';
 import {enqueueSnackbar} from "notistack";
+import {useNavigate} from "react-router-dom";
+import {HistoryPage} from "./HistoryPage.tsx";
+import {OutputIntf} from "../Interfaces/OutputIntf.ts";
+
 
 const client = createClient<openapi.paths>();
 
-interface outputData {
-    compiledCode: string,
-    id: string,
-    imageAddress: string,
-    sourceCode: string
-}
 
 export function Index() {
 
     const [inputValue, setInputValue] = useState('');
-    const [outputValue, setOutputValue] = useState<outputData>({
+    const [outputValue, setOutputValue] = useState<OutputIntf>({
         compiledCode: "",
         sourceCode: "",
         id: "",
-        imageAddress: "pic/uncompiled.png"
+        imageAddress: "",
+        compileTime: ""
     });
-    //const {enqueueSnackbar} = useSnackbar();
+    const [historyPageState,setHistoryPageState] = useState(false);
+    const navigate = useNavigate(); // 跳转hook
+
+    useEffect(() => {
+        // 进入页面的初始化
+        const path = location.pathname.substring(1);
+        if (path === "") {
+            setInputValue("");
+            setOutputValue({
+                compiledCode: "",
+                sourceCode: "",
+                id: "",
+                imageAddress: "pic/uncompiled.png",
+                compileTime: ""
+            })
+            return;
+        }
+        const getCompileInstance = async () => {
+            const {data} = await client.GET("/api/Compiler/{compileId}", {
+                params:
+                    {
+                        path:
+                            {
+                                compileId: path
+                            }
+                    }
+            })
+            if (data !== undefined) {
+                setInputValue(data.sourceCode);
+                setOutputValue({
+                    compiledCode: data.compiledCode,
+                    sourceCode: data.sourceCode,
+                    id: data.id,
+                    imageAddress: data.imageAddress,
+                    compileTime: data.compileTime
+                })
+            }
+        }
+        getCompileInstance();
+    }, [location.pathname]);
+
+
     const handleValueChange = (value: string) => {
         setInputValue(value);
     };
 
 
     async function compilerButtonClick() {
-        console.log(inputValue)
+
         const {data} = await client.POST("/api/Compiler", {
             body: {
                 code: inputValue
             }
         })
-        console.log(data)
-        if (data != undefined) {
+
+        if (data !== undefined) {
             setOutputValue({
                 compiledCode: data.compiledCode,
                 sourceCode: data.sourceCode,
                 id: data.id,
-                imageAddress: data.imageAddress
+                imageAddress: data.imageAddress,
+                compileTime: data.compileTime
             })
-            enqueueSnackbar("编译成功", {variant: "success", anchorOrigin: {vertical: 'top', horizontal: 'right'}});
+            enqueueSnackbar("编译成功", {variant: "success", anchorOrigin: {vertical: 'bottom', horizontal: 'right'}});
+            navigate(`/${data.id}`, {})
+
         } else {
             // error
-            enqueueSnackbar("编译失败", {variant: "error", anchorOrigin: {vertical: 'top', horizontal: 'right'}});
+            enqueueSnackbar("编译失败", {variant: "error", anchorOrigin: {vertical: 'bottom', horizontal: 'right'}});
         }
+    }
+
+    function historyButtonClick() {
+        setHistoryPageState(true);
     }
 
     return <>
@@ -58,7 +105,7 @@ export function Index() {
             <AppBar style={{zIndex: 0}}>
                 <Toolbar style={{width: '100%'}}>
                     <Typography variant="h6">
-                        任昌骏组编译器
+                        Canon
                     </Typography>
                     <Button style={{
                         position: "absolute",
@@ -72,6 +119,17 @@ export function Index() {
                     >
                         编译
                     </Button>
+
+                    <Button style={{
+                        position: "absolute",
+                        right: "10%",
+                        fontSize: "medium",
+                    }}
+                            variant="text"
+                            color="inherit"
+                            onClick={historyButtonClick}>
+                            历史记录
+                    </Button>
                 </Toolbar>
             </AppBar>
         </div>
@@ -80,15 +138,18 @@ export function Index() {
              style={contentClassCss}>
             <Grid container spacing={2} style={{width: "100%", height: "100%"}}>
                 <Grid item xs={12} sm={6} style={{width: "100%", height: "100%"}}>
-                    <InputField onValueChange={handleValueChange}>
+                    <InputField defaultValue={inputValue} onValueChange={handleValueChange}>
                     </InputField>
                 </Grid>
                 <Grid item xs={12} sm={6} style={{width: "100%", height: "100%"}}>
-                    <OutputField imgPath={outputValue.imageAddress}>
+                    <OutputField data={outputValue}>
                     </OutputField>
                 </Grid>
             </Grid>
         </div>
+        <HistoryPage state = {historyPageState} setState={setHistoryPageState}>
+
+        </HistoryPage>
     </>
 }
 

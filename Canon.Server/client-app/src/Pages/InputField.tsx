@@ -1,11 +1,12 @@
-import {CSSProperties, useState} from "react";
+import {CSSProperties, useEffect, useState} from "react";
 import MonacoEditor from "react-monaco-editor";
 
 
-// @ts-expect-error ...
-export function InputField({onValueChange}) {
 
-    const [inputValue, setInputValue] = useState('');
+// @ts-expect-error ...
+export function InputField(props) {
+    const {defaultValue, onValueChange} = props;
+    const [inputValue, setInputValue] = useState("");
 
     // @ts-expect-error ...
     const handleChange = (newValue) => {
@@ -13,6 +14,9 @@ export function InputField({onValueChange}) {
         onValueChange(newValue);
     };
 
+    useEffect(()=>{
+        setInputValue(defaultValue);
+    }, [defaultValue])
 
     return <>
         <div className={"input-field"} style={inputFieldClassCss}>

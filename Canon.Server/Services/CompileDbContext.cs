@@ -1,4 +1,4 @@
-﻿using Canon.Server.Models;
+﻿using Canon.Server.Entities;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.EntityFrameworkCore.Extensions;
 

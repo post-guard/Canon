@@ -1,4 +1,15 @@
-import {Box, Button, Card, CardActionArea, Drawer, Stack, Typography} from "@mui/material";
+import {
+    Box,
+    Button,
+    Card,
+    CardActionArea,
+    Dialog, DialogActions,
+    DialogContent, DialogContentText,
+    DialogTitle,
+    Drawer,
+    Stack,
+    Typography
+} from "@mui/material";
 import createClient from "openapi-fetch";
 import * as openapi from "../openapi";
 import {useEffect, useState} from "react";
@@ -12,6 +23,7 @@ const client = createClient<openapi.paths>();
 // @ts-expect-error ...
 export function HistoryPage({state, setState}) {
     const [data, setData] = useState<OutputIntf[]>([]);
+    const [deleteDialog, setDeleteDialog] = useState(false);
     const navigate = useNavigate();
     useEffect(() => {
 
@@ -25,8 +37,7 @@ export function HistoryPage({state, setState}) {
                         }
                     }
             }).then((response) => {
-                if (response !== undefined) {
-                   // @ts-expect-error ...
+                if (response!==undefined && response.data !== undefined) {
                     setData(response.data)
                 }
             });
@@ -42,16 +53,26 @@ export function HistoryPage({state, setState}) {
     const deleteHistory = async () => {
         await client.DELETE("/api/Compiler")
             .then((res) => {
-                    if(res.response.status === 204) {
-                        enqueueSnackbar("删除缓存成功", {variant: "success", anchorOrigin: {vertical: 'bottom', horizontal: 'right'}});
+                    if (res.response.status === 204) {
+                        enqueueSnackbar("删除缓存成功", {
+                            variant: "success",
+                            anchorOrigin: {vertical: 'bottom', horizontal: 'right'}
+                        });
                         navigate('/');
                     } else {
-                        enqueueSnackbar("删除缓存失败", {variant: "error", anchorOrigin: {vertical: 'bottom', horizontal: 'right'}});
+                        enqueueSnackbar("删除缓存失败", {
+                            variant: "error",
+                            anchorOrigin: {vertical: 'bottom', horizontal: 'right'}
+                        });
                     }
                 }
             );
-
     }
+
+    const onDeleteDialogClose = () => {
+        setDeleteDialog(false);
+    };
+
 
     return <>
         <Drawer
@@ -68,7 +89,6 @@ export function HistoryPage({state, setState}) {
                             return <Card key={index}
                                          sx={{width: "100%", height: "auto"}}>
                                 <CardActionArea onClick={() => {
-                                    console.log(item.id)
                                     navigate(`/${item.id}`)
                                 }}>
                                     <Box sx={{padding: "5%"}}>
@@ -83,9 +103,39 @@ export function HistoryPage({state, setState}) {
                     )
                 }
             </Stack>
-            <Button sx={{width: "20rem"}} onClick={deleteHistory} size={"large"}>
+            <Button sx={{width: "20rem"}}
+                    onClick={() => setDeleteDialog(true)}
+                    size={"large"}>
                 清除缓存
             </Button>
+            <Dialog
+                open={deleteDialog}
+                onClose={onDeleteDialogClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    {"是否清除历史记录?"}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        编译历史记录将会被不可恢复地删除，请谨慎操作!
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={onDeleteDialogClose} autoFocus>不清除</Button>
+                    <Button onClick={() => {
+                        deleteHistory().then(
+                            () => {
+                                onDeleteDialogClose();
+                                toggleDrawerClose()
+                            }
+                        )
+                    }}>
+                        清除
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Drawer>
     </>
 }

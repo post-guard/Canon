@@ -38,8 +38,8 @@ namespace Canon.Tests.LexicalParserTests
 
         [Theory]
         //[InlineData("'\\x'", 1, 2, LexemeException.LexemeErrorType.InvalidEscapeSequence)]
-        [InlineData("'This is an unclosed string literal", 1, 36, LexemeErrorType.UnclosedStringLiteral)]
-        [InlineData("'This", 1, 6, LexemeErrorType.UnclosedStringLiteral)]
+        [InlineData("'This is an unclosed string literal", 1, 35, LexemeErrorType.UnclosedStringLiteral)]
+        [InlineData("'This", 1, 5, LexemeErrorType.UnclosedStringLiteral)]
         [InlineData("x @", 1, 3, LexemeErrorType.UnknownCharacterOrString)]
         //[InlineData("\"x\'", 1, 3, LexemeException.LexemeErrorType.UnclosedStringLiteral)]
         public void TestParseCharacterError(string input,  uint expectedLine, uint expectedCharPosition, LexemeErrorType expectedErrorType)

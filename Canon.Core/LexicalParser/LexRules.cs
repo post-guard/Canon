@@ -1,4 +1,4 @@
-﻿using Canon.Core.Enums;
+using Canon.Core.Enums;
 
 namespace Canon.Core.LexicalParser;
 

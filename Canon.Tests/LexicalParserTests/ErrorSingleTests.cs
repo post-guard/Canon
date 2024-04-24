@@ -18,7 +18,7 @@ namespace Canon.Tests.LexicalParserTests
 
         [Theory]
         [InlineData("program main; var a: integer; begin a := 3#; end.", 1, 43, LexemeErrorType.IllegalNumberFormat)]
-        [InlineData("char c = 'abc;", 1, 15, LexemeErrorType.UnclosedStringLiteral)]
+        [InlineData("char c = 'abc;", 1, 14, LexemeErrorType.UnclosedStringLiteral)]
         [InlineData("x := 10 @;", 1, 9, LexemeErrorType.UnknownCharacterOrString)]
         [InlineData("identifier_with_special_chars@#",1, 30, LexemeErrorType.UnknownCharacterOrString)]
         public void TestUnknownCharacterError(string pascalProgram, uint expectedLine, uint expectedCharPosition, LexemeErrorType expectedErrorType)

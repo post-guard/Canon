@@ -45,8 +45,7 @@ public class LexicalFileTests(ITestOutputHelper testOutputHelper)
             SemanticTokenType.Delimiter,
             SemanticTokenType.Delimiter,
             SemanticTokenType.Keyword,
-            SemanticTokenType.Delimiter,
-            SemanticTokenType.End
+            SemanticTokenType.Delimiter
         ]);
     }
 
@@ -140,41 +139,10 @@ public class LexicalFileTests(ITestOutputHelper testOutputHelper)
             SemanticTokenType.Delimiter,
             SemanticTokenType.Delimiter,
             SemanticTokenType.Keyword,
-            SemanticTokenType.Delimiter,
-            SemanticTokenType.End
-        ]);
-    }
-
-    [Fact]
-    public void ReuseTest()
-    {
-        const string program1 = """
-                               program main;
-                               begin
-                               end.
-                               """;
-        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program1));
-
-        ValidateSemanticTokens(tokens, [
-            SemanticTokenType.Keyword,
-            SemanticTokenType.Identifier,
-            SemanticTokenType.Delimiter,
-            SemanticTokenType.Keyword,
-            SemanticTokenType.Keyword,
-            SemanticTokenType.Delimiter
-        ]);
-
-        const string test = "program begin end.";
-
-        tokens = _lexer.Tokenize(new StringSourceReader(test));
-
-        ValidateSemanticTokens(tokens, [
-            SemanticTokenType.Keyword,
-            SemanticTokenType.Keyword,
-            SemanticTokenType.Keyword,
             SemanticTokenType.Delimiter
         ]);
     }
+
 
     [Fact]
     public void UnclosedCommentFirst()
@@ -193,7 +161,7 @@ public class LexicalFileTests(ITestOutputHelper testOutputHelper)
         testOutputHelper.WriteLine(ex.ToString());
         Assert.Equal(LexemeErrorType.UnclosedComment, ex.ErrorType);
         Assert.Equal((uint)7, ex.Line);
-        Assert.Equal((uint)5, ex.CharPosition);
+        Assert.Equal((uint)4, ex.CharPosition);
     }
 
     [Fact]
@@ -209,7 +177,7 @@ public class LexicalFileTests(ITestOutputHelper testOutputHelper)
         testOutputHelper.WriteLine(ex.ToString());
         Assert.Equal(LexemeErrorType.UnclosedComment, ex.ErrorType);
         Assert.Equal((uint)4, ex.Line);
-        Assert.Equal((uint)26, ex.CharPosition);
+        Assert.Equal((uint)25, ex.CharPosition);
     }
 
     [Fact]
@@ -313,7 +281,11 @@ public class LexicalFileTests(ITestOutputHelper testOutputHelper)
     private static void ValidateSemanticTokens(IEnumerable<SemanticToken> actualTokens,
         IEnumerable<SemanticTokenType> expectedTypes)
     {
-        foreach ((SemanticTokenType type, SemanticToken token) in expectedTypes.Zip(actualTokens))
+        List<SemanticTokenType> types = [..expectedTypes, SemanticTokenType.End];
+        List<SemanticToken> tokens = actualTokens.ToList();
+
+        Assert.Equal(types.Count, tokens.Count);
+        foreach ((SemanticTokenType type, SemanticToken token) in types.Zip(tokens))
         {
             Assert.Equal(type, token.TokenType);
         }

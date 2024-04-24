@@ -10,7 +10,7 @@ public class Lexer : ILexer
     // 记录token
     private SemanticToken? _semanticToken;
     private readonly StringBuilder _tokenBuilder = new();
-    private readonly List<SemanticToken> _tokens = [];
+    private List<SemanticToken> _tokens = [];
 
     // 状态机
     private StateType _state = StateType.Start;
@@ -25,6 +25,7 @@ public class Lexer : ILexer
     public IEnumerable<SemanticToken> Tokenize(ISourceReader reader)
     {
         _reader = reader;
+        _tokens = [];
         _state = StateType.Start;
 
         while (_state != StateType.Done)

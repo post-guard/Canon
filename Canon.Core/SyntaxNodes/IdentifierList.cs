@@ -22,7 +22,7 @@ public class IdentifierList : NonTerminatedSyntaxNode
     {
         bool isRecursive;
 
-        if (children.Count == 1)
+        if (children.Count == 2)
         {
             isRecursive = false;
         }

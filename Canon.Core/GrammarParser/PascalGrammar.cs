@@ -54,15 +54,19 @@ public static class PascalGrammar
             ]
         },
         {
-            // IdList -> id | IdList , id
+            // (deprecated)IdList -> id | IdList , id
+
+            // 更改语法制导定义为S属性定义
+            // IdList -> , id IdList | : Type
             new NonTerminator(NonTerminatorType.IdentifierList), [
                 [
+                    new Terminator(DelimiterType.Comma),
                     Terminator.IdentifierTerminator,
+                    new NonTerminator(NonTerminatorType.IdentifierList),
                 ],
                 [
-                    new NonTerminator(NonTerminatorType.IdentifierList),
-                    new Terminator(DelimiterType.Comma),
-                    Terminator.IdentifierTerminator
+                    new Terminator(DelimiterType.Colon),
+                    new NonTerminator(NonTerminatorType.Type)
                 ]
             ]
         },
@@ -127,19 +131,20 @@ public static class PascalGrammar
             ]
         },
         {
-            // VarDeclaration -> IdList : Type | VarDeclaration ; IdList : Type
+            // (deprecated) VarDeclaration -> IdList : Type | VarDeclaration ; IdList : Type
+
+            // VarDeclaration -> id IdList | VarDeclaration ; id IdList
+            // 更改语法制导定义为S属性定义
             new NonTerminator(NonTerminatorType.VarDeclaration), [
                 [
-                    new NonTerminator(NonTerminatorType.IdentifierList),
-                    new Terminator(DelimiterType.Colon),
-                    new NonTerminator(NonTerminatorType.Type)
+                    Terminator.IdentifierTerminator,
+                    new NonTerminator(NonTerminatorType.IdentifierList)
                 ],
                 [
                     new NonTerminator(NonTerminatorType.VarDeclaration),
                     new Terminator(DelimiterType.Semicolon),
+                    Terminator.IdentifierTerminator,
                     new NonTerminator(NonTerminatorType.IdentifierList),
-                    new Terminator(DelimiterType.Colon),
-                    new NonTerminator(NonTerminatorType.Type)
                 ]
             ]
         },
@@ -281,12 +286,13 @@ public static class PascalGrammar
             ]
         },
         {
-            // ValueParameter -> IdList : BasicType
+            // (deprecated)ValueParameter -> IdList : BasicType
+            // 更改语法制导定义为S属性定义
+            // ValueParameter -> id IdList
             new NonTerminator(NonTerminatorType.ValueParameter), [
                 [
-                    new NonTerminator(NonTerminatorType.IdentifierList),
-                    new Terminator(DelimiterType.Colon),
-                    new NonTerminator(NonTerminatorType.BasicType)
+                    Terminator.IdentifierTerminator,
+                    new NonTerminator(NonTerminatorType.IdentifierList)
                 ]
             ]
         },

@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
@@ -8,6 +9,16 @@ public class CompoundStatement : NonTerminatedSyntaxNode
     public override NonTerminatorType Type => NonTerminatorType.CompoundStatement;
 
     public IEnumerable<Statement> Statements => Children[1].Convert<StatementList>().Statements;
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static CompoundStatement Create(List<SyntaxNodeBase> children)
     {

@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
@@ -32,5 +33,15 @@ public class AddOperator : NonTerminatedSyntaxNode
         {
             builder.AddString(" ||");
         }
+    }
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
     }
 }

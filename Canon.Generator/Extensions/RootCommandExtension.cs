@@ -5,9 +5,9 @@ namespace Canon.Generator.Extensions;
 
 public static class RootCommandExtension
 {
-    public static void AddGenerateCommand(this RootCommand rootCommand)
+    public static void AddGrammarCommand(this RootCommand rootCommand)
     {
-        Command generateCommand = new("generate", "Generate source files.");
+        Command generateCommand = new("grammar", "Generate grammar parser source files.");
 
         Argument<string> filenameArgument = new(name: "filename",
             description: "determines the generated file name.",
@@ -36,5 +36,17 @@ public static class RootCommandExtension
         });
 
         rootCommand.AddCommand(generateCommand);
+    }
+
+    public static void AddSyntaxVisitorCommand(this RootCommand rootCommand)
+    {
+        Command syntaxCommand = new("syntax", "Generate syntax visitor source code.");
+
+        syntaxCommand.SetHandler(async () =>
+        {
+            await SyntaxVisitorGenerator.SyntaxVisitorGenerator.Generate();
+        });
+
+        rootCommand.AddCommand(syntaxCommand);
     }
 }

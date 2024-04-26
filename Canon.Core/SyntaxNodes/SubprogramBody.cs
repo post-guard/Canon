@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
@@ -21,6 +22,16 @@ public class SubprogramBody : NonTerminatedSyntaxNode
     /// 语句声明部分
     /// </summary>
     public CompoundStatement CompoundStatement => Children[2].Convert<CompoundStatement>();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static SubprogramBody Create(List<SyntaxNodeBase> children)
     {

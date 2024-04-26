@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -16,6 +17,16 @@ public class Parameter : NonTerminatedSyntaxNode
     /// </summary>
     public ValueParameter ValueParameter =>
         IsVar ? Children[0].Convert<VarParameter>().ValueParameter : Children[0].Convert<ValueParameter>();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static Parameter Create(List<SyntaxNodeBase> children)
     {

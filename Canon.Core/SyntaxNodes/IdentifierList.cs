@@ -1,75 +1,97 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
+using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
+
+public class OnIdentifierGeneratorEventArgs : EventArgs
+{
+    public required IdentifierSemanticToken IdentifierToken { get; init; }
+
+    public required IdentifierList IdentifierList { get; init; }
+}
+
+public class OnTypeGeneratorEventArgs : EventArgs
+{
+    public required TypeSyntaxNode TypeSyntaxNode { get; init; }
+}
 
 public class IdentifierList : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.IdentifierList;
 
-    /// <summary>
-    /// 是否含有递归定义
-    /// </summary>
-    public bool IsRecursive { get; private init; }
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+        RaiseEvent();
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+        RaiseEvent();
+    }
+
+    private PascalType? _definitionType;
 
     /// <summary>
-    /// 声明的标识符列表
+    /// IdentifierList中定义的类型
     /// </summary>
-    public IEnumerable<IdentifierSemanticToken> Identifiers => GetIdentifiers();
+    /// <exception cref="InvalidOperationException">尚未确定定义的类型</exception>
+    public PascalType DefinitionType
+    {
+        get
+        {
+            if (_definitionType is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _definitionType;
+        }
+        set
+        {
+            _definitionType = value;
+        }
+    }
+
+    /// <summary>
+    /// 是否为参数中的引用参数
+    /// </summary>
+    public bool IsReference { get; set; }
+
+    /// <summary>
+    /// 是否在过程定义中使用
+    /// </summary>
+    public bool IsProcedure { get; set; }
+
+    public event EventHandler<OnIdentifierGeneratorEventArgs>? OnIdentifierGenerator;
+
+    public event EventHandler<OnTypeGeneratorEventArgs>? OnTypeGenerator;
 
     public static IdentifierList Create(List<SyntaxNodeBase> children)
     {
-        bool isRecursive;
+        return new IdentifierList { Children = children };
+    }
 
-        if (children.Count == 2)
+    private void RaiseEvent()
+    {
+        if (Children.Count == 2)
         {
-            isRecursive = false;
-        }
-        else if (children.Count == 3)
-        {
-            isRecursive = true;
+            OnTypeGenerator?.Invoke(this,
+                new OnTypeGeneratorEventArgs { TypeSyntaxNode = Children[1].Convert<TypeSyntaxNode>() });
         }
         else
         {
-            throw new InvalidOperationException();
-        }
-
-        return new IdentifierList { IsRecursive = isRecursive, Children = children };
-    }
-
-    private IEnumerable<IdentifierSemanticToken> GetIdentifiers()
-    {
-        IdentifierList identifier = this;
-
-        while (true)
-        {
-            if (identifier.IsRecursive)
+            OnIdentifierGenerator?.Invoke(this, new OnIdentifierGeneratorEventArgs
             {
-                yield return (IdentifierSemanticToken)identifier.Children[2].Convert<TerminatedSyntaxNode>().Token;
-                identifier = identifier.Children[0].Convert<IdentifierList>();
-            }
-            else
-            {
-                yield return (IdentifierSemanticToken)identifier.Children[0].Convert<TerminatedSyntaxNode>().Token;
-                break;
-            }
-        }
-    }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        //用逗号分隔输出的expression
-        using var enumerator = Identifiers.Reverse().GetEnumerator();
-
-        if (enumerator.MoveNext())
-        {
-            builder.AddString(" " + enumerator.Current.IdentifierName);
+                IdentifierToken = Children[1].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
+                IdentifierList = Children[2].Convert<IdentifierList>()
+            });
         }
 
-        while (enumerator.MoveNext())
-        {
-            builder.AddString(", " + enumerator.Current.IdentifierName);
-        }
+        OnTypeGenerator = null;
+        OnIdentifierGenerator = null;
     }
 }

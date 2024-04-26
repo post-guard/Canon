@@ -3,6 +3,7 @@ using Canon.Generator.Extensions;
 
 RootCommand rootCommand = new("Canon Compiler Source Generator");
 
-rootCommand.AddGenerateCommand();
+rootCommand.AddGrammarCommand();
+rootCommand.AddSyntaxVisitorCommand();
 
 await rootCommand.InvokeAsync(args);

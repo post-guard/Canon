@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.SemanticParser;
 
@@ -12,6 +13,16 @@ public class VarDeclarations : NonTerminatedSyntaxNode
     /// 声明的变量列表
     /// </summary>
     // public IEnumerable<(IdentifierList, TypeSyntaxNode)> Variables => EnumerateVariables();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static VarDeclarations Create(List<SyntaxNodeBase> children)
     {

@@ -160,6 +160,36 @@ public class NumberSemanticToken : SemanticToken
 
     public required NumberType NumberType { get; init; }
 
+    /// <summary>
+    /// 将数值类型记号识别为整数
+    /// </summary>
+    /// <returns>该记号表示的整数</returns>
+    /// <exception cref="InvalidOperationException">目标记号不是整数类型</exception>
+    public int ParseAsInteger()
+    {
+        if (NumberType != NumberType.Integer)
+        {
+            throw new InvalidOperationException("Target semantic token isn't integer");
+        }
+
+        return int.Parse(LiteralValue);
+    }
+
+    /// <summary>
+    /// 将数值类型记号识别为浮点数
+    /// </summary>
+    /// <returns>该记号标识的浮点数</returns>
+    /// <exception cref="InvalidOperationException">目标记号不是浮点数类型</exception>
+    public double ParseAsReal()
+    {
+        if (NumberType != NumberType.Real)
+        {
+            throw new InvalidOperationException("Target semantic token isn't real");
+        }
+
+        return double.Parse(LiteralValue);
+    }
+
     public override int GetHashCode()
     {
         return base.GetHashCode() ^ NumberType.GetHashCode();

@@ -1,18 +1,10 @@
-﻿using Canon.Core.Abstractions;
-using Canon.Core.Enums;
-using Canon.Core.GrammarParser;
-using Canon.Core.LexicalParser;
-using Canon.Core.SyntaxNodes;
-using Canon.Tests.GeneratedParserTests;
+﻿using Canon.Core.SyntaxNodes;
 using Canon.Tests.Utils;
 
 namespace Canon.Tests.GrammarParserTests;
 
 public class PascalGrammarTests
 {
-    private readonly IGrammarParser _parser = GeneratedGrammarParser.Instance;
-    private readonly ILexer _lexer = new Lexer();
-
     [Fact]
     public void DoNothingTest()
     {
@@ -22,9 +14,7 @@ public class PascalGrammarTests
                          end.
                          """;
 
-        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
-
-        ProgramStruct root = _parser.Analyse(tokens);
+        ProgramStruct root = CompilerHelpers.Analyse(program);
         Assert.Equal("DoNothing", root.Head.ProgramName.LiteralValue);
         Assert.Equal(15, root.Count());
     }
@@ -39,9 +29,8 @@ public class PascalGrammarTests
                                a := 1 + 1
                                end.
                                """;
-        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
 
-        ProgramStruct root = _parser.Analyse(tokens);
+        ProgramStruct root = CompilerHelpers.Analyse(program);
         Assert.Equal("Add", root.Head.ProgramName.LiteralValue);
     }
 
@@ -56,9 +45,8 @@ public class PascalGrammarTests
                                writeln( str, ret );
                                end.
                                """;
-        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
 
-        ProgramStruct root = _parser.Analyse(tokens);
+        ProgramStruct root = CompilerHelpers.Analyse(program);
         Assert.Equal("exFunction", root.Head.ProgramName.LiteralValue);
     }
 
@@ -73,9 +61,8 @@ public class PascalGrammarTests
                                begin
                                end.
                                """;
-        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
 
-        ProgramStruct root = _parser.Analyse(tokens);
+        ProgramStruct root = CompilerHelpers.Analyse(program);
         Assert.Equal("main", root.Head.ProgramName.LiteralValue);
     }
 
@@ -90,9 +77,21 @@ public class PascalGrammarTests
                                end.
                                """;
 
-        IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(program));
-
-        ProgramStruct root = _parser.Analyse(tokens);
+        ProgramStruct root = CompilerHelpers.Analyse(program);
         Assert.Equal("vartest", root.Head.ProgramName.IdentifierName);
+    }
+
+    [Fact]
+    public void ArrayTest()
+    {
+        const string program = """
+                               program arrayTest;
+                               var a : array [0..10] of integer;
+                               begin
+                               a[0] := 1;
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
     }
 }

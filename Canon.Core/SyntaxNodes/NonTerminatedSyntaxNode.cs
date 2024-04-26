@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Canon.Core.Abstractions;
 using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
@@ -8,6 +9,8 @@ public abstract class NonTerminatedSyntaxNode : SyntaxNodeBase, IEnumerable<Synt
     public override bool IsTerminated => false;
 
     public abstract NonTerminatorType Type { get; }
+
+
 
     public required List<SyntaxNodeBase> Children { get; init; }
 

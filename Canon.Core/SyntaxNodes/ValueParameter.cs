@@ -1,5 +1,7 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
+using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -8,23 +10,27 @@ public class ValueParameter : NonTerminatedSyntaxNode
     public override NonTerminatorType Type => NonTerminatorType.ValueParameter;
 
     /// <summary>
-    /// 声明的变量列表
+    /// 是否为参数中的引用参数
     /// </summary>
-    // public IdentifierList IdentifierList => Children[1].Convert<IdentifierList>();
+    public bool IsReference { get; set; }
 
-    /// <summary>
-    /// 声明的变量类型
-    /// </summary>
-    // public BasicType BasicType => Children[2].Convert<BasicType>();
+    public IdentifierSemanticToken Token =>
+        Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>();
+
+    public IdentifierList IdentifierList => Children[1].Convert<IdentifierList>();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static ValueParameter Create(List<SyntaxNodeBase> children)
     {
         return new ValueParameter { Children = children };
-    }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        //可能涉及符号表访问
-        builder.AddString("valueParam ");
     }
 }

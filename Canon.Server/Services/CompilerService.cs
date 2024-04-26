@@ -1,6 +1,6 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.LexicalParser;
+using Canon.Core.SemanticParser;
 using Canon.Core.SyntaxNodes;
 using Canon.Server.DataTransferObjects;
 using Canon.Server.Entities;
@@ -12,6 +12,7 @@ namespace Canon.Server.Services;
 public class CompilerService(
     ILexer lexer,
     IGrammarParser grammarParser,
+    SyntaxTreeTraveller traveller,
     CompileDbContext dbContext,
     GridFsService gridFsService,
     SyntaxTreePresentationService syntaxTreePresentationService,
@@ -38,14 +39,14 @@ public class CompilerService(
         await using Stream imageStream = syntaxTreePresentationService.Present(root);
         string filename = await gridFsService.UploadStream(imageStream, "image/png");
 
-        CCodeBuilder builder = new();
-        root.GenerateCCode(builder);
+        CCodeGenerateVisitor visitor = new();
+        traveller.Travel(root, visitor);
 
         CompileResult result = new()
         {
             SourceCode = sourceCode.Code,
             CompileId = Guid.NewGuid().ToString(),
-            CompiledCode = builder.Build(),
+            CompiledCode = visitor.Builder.Build(),
             SytaxTreeImageFilename = filename,
             CompileTime = DateTime.Now
         };

@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
@@ -12,6 +13,16 @@ public class ConstDeclarations : NonTerminatedSyntaxNode
     /// 声明的常量列表
     /// </summary>
     public IEnumerable<(IdentifierSemanticToken, ConstValue)> ConstValues => GetConstValues();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static ConstDeclarations Create(List<SyntaxNodeBase> children)
     {

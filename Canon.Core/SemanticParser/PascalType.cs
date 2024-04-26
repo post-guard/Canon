@@ -44,4 +44,31 @@ public abstract class PascalType : IEquatable<PascalType>
     {
         return !a.Equals(b);
     }
+
+    public static PascalType operator +(PascalType a, PascalType b)
+    {
+        if (!IsCalculatable(a) || !IsCalculatable(b))
+        {
+            throw new InvalidOperationException();
+        }
+
+        if (a == PascalBasicType.Integer && b == PascalBasicType.Integer)
+        {
+            return PascalBasicType.Integer;
+        }
+        else
+        {
+            return PascalBasicType.Real;
+        }
+    }
+
+    /// <summary>
+    /// 是否为可计算的类型
+    /// </summary>
+    /// <param name="pascalType">需要判断的Pascal类型</param>
+    /// <returns>是否为可计算的类型</returns>
+    public static bool IsCalculatable(PascalType pascalType)
+    {
+        return pascalType == PascalBasicType.Integer || pascalType == PascalBasicType.Real;
+    }
 }

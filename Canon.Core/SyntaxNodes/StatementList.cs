@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
@@ -10,6 +11,16 @@ public class StatementList : NonTerminatedSyntaxNode
     public bool IsRecursive { get; private init; }
 
     public IEnumerable<Statement> Statements => GetStatements();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static StatementList Create(List<SyntaxNodeBase> children)
     {

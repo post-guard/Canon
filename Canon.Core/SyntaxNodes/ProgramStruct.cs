@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
@@ -16,6 +17,16 @@ public class ProgramStruct : NonTerminatedSyntaxNode
     /// 程序体
     /// </summary>
     public ProgramBody Body => Children[2].Convert<ProgramBody>();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static ProgramStruct Create(List<SyntaxNodeBase> children)
     {

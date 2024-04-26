@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
@@ -12,6 +13,16 @@ public class ProcedureCall : NonTerminatedSyntaxNode
         => (IdentifierSemanticToken)Children[0].Convert<TerminatedSyntaxNode>().Token;
 
     public IEnumerable<Expression> Arguments => GetArguments();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static ProcedureCall Create(List<SyntaxNodeBase> children)
     {

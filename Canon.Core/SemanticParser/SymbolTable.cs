@@ -96,6 +96,23 @@ public class SymbolTable
         return false;
     }
 
+    /// <summary>
+    /// 尝试获得父符号表
+    /// </summary>
+    /// <param name="parent">获得的父符号表</param>
+    /// <returns>是否存在父符号表</returns>
+    public bool TryGetParent([NotNullWhen(true)] out SymbolTable? parent)
+    {
+        if (_parent is null)
+        {
+            parent = null;
+            return false;
+        }
+
+        parent = _parent;
+        return true;
+    }
+
     private IEnumerable<SymbolTable> GetParents()
     {
         SymbolTable? now = _parent;

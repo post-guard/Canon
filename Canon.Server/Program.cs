@@ -1,6 +1,7 @@
 using Canon.Core.Abstractions;
 using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
+using Canon.Core.SemanticParser;
 using Canon.Server.Extensions;
 using Canon.Server.Services;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ builder.Services.AddTransient<ILexer, Lexer>();
 builder.Services.AddSingleton<IGrammarParser>(
     _ => GeneratedGrammarParser.Instance);
 builder.Services.AddSingleton<SyntaxTreePresentationService>();
+builder.Services.AddSingleton<SyntaxTreeTraveller>();
 builder.Services.AddTransient<CompilerService>();
 builder.Services.AddHostedService<DatabaseSetupService>();
 

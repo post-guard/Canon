@@ -1,4 +1,6 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.Enums;
+using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -6,42 +8,39 @@ public class VarDeclaration : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.VarDeclaration;
 
-    // public bool IsRecursive { get; private init; }
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
 
-    // /// <summary>
-    // /// 声明的变量
-    // /// </summary>
-    // public (IdentifierList, TypeSyntaxNode) Variable => GetVariable();
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
-    // private (IdentifierList, TypeSyntaxNode) GetVariable()
-    // {
-    //     if (IsRecursive)
-    //     {
-    //         return (Children[2].Convert<IdentifierList>(), Children[4].Convert<TypeSyntaxNode>());
-    //     }
-    //     else
-    //     {
-    //         return (Children[0].Convert<IdentifierList>(), Children[2].Convert<TypeSyntaxNode>());
-    //     }
-    // }
+    public required IdentifierSemanticToken Token { get; init; }
+
+    public required IdentifierList IdentifierList { get; init; }
 
     public static VarDeclaration Create(List<SyntaxNodeBase> children)
     {
-        /*bool isRecursive;
-
         if (children.Count == 2)
         {
-            isRecursive = false;
-        }
-        else if (children.Count == 4)
-        {
-            isRecursive = true;
+            return new VarDeclaration
+            {
+                Children = children,
+                Token = children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
+                IdentifierList = children[1].Convert<IdentifierList>()
+            };
         }
         else
         {
-            throw new InvalidOperationException();
-        }*/
-
-        return new VarDeclaration {Children = children};
+            return new VarDeclaration
+            {
+                Children = children,
+                Token = children[2].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
+                IdentifierList = children[3].Convert<IdentifierList>()
+            };
+        }
     }
 }

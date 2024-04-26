@@ -6,14 +6,40 @@ using Canon.Tests.Utils;
 using Canon.Core.Abstractions;
 namespace Canon.Tests.LexicalParserTests
 {
-
-    public class NumberTests
+    public class NumberTests(ITestOutputHelper testOutputHelper)
     {
         private readonly ILexer _lexer = new Lexer();
-        private readonly ITestOutputHelper _testOutputHelper;
-        public NumberTests(ITestOutputHelper testOutputHelper)
+
+        [Theory]
+        [InlineData("123", 123)]
+        [InlineData("0", 0)]
+        public void IntegerTokenTest(string input, int result)
         {
-            _testOutputHelper = testOutputHelper;
+            IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(input));
+            NumberSemanticToken token = tokens.First().Convert<NumberSemanticToken>();
+
+            Assert.Equal(NumberType.Integer, token.NumberType);
+            Assert.Equal(result, token.ParseAsInteger());
+        }
+
+        [Theory]
+        [InlineData("0.0", 0)]
+        [InlineData("1.23", 1.23)]
+        [InlineData("1e7", 1e7)]
+        [InlineData("1E7", 1e7)]
+        [InlineData("1.23e2", 123)]
+        [InlineData("1.23E2", 123)]
+        [InlineData("123e-2", 1.23)]
+        [InlineData("123E-3", 0.123)]
+        [InlineData("12e-7", 12e-7)]
+        [InlineData(".123", 0.123)]
+        public void RealTokenTest(string input, double result)
+        {
+            IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(input));
+            NumberSemanticToken token = tokens.First().Convert<NumberSemanticToken>();
+
+            Assert.Equal(NumberType.Real, token.NumberType);
+            Assert.Equal(result, token.ParseAsReal());
         }
 
         [Theory]
@@ -50,7 +76,7 @@ namespace Canon.Tests.LexicalParserTests
         public void TestParseNumberError(string input,  uint expectedLine, uint expectedCharPosition, LexemeErrorType expectedErrorType)
         {
             var ex = Assert.Throws<LexemeException>(() => _lexer.Tokenize(new StringSourceReader(input)).ToList());
-            _testOutputHelper.WriteLine(ex.ToString());
+            testOutputHelper.WriteLine(ex.ToString());
             Assert.Equal(expectedErrorType, ex.ErrorType);
             Assert.Equal(expectedLine, ex.Line);
             Assert.Equal(expectedCharPosition, ex.CharPosition);

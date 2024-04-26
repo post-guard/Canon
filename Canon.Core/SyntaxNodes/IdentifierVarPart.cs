@@ -1,54 +1,46 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
 using Canon.Core.Enums;
-using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
+
+public class OnParameterGeneratorEventArgs : EventArgs
+{
+    public required ExpressionList Parameters { get; init; }
+}
 
 public class IdentifierVarPart : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.IdVarPart;
 
-    /// <summary>
-    /// 是否声明了索引部分
-    /// </summary>
-    public bool Exist { get; private init; }
-
-    /// <summary>
-    /// 索引中的位置声明
-    /// </summary>
-    public IEnumerable<Expression> Positions => GetPositions();
-
-    private IEnumerable<Expression> GetPositions()
+    public override void PreVisit(SyntaxNodeVisitor visitor)
     {
-        if (!Exist)
-        {
-            yield break;
-        }
-
-        foreach (Expression expression in Children[1].Convert<ExpressionList>().Expressions)
-        {
-            yield return expression;
-        }
+        visitor.PreVisit(this);
+        RaiseEvent();
     }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+        RaiseEvent();
+    }
+
+    public event EventHandler<OnParameterGeneratorEventArgs>? OnParameterGenerator;
 
     public static IdentifierVarPart Create(List<SyntaxNodeBase> children)
     {
-        bool exist;
-
-        if (children.Count == 0)
-        {
-            exist = false;
-        }
-        else if (children.Count == 3)
-        {
-            exist = true;
-        }
-        else
-        {
-            throw new InvalidOperationException();
-        }
-
-        return new IdentifierVarPart { Children = children, Exist = exist };
+        return new IdentifierVarPart { Children = children };
     }
 
+    private void RaiseEvent()
+    {
+        if (Children.Count == 3)
+        {
+            OnParameterGenerator?.Invoke(this, new OnParameterGeneratorEventArgs
+            {
+                Parameters = Children[1].Convert<ExpressionList>()
+            });
+        }
+
+        OnParameterGenerator = null;
+    }
 }

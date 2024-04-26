@@ -1,4 +1,4 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
@@ -8,63 +8,61 @@ public class Period : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.Period;
 
-    public bool IsRecursive { get; private init; }
+    /// <summary>
+    /// 所有定义的Period
+    /// </summary>
+    public List<Period> Periods { get; } = [];
 
     /// <summary>
-    /// 数组上下界列表
+    /// 数组的开始下标和结束下标
     /// </summary>
-    public IEnumerable<(NumberSemanticToken, NumberSemanticToken)> Ranges => GetRanges();
-
-    public static Period Create(List<SyntaxNodeBase> children)
+    public (NumberSemanticToken, NumberSemanticToken) Range
     {
-        bool isRecursive;
-
-        if (children.Count == 3)
+        get
         {
-            isRecursive = false;
-        }
-        else if (children.Count == 5)
-        {
-            isRecursive = true;
-        }
-        else
-        {
-            throw new InvalidOperationException();
-        }
-
-        return new Period { Children = children, IsRecursive = isRecursive };
-    }
-
-    private (NumberSemanticToken, NumberSemanticToken) GetRange()
-    {
-        if (IsRecursive)
-        {
-            return ((NumberSemanticToken)Children[2].Convert<TerminatedSyntaxNode>().Token,
-                (NumberSemanticToken)Children[4].Convert<TerminatedSyntaxNode>().Token);
-        }
-        else
-        {
-            return ((NumberSemanticToken)Children[0].Convert<TerminatedSyntaxNode>().Token,
-                (NumberSemanticToken)Children[2].Convert<TerminatedSyntaxNode>().Token);
-        }
-    }
-
-    private IEnumerable<(NumberSemanticToken, NumberSemanticToken)> GetRanges()
-    {
-        Period period = this;
-
-        while (true)
-        {
-            if (period.IsRecursive)
+            if (Children.Count == 3)
             {
-                yield return period.GetRange();
-                period = period.Children[0].Convert<Period>();
+                return (Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<NumberSemanticToken>(),
+                    Children[2].Convert<TerminatedSyntaxNode>().Token.Convert<NumberSemanticToken>());
             }
             else
             {
-                yield return period.GetRange();
-                break;
+                return (Children[2].Convert<TerminatedSyntaxNode>().Token.Convert<NumberSemanticToken>(),
+                    Children[4].Convert<TerminatedSyntaxNode>().Token.Convert<NumberSemanticToken>());
             }
         }
+    }
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
+
+    public static Period Create(List<SyntaxNodeBase> children)
+    {
+        Period result = new() { Children = children };
+
+        if (children.Count == 3)
+        {
+            result.Periods.Add(result);
+        }
+        else
+        {
+            Period child = children[0].Convert<Period>();
+
+            foreach (Period period in child.Periods)
+            {
+                result.Periods.Add(period);
+            }
+
+            result.Periods.Add(result);
+        }
+
+        return result;
     }
 }

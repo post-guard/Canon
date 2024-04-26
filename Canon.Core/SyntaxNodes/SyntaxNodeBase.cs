@@ -9,6 +9,10 @@ public abstract class SyntaxNodeBase : ICCodeGenerator
 {
     public abstract bool IsTerminated { get; }
 
+    public abstract void PreVisit(SyntaxNodeVisitor visitor);
+
+    public abstract void PostVisit(SyntaxNodeVisitor visitor);
+
     public T Convert<T>() where T : SyntaxNodeBase
     {
         T? result = this as T;
@@ -26,7 +30,6 @@ public abstract class SyntaxNodeBase : ICCodeGenerator
     /// </summary>
     public virtual void GenerateCCode(CCodeBuilder builder)
     {
-
     }
 
     public override string ToString()

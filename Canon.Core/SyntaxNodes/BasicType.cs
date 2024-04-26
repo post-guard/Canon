@@ -1,4 +1,5 @@
-﻿using Canon.Core.CodeGenerators;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 using Canon.Core.SemanticParser;
@@ -9,9 +10,31 @@ public class BasicType : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.BasicType;
 
-    public static BasicType Create(List<SyntaxNodeBase> children)
+    /// <summary>
+    /// BasicType代表的Pascal类型
+    /// </summary>
+    /// <exception cref="InvalidOperationException"></exception>
+    public PascalType PascalType
     {
-        return new BasicType { Children = children };
+        get
+        {
+            KeywordType keywordType = Children[0].Convert<TerminatedSyntaxNode>().Token
+                .Convert<KeywordSemanticToken>().KeywordType;
+
+            switch (keywordType)
+            {
+                case KeywordType.Integer:
+                    return PascalBasicType.Integer;
+                case KeywordType.Real:
+                    return PascalBasicType.Real;
+                case KeywordType.Character:
+                    return PascalBasicType.Character;
+                case KeywordType.Boolean:
+                    return PascalBasicType.Boolean;
+            }
+
+            throw new InvalidOperationException();
+        }
     }
 
     public override void GenerateCCode(CCodeBuilder builder)
@@ -36,27 +59,18 @@ public class BasicType : NonTerminatedSyntaxNode
         }
     }
 
-    /// <summary>
-    ///尝试获取Pascal的基本类型
-    /// </summary>
-    /// <returns></returns>
-    public PascalType TryGetPascalType()
+    public override void PreVisit(SyntaxNodeVisitor visitor)
     {
-        var keywordType = Children[0].Convert<TerminatedSyntaxNode>().Token
-            .Convert<KeywordSemanticToken>().KeywordType;
+        visitor.PreVisit(this);
+    }
 
-        switch (keywordType)
-        {
-            case KeywordType.Integer:
-                return PascalBasicType.Integer;
-            case KeywordType.Real:
-                return PascalBasicType.Real;
-            case KeywordType.Boolean:
-                return PascalBasicType.Boolean;
-            case KeywordType.Character:
-                return PascalBasicType.Character;
-        }
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
-        return PascalBasicType.Void;
+    public static BasicType Create(List<SyntaxNodeBase> children)
+    {
+        return new BasicType { Children = children };
     }
 }

@@ -1,4 +1,5 @@
-﻿using Canon.Core.Enums;
+﻿using Canon.Core.Abstractions;
+using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -12,6 +13,16 @@ public class ParameterList : NonTerminatedSyntaxNode
     /// 声明的参数列表
     /// </summary>
     public IEnumerable<Parameter> Parameters => GetParameters();
+
+    public override void PreVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PreVisit(this);
+    }
+
+    public override void PostVisit(SyntaxNodeVisitor visitor)
+    {
+        visitor.PostVisit(this);
+    }
 
     public static ParameterList Create(List<SyntaxNodeBase> children)
     {

@@ -44,7 +44,7 @@ export function HistoryPage({state, setState}) {
         }
         getResponse();
 
-    }, [data])
+    }, [state])
 
     const toggleDrawerClose = () => {
         setState(false);
@@ -87,7 +87,7 @@ export function HistoryPage({state, setState}) {
                 {
                     data.map((item, index) => {
                             return <Card key={index}
-                                         sx={{width: "100%", height: "auto"}}>
+                                         sx={{width: "100%", height: "auto",overflow: "visible"}}>
                                 <CardActionArea onClick={() => {
                                     navigate(`/${item.id}`)
                                 }}>

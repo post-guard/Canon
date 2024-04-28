@@ -35,6 +35,8 @@ public class PascalBasicType : PascalType
         return Type.GetHashCode();
     }
 
+    public override string ToString() => TypeName;
+
     /// <summary>
     /// 整数类型的单例对象
     /// </summary>

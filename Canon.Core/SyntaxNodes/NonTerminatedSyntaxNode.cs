@@ -10,8 +10,6 @@ public abstract class NonTerminatedSyntaxNode : SyntaxNodeBase, IEnumerable<Synt
 
     public abstract NonTerminatorType Type { get; }
 
-
-
     public required List<SyntaxNodeBase> Children { get; init; }
 
     public IEnumerator<SyntaxNodeBase> GetEnumerator()

@@ -82,7 +82,7 @@ public class Statement : NonTerminatedSyntaxNode
 
     private void RaiseEvent()
     {
-        if (Children.Count == 2)
+        if (Children.Count == 3)
         {
             if (Children[0].IsTerminated)
             {

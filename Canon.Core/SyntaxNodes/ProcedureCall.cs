@@ -1,27 +1,36 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
+
+public class OnParameterGeneratorEventArgs : EventArgs
+{
+    public required ExpressionList Parameters { get; init; }
+}
 
 public class ProcedureCall : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.ProcedureCall;
 
     public IdentifierSemanticToken ProcedureId
-        => (IdentifierSemanticToken)Children[0].Convert<TerminatedSyntaxNode>().Token;
+        => Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>();
 
-    public IEnumerable<Expression> Arguments => GetArguments();
+    /// <summary>
+    /// 调用函数时含有参数的事件
+    /// </summary>
+    public event EventHandler<OnParameterGeneratorEventArgs>? OnParameterGenerator;
 
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);
+        RaiseEvent();
     }
 
     public override void PostVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PostVisit(this);
+        RaiseEvent();
     }
 
     public static ProcedureCall Create(List<SyntaxNodeBase> children)
@@ -29,38 +38,16 @@ public class ProcedureCall : NonTerminatedSyntaxNode
         return new ProcedureCall { Children = children };
     }
 
-    private IEnumerable<Expression> GetArguments()
+    private void RaiseEvent()
     {
-        if (Children.Count == 1)
+        if (Children.Count == 4)
         {
-            yield break;
-        }
-
-        foreach (Expression expression in Children[2].Convert<ExpressionList>().Expressions)
-        {
-            yield return expression;
-        }
-    }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        builder.AddString(ProcedureId.IdentifierName + "(");
-
-        //用逗号分隔输出的expression
-        using (var enumerator = Arguments.GetEnumerator())
-        {
-            if (enumerator.MoveNext())
+            OnParameterGenerator?.Invoke(this, new OnParameterGeneratorEventArgs
             {
-                enumerator.Current.GenerateCCode(builder);
-            }
-
-            while (enumerator.MoveNext())
-            {
-                builder.AddString(", ");
-                enumerator.Current.GenerateCCode(builder);
-            }
+                Parameters = Children[2].Convert<ExpressionList>()
+            });
         }
 
-        builder.AddString(")");
+        OnParameterGenerator = null;
     }
 }

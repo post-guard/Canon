@@ -3,6 +3,7 @@ using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
 using Microsoft.Extensions.Logging;
+using Expression = Canon.Core.SyntaxNodes.Expression;
 
 namespace Canon.Core.SemanticParser;
 
@@ -10,12 +11,48 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
 {
     public SymbolTable SymbolTable { get; private set; } = new();
 
-    public override void PostVisit(ConstValue constValue)
+    /// <summary>
+    /// 语法检查中是否发现错误
+    /// </summary>
+    public bool IsError { get; private set; }
+
+    public override void PreVisit(ConstDeclaration constDeclaration)
     {
-        base.PostVisit(constValue);
-        constValue.OnNumberGenerator += (_, e) =>
+        base.PostVisit(constDeclaration);
+
+        (IdentifierSemanticToken token, ConstValue constValue) = constDeclaration.ConstValue;
+
+        // Lookahead 判断常量值的类型
+        if (constValue.Children.Count == 1)
         {
-            switch (e.Token.NumberType)
+            SemanticToken valueToken = constValue.Children[0].Convert<TerminatedSyntaxNode>().Token;
+
+            switch (valueToken.TokenType)
+            {
+                case SemanticTokenType.Number:
+                    NumberSemanticToken numberSemanticToken = valueToken.Convert<NumberSemanticToken>();
+                    switch (numberSemanticToken.NumberType)
+                    {
+                        case NumberType.Integer:
+                            constValue.ConstType = PascalBasicType.Integer;
+                            break;
+                        case NumberType.Real:
+                            constValue.ConstType = PascalBasicType.Real;
+                            break;
+                    }
+
+                    break;
+                case SemanticTokenType.Character:
+                    constValue.ConstType = PascalBasicType.Character;
+                    break;
+            }
+        }
+        else
+        {
+            NumberSemanticToken numberSemanticToken = constValue.Children[1].Convert<TerminatedSyntaxNode>()
+                .Token.Convert<NumberSemanticToken>();
+
+            switch (numberSemanticToken.NumberType)
             {
                 case NumberType.Integer:
                     constValue.ConstType = PascalBasicType.Integer;
@@ -24,23 +61,14 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
                     constValue.ConstType = PascalBasicType.Real;
                     break;
             }
-        };
+        }
 
-        constValue.OnCharacterGenerator += (_, _) => { constValue.ConstType = PascalBasicType.Character; };
-    }
-
-    public override void PostVisit(ConstDeclaration constDeclaration)
-    {
-        base.PostVisit(constDeclaration);
-        (IdentifierSemanticToken token, ConstValue constValue) = constDeclaration.ConstValue;
-
-        bool result = SymbolTable.TryAddSymbol(new Symbol
+        if (!SymbolTable.TryAddSymbol(new Symbol
+            {
+                Const = true, SymbolName = token.IdentifierName, SymbolType = constValue.ConstType
+            }))
         {
-            Const = true, SymbolName = token.IdentifierName, SymbolType = constValue.ConstType
-        });
-
-        if (!result)
-        {
+            IsError = true;
             logger?.LogError("Identifier '{}' has been declared twice!", token.IdentifierName);
         }
     }
@@ -64,35 +92,44 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
         };
 
         // factor -> variable
-        factor.OnVariableGenerator += (_, e) =>
-        {
-            if (SymbolTable.TryGetSymbol(e.Variable.Identifier.IdentifierName, out Symbol? symbol))
-            {
-                factor.FactorType = symbol.SymbolType;
-            }
-        };
+        factor.OnVariableGenerator += (_, e) => { factor.FactorType = e.Variable.VariableType; };
 
         // factor -> (expression)
-        factor.OnParethnesisGenerator += (_, e) => { factor.FactorType = e.Expression.ExprssionType; };
+        factor.OnParethnesisGenerator += (_, e) => { factor.FactorType = e.Expression.ExpressionType; };
 
         // factor -> id (expression_list)
         factor.OnProcedureCallGenerator += (_, e) =>
         {
             if (!SymbolTable.TryGetSymbol(e.ProcedureName.IdentifierName, out Symbol? procedure))
             {
+                IsError = true;
                 logger?.LogError("Procedure '{}' does not define.", e.ProcedureName.IdentifierName);
                 return;
             }
 
-            if (procedure.SymbolType is not PascalFunctionType functionType)
+            PascalFunctionType? functionType = procedure.SymbolType as PascalFunctionType;
+            if (functionType is null)
             {
-                logger?.LogError("Identifier '{}' is not a call-able.", procedure.SymbolName);
+                if (SymbolTable.TryGetParent(out SymbolTable? parent))
+                {
+                    if (parent.TryGetSymbol(e.ProcedureName.IdentifierName, out procedure))
+                    {
+                        functionType = procedure.SymbolType as PascalFunctionType;
+                    }
+                }
+            }
+
+            if (functionType is null)
+            {
+                IsError = true;
+                logger?.LogError("'{}' is not call able.", e.ProcedureName.IdentifierName);
                 return;
             }
 
             if (functionType.ReturnType == PascalBasicType.Void)
             {
-                logger?.LogError("Procedure '{}' returns void.", procedure.SymbolName);
+                IsError = true;
+                logger?.LogError("Procedure '{}' returns void.", e.ProcedureName.IdentifierName);
                 return;
             }
 
@@ -100,8 +137,9 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
 
             if (e.Parameters.Expressions.Count != functionType.Parameters.Count)
             {
+                IsError = true;
                 logger?.LogError("Procedure '{}' expects {} parameters but {} provided.",
-                    procedure.SymbolName,
+                    e.ProcedureName.IdentifierName,
                     functionType.Parameters.Count,
                     e.Parameters.Expressions.Count);
                 return;
@@ -110,9 +148,11 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
             foreach ((Expression expression, PascalParameterType parameterType) in e.Parameters.Expressions.Zip(
                          functionType.Parameters))
             {
-                if (expression.ExprssionType != parameterType)
+                if (expression.ExpressionType != parameterType.ParameterType)
                 {
-                    logger?.LogError("");
+                    IsError = true;
+                    logger?.LogError("Parameter expect '{}' but '{}'",
+                        parameterType.ParameterType.TypeName, expression.ExpressionType);
                     return;
                 }
             }
@@ -123,6 +163,7 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
         {
             if (e.Factor.FactorType != PascalBasicType.Boolean)
             {
+                IsError = true;
                 logger?.LogError("The boolean type is expected.");
                 return;
             }
@@ -148,6 +189,7 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
                 return;
             }
 
+            IsError = true;
             logger?.LogError("Can't calculate");
         };
     }
@@ -166,6 +208,7 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
                 return;
             }
 
+            IsError = true;
             logger?.LogError("Can't calculate");
         };
     }
@@ -176,10 +219,10 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
 
         expression.OnSimpleExpressionGenerator += (_, e) =>
         {
-            expression.ExprssionType = e.SimpleExpression.SimpleExpressionType;
+            expression.ExpressionType = e.SimpleExpression.SimpleExpressionType;
         };
 
-        expression.OnRelationGenerator += (_, _) => { expression.ExprssionType = PascalBasicType.Boolean; };
+        expression.OnRelationGenerator += (_, _) => { expression.ExpressionType = PascalBasicType.Boolean; };
     }
 
     public override void PostVisit(TypeSyntaxNode typeSyntaxNode)
@@ -232,7 +275,6 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
                 SymbolName = e.IdentifierToken.IdentifierName,
                 SymbolType = identifierList.DefinitionType,
                 Reference = identifierList.IsReference
-
             };
             SymbolTable.TryAddSymbol(symbol);
 
@@ -333,6 +375,12 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
                 SymbolName = subprogramHead.SubprogramName.IdentifierName,
                 SymbolType = new PascalFunctionType(parameters, e.ReturnType.PascalType)
             });
+
+            // 在Pascal中返回值是添加一个类型为返回类型 名称为函数名称的局部变量
+            SymbolTable.TryAddSymbol(new Symbol
+            {
+                SymbolName = subprogramHead.SubprogramName.IdentifierName, SymbolType = e.ReturnType.PascalType
+            });
         };
     }
 
@@ -370,5 +418,174 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
 
         // 同时添加到参数列表
         _parameters!.Add(symbol);
+    }
+
+    public override void PostVisit(Statement statement)
+    {
+        base.PostVisit(statement);
+        // statement -> Variable AssignOp Expression
+
+        statement.OnAssignGenerator += (_, e) =>
+        {
+            // 检查是否有注册变量
+            if (!SymbolTable.TryGetSymbol(e.Variable.Identifier.IdentifierName, out Symbol? variable))
+            {
+                IsError = true;
+                logger?.LogError("Variable '{}' does not define.", e.Variable.Identifier.IdentifierName);
+                return;
+            }
+
+            // 检查是否为常量
+            if (variable.Const)
+            {
+                IsError = true;
+                logger?.LogError("Can't assign value to const '{}'.,",
+                    e.Variable.Identifier.IdentifierName);
+            }
+
+            if (e.Variable.VariableType != e.Expression.ExpressionType)
+            {
+                IsError = true;
+                logger?.LogError("Variable '{}' type mismatch, expect '{}' but '{}'.",
+                    e.Variable.Identifier.IdentifierName,
+                    e.Variable.VariableType.ToString(),
+                    e.Expression.ExpressionType.ToString());
+            }
+        };
+
+        // statement -> for id AssignOp Expression to Expression do Statement
+        statement.OnForGenerator += (_, e) =>
+        {
+            // 检查id是否存在
+            if (!SymbolTable.TryGetSymbol(e.Iterator.IdentifierName, out Symbol? _))
+            {
+                IsError = true;
+                logger?.LogError("Variable '{}' does not define.", e.Iterator.IdentifierName);
+                return;
+            }
+
+            // 检查ExpressionA是否为Integer
+            if (e.Begin.ExpressionType != PascalBasicType.Integer)
+            {
+                IsError = true;
+                logger?.LogError("The loop begin parameter is not integer.");
+                return;
+            }
+
+            // 检查ExpressionB是否为Integer
+            if (e.End.ExpressionType != PascalBasicType.Integer)
+            {
+                IsError = true;
+                logger?.LogError("The loop end parameter is not integer.");
+            }
+        };
+
+        // statement -> if Expression then Statement ElsePart
+        statement.OnIfGenerator += (_, e) =>
+        {
+            // 条件是否为Boolean
+            if (e.Condition.ExpressionType != PascalBasicType.Boolean)
+            {
+                IsError = true;
+                logger?.LogError("Expect '{}' but '{}'.", PascalBasicType.Boolean.TypeName,
+                    e.Condition.ExpressionType.ToString());
+            }
+        };
+    }
+
+    public override void PostVisit(ProcedureCall procedureCall)
+    {
+        base.PostVisit(procedureCall);
+        // 查看procedureId是否注册
+        if (!SymbolTable.TryGetSymbol(procedureCall.ProcedureId.IdentifierName, out Symbol? procedure))
+        {
+            IsError = true;
+            logger?.LogError("procedure '{}' is not defined.", procedureCall.ProcedureId.IdentifierName);
+            return;
+        }
+
+        // 查看该符号是否为procedure
+        if (procedure.SymbolType is not PascalFunctionType functionType)
+        {
+            IsError = true;
+            logger?.LogError("Identifier '{}' is not a call-able.", procedure.SymbolName);
+            return;
+        }
+
+        procedureCall.OnParameterGenerator += (_, e) =>
+        {
+            // 检查procedure输入参数个数是否相符
+            if (e.Parameters.Expressions.Count != functionType.Parameters.Count)
+            {
+                IsError = true;
+                logger?.LogError("Procedure '{}' expects {} parameters but {} provided.",
+                    procedure.SymbolName,
+                    functionType.Parameters.Count,
+                    e.Parameters.Expressions.Count);
+                return;
+            }
+
+            // 检查每个参数的类型与procedure参数定义类型是否相符
+            foreach ((Expression expression, PascalParameterType parameterType) in e.Parameters.Expressions.Zip(
+                         functionType.Parameters))
+            {
+                if (expression.ExpressionType != parameterType.ParameterType)
+                {
+                    IsError = true;
+                    logger?.LogError("Parameter expect '{}' but '{}'",
+                        parameterType.ParameterType.TypeName, expression.ExpressionType);
+                    return;
+                }
+            }
+        };
+    }
+
+    public override void PostVisit(Variable variable)
+    {
+        base.PostVisit(variable);
+        if (SymbolTable.TryGetSymbol(variable.Identifier.IdentifierName, out Symbol? id))
+        {
+            variable.VariableType = id.SymbolType;
+
+            for (int i = 0; i < variable.VarPart.IndexCount; i++)
+            {
+                if (variable.VariableType is PascalArrayType arrayType)
+                {
+                    variable.VariableType = arrayType.ElementType;
+                }
+                else
+                {
+                    // 提前不为ArrayType,赋值变量维数写多
+                    IsError = true;
+                    logger?.LogError("Array dimension mismatch, more than expect");
+                    return;
+                }
+            }
+        }
+        else
+        {
+            // 没有注册变量
+            IsError = true;
+            logger?.LogError("Variable '{}' does not define.", variable.Identifier.IdentifierName);
+        }
+    }
+
+    public override void PostVisit(IdentifierVarPart identifierVarPart)
+    {
+        base.PostVisit(identifierVarPart);
+        identifierVarPart.OnIndexGenerator += (_, e) =>
+        {
+            foreach (Expression expression in e.IndexParameters.Expressions)
+            {
+                if (expression.ExpressionType != PascalBasicType.Integer)
+                {
+                    IsError = true;
+                    logger?.LogError("Index of array expect 'int' but '{}'",
+                        expression.ExpressionType.ToString());
+                }
+            }
+
+            identifierVarPart.IndexCount = e.IndexParameters.Expressions.Count;
+        };
     }
 }

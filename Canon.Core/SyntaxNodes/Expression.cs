@@ -47,7 +47,7 @@ public class Expression : NonTerminatedSyntaxNode
 
     private PascalType? _expressionType;
 
-    public PascalType ExprssionType
+    public PascalType ExpressionType
     {
         get
         {

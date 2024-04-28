@@ -3,14 +3,19 @@ using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnParameterGeneratorEventArgs : EventArgs
+public class OnIndexGeneratorEventArgs : EventArgs
 {
-    public required ExpressionList Parameters { get; init; }
+    public required ExpressionList IndexParameters { get; init; }
 }
 
 public class IdentifierVarPart : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.IdVarPart;
+
+    /// <summary>
+    /// 数组索引的个数
+    /// </summary>
+    public int IndexCount { get; set; }
 
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
@@ -24,7 +29,10 @@ public class IdentifierVarPart : NonTerminatedSyntaxNode
         RaiseEvent();
     }
 
-    public event EventHandler<OnParameterGeneratorEventArgs>? OnParameterGenerator;
+    /// <summary>
+    /// 使用了索引产生式的事件
+    /// </summary>
+    public event EventHandler<OnIndexGeneratorEventArgs>? OnIndexGenerator;
 
     public static IdentifierVarPart Create(List<SyntaxNodeBase> children)
     {
@@ -35,12 +43,12 @@ public class IdentifierVarPart : NonTerminatedSyntaxNode
     {
         if (Children.Count == 3)
         {
-            OnParameterGenerator?.Invoke(this, new OnParameterGeneratorEventArgs
+            OnIndexGenerator?.Invoke(this, new OnIndexGeneratorEventArgs()
             {
-                Parameters = Children[1].Convert<ExpressionList>()
+                IndexParameters = Children[1].Convert<ExpressionList>()
             });
         }
 
-        OnParameterGenerator = null;
+        OnIndexGenerator = null;
     }
 }

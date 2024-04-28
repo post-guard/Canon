@@ -1,11 +1,14 @@
 ﻿using Canon.Core.SemanticParser;
 using Canon.Core.SyntaxNodes;
 using Canon.Tests.Utils;
+using Xunit.Abstractions;
 
 namespace Canon.Tests.SemanticTests;
 
-public class TypeCheckVisitorTests
+public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 {
+    private readonly TestLogger<TypeCheckVisitor> _logger = new(testOutputHelper);
+
     [Fact]
     public void ConstTypeTest()
     {
@@ -293,10 +296,220 @@ public class TypeCheckVisitorTests
         Assert.False(visitor.SymbolTable.TryGetSymbol("d", out symbol));
     }
 
-    private static TypeCheckVisitor CheckType(string program)
+    [Fact]
+    public void VarAssignStatementTest()
+    {
+        const string program = """
+                               program main;
+                               var
+                               a : char;
+                               b : integer;
+                               begin
+                               b := 3;
+                               a := b;
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void TryConstAssignStatementTest()
+    {
+        const string program = """
+                               program main;
+                               const
+                               a = 3;
+                               var
+                               b : integer;
+                               begin
+                               a := 4;
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void FunctionAssignStatementTest()
+    {
+        const string program = """
+                               program exFunction;
+                               var
+                                  a, b, ret : integer;
+
+
+                               function max(num1, num2: integer): integer;
+                               var
+                                    error:char;
+                                  result: integer;
+
+                               begin
+                                  if (num1 > num2) then
+                                     result := num1
+
+                                  else
+                                     result := num2;
+                                  max := error;
+                               end;
+
+                               begin
+                                  a := 100;
+                                  b := 200;
+                                  (* calling a function to get max value *)
+                                  ret := max(a, b);
+
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void IfStatementTest()
+    {
+        const string program = """
+                               program exFunction;
+                               var
+                                  a, b, ret : integer;
+                               begin
+                                  a := 100;
+                                  b := 200;
+                                  if 200 then
+                                      begin
+                                        b := 100;
+                                      end
+                                      else
+                                  b:=200;
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void ForStatementTest()
+    {
+        const string program = """
+                               program exFunction;
+                               var
+                                  a, b, ret : integer;
+                                  c : char;
+                               begin
+
+                                  for a := c to b do
+                                   begin
+                                   b:=b+10;
+                                   end;
+
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void ProcedureCallTest()
+    {
+        const string program = """
+                               program main;
+                               var
+                                  a, b, c,  min: integer;
+                                  error:char;
+                               procedure findMin(x, y, z: integer; var m: integer);
+                               begin
+                               end;
+
+                               begin
+                                  findMin(a, b, c,error);
+                                  (* Procedure call *)
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+
+    [Fact]
+    public void ArrayAssignIndexTest()
+    {
+        const string program = """
+                               program main;
+                               var a : array [0..10, 0..10] of integer;
+                               function test(a, b : integer) : integer;
+                               begin
+                                   test := 1;
+                               end;
+                               begin
+                               a[0, 1.5] := 1;
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void ArrayAssignDimensionTest()
+    {
+        const string program = """
+                               program main;
+                               var a : array [0..10, 0..10] of integer;
+                               begin
+                               a[0,1,3] := 1;
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void ArrayAssignTypeTest()
+    {
+        const string program = """
+                               program main;
+                               var
+                               a : array [0..10, 0..10] of integer;
+                               b : array [0..10, 0..20] of integer;
+                               c : integer;
+                               d : char;
+                               begin
+                               a[0,1] := c;
+                               c := b[0,5];
+                               a[0,1] := b;
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void ArrayCalculationTest()
+    {
+        const string program = """
+                               program main;
+                               var a: array[9..12, 3..5, 6..20] of real;
+                               b: array[0..10] of integer;
+                               begin
+                               a[9, 4, 20] := 3.6 + b[5];
+                               end.
+                               """;
+
+        CheckType(program);
+    }
+
+    private TypeCheckVisitor CheckType(string program)
     {
         ProgramStruct root = CompilerHelpers.Analyse(program);
-        TypeCheckVisitor visitor = new();
+        TypeCheckVisitor visitor = new(_logger);
         SyntaxTreeTraveller traveller = new();
 
         traveller.Travel(root, visitor);

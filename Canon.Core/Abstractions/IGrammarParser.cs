@@ -1,4 +1,5 @@
 ﻿using Canon.Core.Enums;
+using Canon.Core.Exceptions;
 using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
@@ -69,11 +70,11 @@ public interface IGrammarParser
                 }
                 else
                 {
-                    throw new InvalidOperationException("Run out of token but not accept");
+                    throw new GrammarException(stack.Peek().State);
                 }
             }
 
-            throw new InvalidOperationException("Failed to analyse input grammar");
+            throw new GrammarException(stack.Peek().State, enumerator.Current);
         }
     }
 

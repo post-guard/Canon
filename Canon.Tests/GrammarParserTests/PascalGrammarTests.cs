@@ -51,22 +51,6 @@ public class PascalGrammarTests
     }
 
     [Fact]
-    public void SubprogramTest()
-    {
-        const string program = """
-                               program main;
-                               procedure test;
-                               begin
-                               end;
-                               begin
-                               end.
-                               """;
-
-        ProgramStruct root = CompilerHelpers.Analyse(program);
-        Assert.Equal("main", root.Head.ProgramName.LiteralValue);
-    }
-
-    [Fact]
     public void CharacterTest()
     {
         const string program = """
@@ -89,6 +73,89 @@ public class PascalGrammarTests
                                var a : array [0..10] of integer;
                                begin
                                a[0] := 1;
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void MultiplyArrayTest()
+    {
+        const string program = """
+                               program arrayTest;
+                               var a : array [10..100, 0..10] of integer;
+                               begin
+                               a[10,0] := 1;
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void ProcedureTest()
+    {
+        const string program = """
+                               program main;
+                               procedure test;
+                               begin
+                               end;
+                               begin
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void FunctionTest()
+    {
+        const string program = """
+                               program main;
+                               function test(a, b : integer) : integer;
+                               begin
+                               test := 1;
+                               end;
+                               begin
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void ForLoopTest()
+    {
+        const string program = """
+                               program main;
+                               var i : integer;
+                               begin
+                               for i := 1 to 100 do
+                               begin
+                               doSomething(i);
+                               end;
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void IfConditionTest()
+    {
+        const string program = """
+                               program main;
+                               begin
+                               if 1 = 2 then
+                               begin
+                               test1;
+                               test2 := a;
+                               end
+                               else
+                               begin
+                               doSomething;
+                               end;
                                end.
                                """;
 

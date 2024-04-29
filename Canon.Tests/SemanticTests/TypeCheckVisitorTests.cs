@@ -426,8 +426,34 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
                                end;
 
                                begin
-                                  findMin(a, b, c,error);
+                                  findmin(a, b, c,error);
                                   (* Procedure call *)
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
+    }
+
+
+    [Fact]
+    public void RecursionProcedureCallTest()
+    {
+        const string program = """
+                               program main;
+                               var a, b:integer; c:real;
+                               function Test0(var a1:integer; b1:integer; c1:real):integer;
+                               begin
+                               test0(a1,b1,c1+0.5);
+                               end;
+                               function Test1(var a1:integer; b1:integer; c1:real):integer;
+                               begin
+                               test0(1,1,1.0);
+                               end;
+
+                               begin
+                               teSt1(a,b,1.02);
+                               test(a, b, c);
                                end.
                                """;
 
@@ -504,6 +530,23 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
                                """;
 
         CheckType(program);
+    }
+
+    [Fact]
+    public void BooleanOperatorTest()
+    {
+        const string program = """
+                               program main;
+                               var flag, tag : boolean;
+                               error:integer;
+                               begin
+                                   tag := flag or tag;
+                                   flag := flag and error;
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.True(visitor.IsError);
     }
 
     private TypeCheckVisitor CheckType(string program)

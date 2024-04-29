@@ -496,20 +496,46 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
     public override void PostVisit(ProcedureCall procedureCall)
     {
         base.PostVisit(procedureCall);
-        // 查看procedureId是否注册
+        // 查看当前符号表中procedureId是否注册
+
         if (!SymbolTable.TryGetSymbol(procedureCall.ProcedureId.IdentifierName, out Symbol? procedure))
         {
+            // id没有定义
             IsError = true;
-            logger?.LogError("procedure '{}' is not defined.", procedureCall.ProcedureId.IdentifierName);
+            logger?.LogError("procedure '{}' is not defined.", procedureCall.ProcedureId.LiteralValue);
             return;
         }
 
-        // 查看该符号是否为procedure
         if (procedure.SymbolType is not PascalFunctionType functionType)
         {
-            IsError = true;
-            logger?.LogError("Identifier '{}' is not a call-able.", procedure.SymbolName);
-            return;
+            // id不是函数类型,要找父符号表
+            if (!SymbolTable.TryGetParent(out SymbolTable? parent))
+            {
+                // 没找到父符号表,说明这个id是非函数变量
+                IsError = true;
+                logger?.LogError("Identifier '{}' is not a call-able.", procedureCall.ProcedureId.LiteralValue);
+                return;
+            }
+
+            if (!parent.TryGetSymbol(procedureCall.ProcedureId.IdentifierName, out Symbol? procedureParent))
+            {
+                // 找到父符号表但没有找到该id,说明这个id没定义
+                IsError = true;
+                logger?.LogError("procedure '{}' is not defined.", procedureCall.ProcedureId.LiteralValue);
+                return;
+            }
+
+            // 父符号表中找到该id
+            if (procedureParent.SymbolType is not PascalFunctionType functionTypeParent)
+            {
+                // 该符号不是函数类型
+                IsError = true;
+                logger?.LogError("Identifier '{}' is not a call-able.", procedureParent.SymbolName);
+                return;
+            }
+            // 该符号是函数类型,赋给procedure
+            procedure = procedureParent;
+            functionType = functionTypeParent;
         }
 
         procedureCall.OnParameterGenerator += (_, e) =>

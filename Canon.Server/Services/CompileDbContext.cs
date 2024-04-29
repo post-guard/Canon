@@ -4,14 +4,9 @@ using MongoDB.EntityFrameworkCore.Extensions;
 
 namespace Canon.Server.Services;
 
-public class CompileDbContext : DbContext
+public class CompileDbContext(DbContextOptions<CompileDbContext> options) : DbContext(options)
 {
     public DbSet<CompileResult> CompileResults { get; init; }
-
-    public CompileDbContext(DbContextOptions<CompileDbContext> options) : base(options)
-    {
-
-    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

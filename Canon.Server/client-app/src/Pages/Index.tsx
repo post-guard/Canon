@@ -7,8 +7,6 @@ import * as openapi from '../openapi';
 import {enqueueSnackbar} from "notistack";
 import {useNavigate} from "react-router-dom";
 import {HistoryPage} from "./HistoryPage.tsx";
-import {OutputIntf} from "../Interfaces/OutputIntf.ts";
-
 
 const client = createClient<openapi.paths>();
 
@@ -16,12 +14,13 @@ const client = createClient<openapi.paths>();
 export function Index() {
 
     const [inputValue, setInputValue] = useState('');
-    const [outputValue, setOutputValue] = useState<OutputIntf>({
+    const [outputValue, setOutputValue] = useState<openapi.components["schemas"]["CompileResponse"]>({
         compiledCode: "",
         sourceCode: "",
         id: "",
         imageAddress: "",
-        compileTime: ""
+        compileTime: "",
+        compileInformation: ""
     });
     const [historyPageState,setHistoryPageState] = useState(false);
     const navigate = useNavigate(); // 跳转hook
@@ -36,7 +35,8 @@ export function Index() {
                 sourceCode: "",
                 id: "",
                 imageAddress: "pic/uncompiled.png",
-                compileTime: ""
+                compileTime: "",
+                compileInformation: ""
             })
             return;
         }
@@ -52,13 +52,7 @@ export function Index() {
             })
             if (data !== undefined) {
                 setInputValue(data.sourceCode);
-                setOutputValue({
-                    compiledCode: data.compiledCode,
-                    sourceCode: data.sourceCode,
-                    id: data.id,
-                    imageAddress: data.imageAddress,
-                    compileTime: data.compileTime
-                })
+                setOutputValue(data)
             }
         }
         getCompileInstance();
@@ -79,13 +73,7 @@ export function Index() {
         })
 
         if (data !== undefined) {
-            setOutputValue({
-                compiledCode: data.compiledCode,
-                sourceCode: data.sourceCode,
-                id: data.id,
-                imageAddress: data.imageAddress,
-                compileTime: data.compileTime
-            })
+            setOutputValue(data);
             enqueueSnackbar("编译成功", {variant: "success", anchorOrigin: {vertical: 'bottom', horizontal: 'right'}});
             navigate(`/${data.id}`, {})
 

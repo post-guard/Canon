@@ -7,7 +7,7 @@ using Expression = Canon.Core.SyntaxNodes.Expression;
 
 namespace Canon.Core.SemanticParser;
 
-public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : SyntaxNodeVisitor
+public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisitor
 {
     public SymbolTable SymbolTable { get; private set; } = new();
 

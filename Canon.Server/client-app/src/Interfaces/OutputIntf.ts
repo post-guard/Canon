@@ -1,9 +1,5 @@
+import * as openapi from '../openapi';
+
 export interface OutputIntf {
-
-    compiledCode: string,
-    id: string,
-    imageAddress: string,
-    sourceCode: string,
-    compileTime: string
-
+    data : openapi.components["schemas"]["CompileResponse"]
 }

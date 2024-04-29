@@ -13,6 +13,8 @@ public class CompilerService(
     ILexer lexer,
     IGrammarParser grammarParser,
     SyntaxTreeTraveller traveller,
+    CCodeGenerateVisitor visitor,
+    ICompilerLogger compilerLogger,
     CompileDbContext dbContext,
     GridFsService gridFsService,
     SyntaxTreePresentationService syntaxTreePresentationService,
@@ -39,7 +41,6 @@ public class CompilerService(
         await using Stream imageStream = syntaxTreePresentationService.Present(root);
         string filename = await gridFsService.UploadStream(imageStream, "image/png");
 
-        CCodeGenerateVisitor visitor = new();
         traveller.Travel(root, visitor);
 
         CompileResult result = new()
@@ -48,7 +49,8 @@ public class CompilerService(
             CompileId = Guid.NewGuid().ToString(),
             CompiledCode = visitor.Builder.Build(),
             SytaxTreeImageFilename = filename,
-            CompileTime = DateTime.Now
+            CompileTime = DateTime.Now,
+            CompileInformation = compilerLogger.Build()
         };
 
         await dbContext.CompileResults.AddAsync(result);

@@ -5,139 +5,140 @@
 
 
 export interface paths {
-    "/api/Compiler": {
-        get: {
-            parameters: {
-                query?: {
-                    start?: number;
-                    end?: number;
-                };
-            };
-            responses: {
-                /** @description Success */
-                200: {
-                    content: {
-                        "text/plain": components["schemas"]["CompileResponse"][];
-                        "application/json": components["schemas"]["CompileResponse"][];
-                        "text/json": components["schemas"]["CompileResponse"][];
-                    };
-                };
-            };
+  "/api/Compiler": {
+    get: {
+      parameters: {
+        query?: {
+          start?: number;
+          end?: number;
         };
-        post: {
-            requestBody?: {
-                content: {
-                    "application/json": components["schemas"]["SourceCode"];
-                    "text/json": components["schemas"]["SourceCode"];
-                    "application/*+json": components["schemas"]["SourceCode"];
-                };
-            };
-            responses: {
-                /** @description Success */
-                200: {
-                    content: {
-                        "text/plain": components["schemas"]["CompileResponse"];
-                        "application/json": components["schemas"]["CompileResponse"];
-                        "text/json": components["schemas"]["CompileResponse"];
-                    };
-                };
-            };
+      };
+      responses: {
+        /** @description Success */
+        200: {
+          content: {
+            "text/plain": components["schemas"]["CompileResponse"][];
+            "application/json": components["schemas"]["CompileResponse"][];
+            "text/json": components["schemas"]["CompileResponse"][];
+          };
         };
-        delete: {
-            responses: {
-                /** @description No Content */
-                204: {
-                    content: never;
-                };
-            };
-        };
+      };
     };
-    "/api/Compiler/{compileId}": {
-        get: {
-            parameters: {
-                path: {
-                    compileId: string;
-                };
-            };
-            responses: {
-                /** @description Success */
-                200: {
-                    content: {
-                        "text/plain": components["schemas"]["CompileResponse"];
-                        "application/json": components["schemas"]["CompileResponse"];
-                        "text/json": components["schemas"]["CompileResponse"];
-                    };
-                };
-            };
+    post: {
+      requestBody?: {
+        content: {
+          "application/json": components["schemas"]["SourceCode"];
+          "text/json": components["schemas"]["SourceCode"];
+          "application/*+json": components["schemas"]["SourceCode"];
         };
-        delete: {
-            parameters: {
-                path: {
-                    compileId: string;
-                };
-            };
-            responses: {
-                /** @description No Content */
-                204: {
-                    content: never;
-                };
-                /** @description Not Found */
-                404: {
-                    content: {
-                        "text/plain": components["schemas"]["ProblemDetails"];
-                        "application/json": components["schemas"]["ProblemDetails"];
-                        "text/json": components["schemas"]["ProblemDetails"];
-                    };
-                };
-            };
+      };
+      responses: {
+        /** @description Success */
+        200: {
+          content: {
+            "text/plain": components["schemas"]["CompileResponse"];
+            "application/json": components["schemas"]["CompileResponse"];
+            "text/json": components["schemas"]["CompileResponse"];
+          };
         };
+      };
     };
-    "/api/File/{filename}": {
-        get: {
-            parameters: {
-                path: {
-                    filename: string;
-                };
-            };
-            responses: {
-                /** @description Success */
-                200: {
-                    content: never;
-                };
-            };
+    delete: {
+      responses: {
+        /** @description No Content */
+        204: {
+          content: never;
         };
+      };
     };
+  };
+  "/api/Compiler/{compileId}": {
+    get: {
+      parameters: {
+        path: {
+          compileId: string;
+        };
+      };
+      responses: {
+        /** @description Success */
+        200: {
+          content: {
+            "text/plain": components["schemas"]["CompileResponse"];
+            "application/json": components["schemas"]["CompileResponse"];
+            "text/json": components["schemas"]["CompileResponse"];
+          };
+        };
+      };
+    };
+    delete: {
+      parameters: {
+        path: {
+          compileId: string;
+        };
+      };
+      responses: {
+        /** @description No Content */
+        204: {
+          content: never;
+        };
+        /** @description Not Found */
+        404: {
+          content: {
+            "text/plain": components["schemas"]["ProblemDetails"];
+            "application/json": components["schemas"]["ProblemDetails"];
+            "text/json": components["schemas"]["ProblemDetails"];
+          };
+        };
+      };
+    };
+  };
+  "/api/File/{filename}": {
+    get: {
+      parameters: {
+        path: {
+          filename: string;
+        };
+      };
+      responses: {
+        /** @description Success */
+        200: {
+          content: never;
+        };
+      };
+    };
+  };
 }
 
 export type webhooks = Record<string, never>;
 
 export interface components {
-    schemas: {
-        CompileResponse: {
-            id: string;
-            sourceCode: string;
-            compiledCode: string;
-            imageAddress: string;
-            compileTime: string;
-        };
-        ProblemDetails: {
-            type?: string | null;
-            title?: string | null;
-            /** Format: int32 */
-            status?: number | null;
-            detail?: string | null;
-            instance?: string | null;
-            [key: string]: unknown;
-        };
-        SourceCode: {
-            code: string;
-        };
+  schemas: {
+    CompileResponse: {
+      id: string;
+      sourceCode: string;
+      compiledCode: string;
+      imageAddress: string;
+      compileTime: string;
+      compileInformation: string;
     };
-    responses: never;
-    parameters: never;
-    requestBodies: never;
-    headers: never;
-    pathItems: never;
+    ProblemDetails: {
+      type?: string | null;
+      title?: string | null;
+      /** Format: int32 */
+      status?: number | null;
+      detail?: string | null;
+      instance?: string | null;
+      [key: string]: unknown;
+    };
+    SourceCode: {
+      code: string;
+    };
+  };
+  responses: never;
+  parameters: never;
+  requestBodies: never;
+  headers: never;
+  pathItems: never;
 }
 
 export type $defs = Record<string, never>;

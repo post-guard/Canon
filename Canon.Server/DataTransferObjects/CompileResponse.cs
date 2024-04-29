@@ -20,6 +20,9 @@ public class CompileResponse
     [Required]
     public string CompileTime { get; set; }
 
+    [Required]
+    public string CompileInformation { get; set; }
+
     public CompileResponse()
     {
         Id = string.Empty;
@@ -27,6 +30,7 @@ public class CompileResponse
         CompiledCode = string.Empty;
         ImageAddress = string.Empty;
         CompileTime = string.Empty;
+        CompileInformation = string.Empty;
     }
 
     public CompileResponse(CompileResult result)
@@ -36,5 +40,6 @@ public class CompileResponse
         CompiledCode = result.CompiledCode;
         ImageAddress = $"/api/file/{result.SytaxTreeImageFilename}";
         CompileTime = result.CompileTime.AddHours(8).ToString("yyyy-MM-dd HH:mm:ss");
+        CompileInformation = result.CompileInformation;
     }
 }

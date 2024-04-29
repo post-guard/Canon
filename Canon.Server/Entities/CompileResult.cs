@@ -17,5 +17,7 @@ public class CompileResult
 
     public string CompiledCode { get; set; } = string.Empty;
 
+    public string CompileInformation { get; set; } = string.Empty;
+
     public DateTime CompileTime { get; set; }
 }

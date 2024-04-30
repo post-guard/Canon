@@ -2,9 +2,13 @@ import { CSSProperties, useState } from "react";
 import { Box, ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { PhotoProvider, PhotoView } from "react-photo-view";
 import MonacoEditor from "react-monaco-editor";
-import { OutputIntf } from "../Interfaces/OutputIntf";
+import * as openapi from "../openapi";
 
-export function OutputField(props: OutputIntf) {
+interface OutputFieldProps {
+    data : openapi.components["schemas"]["CompileResponse"]
+}
+
+export function OutputField(props: OutputFieldProps) {
     const [state, setState] = useState('tree')
     const { imageAddress, compiledCode, compileInformation } = props.data;
 

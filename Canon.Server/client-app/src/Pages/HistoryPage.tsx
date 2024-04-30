@@ -13,7 +13,6 @@ import {
 import createClient from "openapi-fetch";
 import * as openapi from "../openapi";
 import {useEffect, useState} from "react";
-import {OutputIntf} from "../Interfaces/OutputIntf.ts";
 import {useNavigate} from "react-router-dom";
 import {enqueueSnackbar} from "notistack";
 
@@ -22,7 +21,7 @@ const client = createClient<openapi.paths>();
 
 // @ts-expect-error ...
 export function HistoryPage({state, setState}) {
-    const [data, setData] = useState<OutputIntf[]>([]);
+    const [data, setData] = useState<openapi.components["schemas"]["CompileResponse"][]>([]);
     const [deleteDialog, setDeleteDialog] = useState(false);
     const navigate = useNavigate();
     useEffect(() => {

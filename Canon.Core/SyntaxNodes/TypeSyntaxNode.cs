@@ -37,6 +37,11 @@ public class TypeSyntaxNode : NonTerminatedSyntaxNode
 
     public event EventHandler<OnArrayTypeGeneratorEventArgs>? OnArrayTypeGenerator;
 
+    /// <summary>
+    /// 是否在过程定义中使用
+    /// </summary>
+    public bool IsProcedure { get; set; }
+
     private PascalType? _pascalType;
 
     /// <summary>
@@ -85,18 +90,5 @@ public class TypeSyntaxNode : NonTerminatedSyntaxNode
 
         OnBasicTypeGenerator = null;
         OnArrayTypeGenerator = null;
-    }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        //type -> basic_type
-        if (Children.Count == 1)
-        {
-            Children[0].GenerateCCode(builder);
-        }
-        //type -> array [ period ]of basic_type
-        else
-        {
-        }
     }
 }

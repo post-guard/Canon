@@ -7,7 +7,7 @@ namespace Canon.Tests.SemanticTests;
 
 public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 {
-    private readonly TestLogger _logger = new(testOutputHelper);
+    private readonly TestLogger<TypeCheckVisitor> _logger = new(testOutputHelper);
 
     [Fact]
     public void ConstTypeTest()

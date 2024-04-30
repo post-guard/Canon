@@ -1,5 +1,6 @@
 ﻿using Canon.Core.Abstractions;
 using Canon.Core.Enums;
+using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -16,6 +17,23 @@ public class ExpressionList : NonTerminatedSyntaxNode
     /// 子表达式列表
     /// </summary>
     public List<Expression> Expressions { get; } = [];
+
+    /// <summary>
+    /// 是否为传参列表
+    /// </summary>
+    public bool IsParamList;
+
+    public List<PascalParameterType> ParameterTypes { get; } = [];
+
+    /// <summary>
+    /// 是否为数组下标索引
+    /// </summary>
+    public bool IsIndex { get; set; }
+
+    /// <summary>
+    /// 数组左边界列表
+    /// </summary>
+    public List<int> LeftBounds = new();
 
     /// <summary>
     /// 当前ExpressionList中的Expression定义

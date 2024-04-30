@@ -7,6 +7,11 @@ public class CompoundStatement : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.CompoundStatement;
 
+    /// <summary>
+    /// 是否为主函数部分
+    /// </summary>
+    public bool IsMain;
+
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);

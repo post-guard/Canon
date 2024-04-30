@@ -32,14 +32,4 @@ public class Subprogram : NonTerminatedSyntaxNode
     {
         return new Subprogram { Children = children };
     }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        //子函数头
-        Head.GenerateCCode(builder);
-        //子函数体
-        builder.AddString("{");
-        Body.GenerateCCode(builder);
-        builder.AddString("}");
-    }
 }

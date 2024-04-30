@@ -91,12 +91,4 @@ public class SimpleExpression : NonTerminatedSyntaxNode
         OnTermGenerator = null;
         OnAddGenerator = null;
     }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        foreach (var child in Children)
-        {
-            child.GenerateCCode(builder);
-        }
-    }
 }

@@ -10,6 +10,7 @@ public class BasicType : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.BasicType;
 
+    public bool IsProcedure;
     /// <summary>
     /// BasicType代表的Pascal类型
     /// </summary>

@@ -7,7 +7,7 @@ using Expression = Canon.Core.SyntaxNodes.Expression;
 
 namespace Canon.Core.SemanticParser;
 
-public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisitor
+public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : SyntaxNodeVisitor
 {
     public SymbolTable SymbolTable { get; private set; } = new();
 
@@ -308,7 +308,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
     /// <summary>
     /// 多个ValueParameter下定义的参数列表
     /// </summary>
-    private readonly List<List<Symbol>> _valueParameters = [];
+    protected readonly List<List<Symbol>> _valueParameters = [];
 
     public override void PreVisit(Subprogram subprogram)
     {

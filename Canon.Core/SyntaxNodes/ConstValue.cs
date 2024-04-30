@@ -126,24 +126,4 @@ public class ConstValue : NonTerminatedSyntaxNode
     {
         return new ConstValue { Children = children };
     }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        //获取常量值
-        var token = Children[0].Convert<TerminatedSyntaxNode>().Token;
-        //constValue -> 'letter'
-        if (token.TokenType == SemanticTokenType.Character)
-        {
-            builder.AddString(" '" + token.LiteralValue + "'");
-        }
-        else
-        {
-            builder.AddString(" ");
-            // constValue -> +num | -num | num
-            foreach (var c in Children)
-            {
-                builder.AddString(c.Convert<TerminatedSyntaxNode>().Token.LiteralValue);
-            }
-        }
-    }
 }

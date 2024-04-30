@@ -42,17 +42,4 @@ public class ProgramBody : NonTerminatedSyntaxNode
     {
         return new ProgramBody { Children = children };
     }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        //全局常量，变量
-        ConstDeclarations.GenerateCCode(builder);
-        VarDeclarations.GenerateCCode(builder);
-        //子函数声明
-        SubprogramDeclarations.GenerateCCode(builder);
-        //main函数
-        builder.AddString(" int main(){");
-        CompoundStatement.GenerateCCode(builder);
-        builder.AddString(" return 0;}");
-    }
 }

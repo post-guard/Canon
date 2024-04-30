@@ -37,11 +37,4 @@ public class SubprogramBody : NonTerminatedSyntaxNode
     {
         return new SubprogramBody() { Children = children };
     }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        ConstDeclarations.GenerateCCode(builder);
-        VarDeclarations.GenerateCCode(builder);
-        CompoundStatement.GenerateCCode(builder);
-    }
 }

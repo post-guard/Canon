@@ -20,6 +20,16 @@ public abstract class PascalType : IEquatable<PascalType>
         return TypeName == other.TypeName;
     }
 
+    public T Convert<T>() where T : PascalType
+    {
+        if (this is T result)
+        {
+            return result;
+        }
+
+        throw new InvalidOperationException("Can not convert target PascalType");
+    }
+
     public override bool Equals(object? obj)
     {
         if (obj is PascalType other)

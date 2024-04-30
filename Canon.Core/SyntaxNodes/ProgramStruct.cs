@@ -32,10 +32,4 @@ public class ProgramStruct : NonTerminatedSyntaxNode
     {
         return new ProgramStruct { Children = children };
     }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        builder.AddString("#include <stdbool.h>");
-        Body.GenerateCCode(builder);
-    }
 }

@@ -1,5 +1,6 @@
 ﻿using Canon.Core.Abstractions;
 using Canon.Core.Enums;
+using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -16,6 +17,11 @@ public class IdentifierVarPart : NonTerminatedSyntaxNode
     /// 数组索引的个数
     /// </summary>
     public int IndexCount { get; set; }
+
+    /// <summary>
+    /// 数组左边界列表
+    /// </summary>
+    public List<int> LeftBounds = new();
 
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {

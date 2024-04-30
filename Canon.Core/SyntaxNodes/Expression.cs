@@ -1,6 +1,7 @@
 ﻿using Canon.Core.Abstractions;
 using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
+using Canon.Core.LexicalParser;
 using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
@@ -33,6 +34,43 @@ public class Expression : NonTerminatedSyntaxNode
     {
         visitor.PostVisit(this);
         RaiseEvent();
+    }
+
+    public bool IsParam;    //是否为传参
+
+    public bool ReferenceParam; //是否为引用传参
+
+    public bool LastParam;  //是否为传参列表里最后一个参数
+    /// <summary>
+    /// 是否为数组下标
+    /// </summary>
+    public bool IsIndex { get; set; }
+
+    /// <summary>
+    /// 当前表达式对应的数组下标维度的左边界
+    /// </summary>
+    public int LeftBound;
+    public bool IsForConditionBegin { get; set; }
+    public bool IsForConditionEnd { get; set; }
+    public bool IsAssign { get; set; }
+
+    private IdentifierSemanticToken? _iterator;
+
+    public IdentifierSemanticToken Iterator
+    {
+        get
+        {
+            if (_iterator is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _iterator;
+        }
+        set
+        {
+            _iterator = value;
+        }
     }
 
     /// <summary>
@@ -90,13 +128,5 @@ public class Expression : NonTerminatedSyntaxNode
 
         OnSimpleExpressionGenerator = null;
         OnRelationGenerator = null;
-    }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        foreach (var child in Children)
-        {
-            child.GenerateCCode(builder);
-        }
     }
 }

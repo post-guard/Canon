@@ -9,6 +9,8 @@ public class MultiplyOperator : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.MultiplyOperator;
 
+    public SemanticToken OperatorToken => Children[0].Convert<TerminatedSyntaxNode>().Token;
+
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);
@@ -22,39 +24,5 @@ public class MultiplyOperator : NonTerminatedSyntaxNode
     public static MultiplyOperator Create(List<SyntaxNodeBase> children)
     {
         return new MultiplyOperator { Children = children };
-    }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        var token = Children[0].Convert<TerminatedSyntaxNode>().Token;
-        if (token.TokenType == SemanticTokenType.Operator)
-        {
-            var operatorType = token.Convert<OperatorSemanticToken>().OperatorType;
-            if (operatorType == OperatorType.Multiply)
-            {
-                builder.AddString(" *");
-            }
-            else if (operatorType == OperatorType.Divide)
-            {
-                //实数除法，需要将操作数强转为double
-                builder.AddString(" /(double)");
-            }
-        }
-        else
-        {
-            var keywordType = token.Convert<KeywordSemanticToken>().KeywordType;
-            if (keywordType == KeywordType.And)
-            {
-                builder.AddString(" &&");
-            }
-            else if (keywordType == KeywordType.Mod)
-            {
-                builder.AddString(" %");
-            }
-            else
-            {
-                builder.AddString(" /");
-            }
-        }
     }
 }

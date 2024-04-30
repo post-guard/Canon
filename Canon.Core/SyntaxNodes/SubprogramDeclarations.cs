@@ -1,5 +1,4 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;
@@ -22,4 +21,5 @@ public class SubprogramDeclarations : NonTerminatedSyntaxNode
     {
         return new SubprogramDeclarations { Children = children };
     }
+
 }

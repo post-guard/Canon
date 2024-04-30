@@ -24,9 +24,4 @@ public class VarParameter : NonTerminatedSyntaxNode
     {
         return new VarParameter { Children = children };
     }
-
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        ValueParameter.GenerateCCode(builder);
-    }
 }

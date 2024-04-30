@@ -22,7 +22,7 @@ for a := 0 to x-1 do
             begin
               for g := 0 to 1 do
               begin
-                arr1[a][b][c][d][e][f][g] := a + b + c + d + e + f + g + x + y;
+                arr1[a, b, c, d, e, f, g] := a + b + c + d + e + f + g + x + y;
               end;
             end;
           end;
@@ -50,7 +50,7 @@ for a := 0 to 9 do
             begin
               for g := 0 to 6 do
               begin
-                arr2[a][b][c][d][e][f][g] := a + b + d + g;
+                arr2[a, b, c, d, e, f, g] := a + b + d + g;
               end;
             end;
           end;
@@ -78,7 +78,7 @@ ans := 0;
             begin
               for g := 0 to n-1 do
               begin
-                ans := (ans mod 817) + arr1[a][b][c][d][e][f][g] + arr2[a][b][c][d][e][f][g];
+                ans := (ans mod 817) + arr1[a, b, c, d, e, f, g] + arr2[a, b, c, d, e, f, g];
               end;
             end;
           end;

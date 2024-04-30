@@ -4,6 +4,7 @@ using Canon.Console.Services;
 using Canon.Core.Abstractions;
 using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
+using Canon.Core.SemanticParser;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -39,6 +40,7 @@ public static class RootCommandExtensions
             builder.Services.AddSingleton<CompilerOption>(
                 _ => new CompilerOption { SourceFilename = sourceFilename });
             builder.Services.AddTransient<ILexer, Lexer>();
+            builder.Services.AddSingleton<SyntaxTreeTraveller>();
             builder.Services.AddSingleton<IGrammarParser>(_ => GeneratedGrammarParser.Instance);
             builder.Services.AddHostedService<Compiler>();
 

@@ -1,7 +1,7 @@
 ﻿using Canon.Console.Models;
 using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.LexicalParser;
+using Canon.Core.SemanticParser;
 using Canon.Core.SyntaxNodes;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -12,6 +12,7 @@ public class Compiler(
     CompilerOption compilerOption,
     ILexer lexer,
     IGrammarParser grammarParser,
+    SyntaxTreeTraveller traveller,
     IHostApplicationLifetime applicationLifetime,
     ILogger<Compiler> logger) : IHostedService
 {
@@ -20,10 +21,10 @@ public class Compiler(
         IEnumerable<SemanticToken> tokens = lexer.Tokenize(await CreateSourceReader());
         ProgramStruct root = grammarParser.Analyse(tokens);
 
-        CCodeBuilder builder = new();
-        root.GenerateCCode(builder);
+        CCodeGenerateVisitor visitor = new();
+        traveller.Travel(root, visitor);
 
-        await WriteToOutputFile(builder.Build());
+        await WriteToOutputFile(visitor.Builder.Build());
         applicationLifetime.StopApplication();
     }
 
@@ -49,7 +50,7 @@ public class Compiler(
 
     private async Task WriteToOutputFile(string compiledCode)
     {
-        FileInfo outputFile = new(Path.Combine(Environment.CurrentDirectory,
+        FileInfo outputFile = new(Path.Combine(Path.GetDirectoryName(compilerOption.SourceFilename)!,
             Path.GetFileNameWithoutExtension(compilerOption.SourceFilename) + ".c"));
         logger.LogDebug("Select output file: '{}'.", outputFile.Name);
 

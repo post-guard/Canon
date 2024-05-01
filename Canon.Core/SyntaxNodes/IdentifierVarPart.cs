@@ -4,7 +4,7 @@ using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnIndexGeneratorEventArgs : EventArgs
+public class IndexGeneratorEventArgs : EventArgs
 {
     public required ExpressionList IndexParameters { get; init; }
 }
@@ -38,7 +38,7 @@ public class IdentifierVarPart : NonTerminatedSyntaxNode
     /// <summary>
     /// 使用了索引产生式的事件
     /// </summary>
-    public event EventHandler<OnIndexGeneratorEventArgs>? OnIndexGenerator;
+    public event EventHandler<IndexGeneratorEventArgs>? OnIndexGenerator;
 
     public static IdentifierVarPart Create(List<SyntaxNodeBase> children)
     {
@@ -49,7 +49,7 @@ public class IdentifierVarPart : NonTerminatedSyntaxNode
     {
         if (Children.Count == 3)
         {
-            OnIndexGenerator?.Invoke(this, new OnIndexGeneratorEventArgs()
+            OnIndexGenerator?.Invoke(this, new IndexGeneratorEventArgs()
             {
                 IndexParameters = Children[1].Convert<ExpressionList>()
             });

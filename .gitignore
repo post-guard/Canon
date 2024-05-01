@@ -485,3 +485,6 @@ $RECYCLE.BIN/
 
 # Database Source File
 *.db
+
+# Pascall C Compiler
+pascc

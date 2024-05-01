@@ -38,28 +38,6 @@ public class BasicType : NonTerminatedSyntaxNode
         }
     }
 
-    public override void GenerateCCode(CCodeBuilder builder)
-    {
-        var keywordType = Children[0].Convert<TerminatedSyntaxNode>().Token
-            .Convert<KeywordSemanticToken>().KeywordType;
-
-        switch (keywordType)
-        {
-            case KeywordType.Integer:
-                builder.AddString(" int");
-                break;
-            case KeywordType.Real:
-                builder.AddString(" double");
-                break;
-            case KeywordType.Boolean:
-                builder.AddString(" bool");
-                break;
-            case KeywordType.Character:
-                builder.AddString(" char");
-                break;
-        }
-    }
-
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);

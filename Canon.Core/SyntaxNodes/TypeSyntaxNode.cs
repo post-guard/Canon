@@ -5,12 +5,12 @@ using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnBasicTypeGeneratorEventArgs : EventArgs
+public class BasicTypeGeneratorEventArgs : EventArgs
 {
     public required BasicType BasicType { get; init; }
 }
 
-public class OnArrayTypeGeneratorEventArgs : EventArgs
+public class ArrayTypeGeneratorEventArgs : EventArgs
 {
     public required Period Period { get; init; }
 
@@ -33,9 +33,9 @@ public class TypeSyntaxNode : NonTerminatedSyntaxNode
         RaiseEvent();
     }
 
-    public event EventHandler<OnBasicTypeGeneratorEventArgs>? OnBasicTypeGenerator;
+    public event EventHandler<BasicTypeGeneratorEventArgs>? OnBasicTypeGenerator;
 
-    public event EventHandler<OnArrayTypeGeneratorEventArgs>? OnArrayTypeGenerator;
+    public event EventHandler<ArrayTypeGeneratorEventArgs>? OnArrayTypeGenerator;
 
     /// <summary>
     /// 是否在过程定义中使用
@@ -74,14 +74,14 @@ public class TypeSyntaxNode : NonTerminatedSyntaxNode
     {
         if (Children.Count == 1)
         {
-            OnBasicTypeGenerator?.Invoke(this, new OnBasicTypeGeneratorEventArgs
+            OnBasicTypeGenerator?.Invoke(this, new BasicTypeGeneratorEventArgs
             {
                 BasicType = Children[0].Convert<BasicType>()
             });
         }
         else
         {
-            OnArrayTypeGenerator?.Invoke(this, new OnArrayTypeGeneratorEventArgs
+            OnArrayTypeGenerator?.Invoke(this, new ArrayTypeGeneratorEventArgs
             {
                 Period = Children[2].Convert<Period>(),
                 BasicType = Children[5].Convert<BasicType>()

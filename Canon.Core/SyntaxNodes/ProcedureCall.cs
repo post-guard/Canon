@@ -1,13 +1,16 @@
 ﻿using Canon.Core.Abstractions;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
+using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnParameterGeneratorEventArgs : EventArgs
+public class ParameterGeneratorEventArgs : EventArgs
 {
     public required ExpressionList Parameters { get; init; }
 }
+
+public class NoParameterGeneratorEventArgs : EventArgs;
 
 public class ProcedureCall : NonTerminatedSyntaxNode
 {
@@ -19,7 +22,31 @@ public class ProcedureCall : NonTerminatedSyntaxNode
     /// <summary>
     /// 调用函数时含有参数的事件
     /// </summary>
-    public event EventHandler<OnParameterGeneratorEventArgs>? OnParameterGenerator;
+    public event EventHandler<ParameterGeneratorEventArgs>? OnParameterGenerator;
+
+    /// <summary>
+    /// 调用函数是没有参数的事件
+    /// </summary>
+    public event EventHandler<NoParameterGeneratorEventArgs>? OnNoParameterGenerator;
+
+    private PascalType? _pascalType;
+
+    public PascalType ReturnType
+    {
+        get
+        {
+            if (_pascalType is null)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return _pascalType;
+        }
+        set
+        {
+            _pascalType = value;
+        }
+    }
 
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
@@ -42,12 +69,17 @@ public class ProcedureCall : NonTerminatedSyntaxNode
     {
         if (Children.Count == 4)
         {
-            OnParameterGenerator?.Invoke(this, new OnParameterGeneratorEventArgs
+            OnParameterGenerator?.Invoke(this, new ParameterGeneratorEventArgs
             {
                 Parameters = Children[2].Convert<ExpressionList>()
             });
         }
+        else
+        {
+            OnNoParameterGenerator?.Invoke(this, new NoParameterGeneratorEventArgs());
+        }
 
         OnParameterGenerator = null;
+        OnNoParameterGenerator = null;
     }
 }

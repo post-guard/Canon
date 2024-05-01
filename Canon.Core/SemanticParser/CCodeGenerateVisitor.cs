@@ -1,4 +1,5 @@
 using System.Globalization;
+using Canon.Core.Abstractions;
 using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
@@ -7,7 +8,7 @@ using BasicType = Canon.Core.SyntaxNodes.BasicType;
 
 namespace Canon.Core.SemanticParser;
 
-public class CCodeGenerateVisitor : TypeCheckVisitor
+public class CCodeGenerateVisitor(ICompilerLogger? logger = null) : TypeCheckVisitor(logger)
 {
     public CCodeBuilder Builder { get; } = new();
 
@@ -142,7 +143,7 @@ public class CCodeGenerateVisitor : TypeCheckVisitor
         Builder.AddString("(");
         List<string> parametersInfo = new();
 
-        foreach (List<Symbol> children in _valueParameters)
+        foreach (List<Symbol> children in ValueParameters)
         {
             foreach (Symbol symbol in children.AsEnumerable().Reverse())
             {
@@ -432,10 +433,6 @@ public class CCodeGenerateVisitor : TypeCheckVisitor
                 token.ParseAsReal().ToString(CultureInfo.InvariantCulture);
             Builder.AddString(num);
         };
-        factor.OnProcedureCallGenerator += (_, _) =>
-        {
-            Builder.AddString(")");
-        };
         factor.OnNotGenerator += (_, _) =>
         {
             Builder.AddString(")");
@@ -449,25 +446,10 @@ public class CCodeGenerateVisitor : TypeCheckVisitor
     public override void PreVisit(Factor factor)
     {
         base.PreVisit(factor);
-        factor.OnProcedureCallGenerator += (_, e) =>
-        {
-            Builder.AddString(e.ProcedureName.IdentifierName + "(");
-            SymbolTable.TryGetParent(out var parentTable);
-            parentTable ??= SymbolTable;
 
-            parentTable.TryGetSymbol(e.ProcedureName.IdentifierName, out var symbol);
-            if (symbol == null)
-            {
-                return;
-            }
-
-            e.Parameters.ParameterTypes.AddRange(symbol.SymbolType.Convert<PascalFunctionType>().Parameters);
-            e.Parameters.IsParamList = true;
-            e.Parameters.Expression.LastParam = true;
-        };
         factor.OnNotGenerator += (_, _) =>
         {
-            Builder.AddString("(!");
+            Builder.AddString("(~");
         };
         factor.OnUminusGenerator += (_, _) =>
         {

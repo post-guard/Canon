@@ -1,41 +1,55 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnNumberGeneratorEventArgs : EventArgs
+public class NumberGeneratorEventArgs : EventArgs
 {
     public required NumberSemanticToken Token { get; init; }
 }
 
-public class OnVariableGeneratorEventArgs : EventArgs
+public class VariableGeneratorEventArgs : EventArgs
 {
     public required Variable Variable { get; init; }
 }
 
-public class OnParethnesisGeneratorEventArgs : EventArgs
+public class ParethnesisGeneratorEventArgs : EventArgs
 {
     public required Expression Expression { get; init; }
 }
 
-public class OnProcedureCallGeneratorEventArgs : EventArgs
+public class NoParameterProcedureCallGeneratorEventArgs : EventArgs
+{
+    public required IdentifierSemanticToken ProcedureName { get; init; }
+}
+
+public class ProcedureCallGeneratorEventArgs : EventArgs
 {
     public required IdentifierSemanticToken ProcedureName { get; init; }
 
     public required ExpressionList Parameters { get; init; }
 }
 
-public class OnNotGeneratorEventArgs : EventArgs
+public class NotGeneratorEventArgs : EventArgs
 {
     public required Factor Factor { get; init; }
 }
 
-public class OnUminusGeneratorEventArgs : EventArgs
+public class UminusGeneratorEventArgs : EventArgs
 {
     public required Factor Factor { get; init; }
+}
+
+public class PlusGeneratorEventArgs : EventArgs
+{
+    public required Factor Factor { get; init; }
+}
+
+public class BooleanGeneratorEventArgs : EventArgs
+{
+    public required bool Value { get; init; }
 }
 
 public class Factor : NonTerminatedSyntaxNode
@@ -57,32 +71,47 @@ public class Factor : NonTerminatedSyntaxNode
     /// <summary>
     /// 使用数值产生式的事件
     /// </summary>
-    public event EventHandler<OnNumberGeneratorEventArgs>? OnNumberGenerator;
+    public event EventHandler<NumberGeneratorEventArgs>? OnNumberGenerator;
 
     /// <summary>
     /// 使用括号产生式的事件
     /// </summary>
-    public event EventHandler<OnParethnesisGeneratorEventArgs>? OnParethnesisGenerator;
+    public event EventHandler<ParethnesisGeneratorEventArgs>? OnParethnesisGenerator;
 
     /// <summary>
     /// 使用变量产生式的事件
     /// </summary>
-    public event EventHandler<OnVariableGeneratorEventArgs>? OnVariableGenerator;
-
-    /// <summary>
-    /// 使用过程调用产生式的事件
-    /// </summary>
-    public event EventHandler<OnProcedureCallGeneratorEventArgs>? OnProcedureCallGenerator;
+    public event EventHandler<VariableGeneratorEventArgs>? OnVariableGenerator;
 
     /// <summary>
     /// 使用否定产生式的事件
     /// </summary>
-    public event EventHandler<OnNotGeneratorEventArgs>? OnNotGenerator;
+    public event EventHandler<NotGeneratorEventArgs>? OnNotGenerator;
 
     /// <summary>
     /// 使用负号产生式的事件
     /// </summary>
-    public event EventHandler<OnUminusGeneratorEventArgs>? OnUminusGenerator;
+    public event EventHandler<UminusGeneratorEventArgs>? OnUminusGenerator;
+
+    /// <summary>
+    /// 使用加号产生式的事件
+    /// </summary>
+    public event EventHandler<PlusGeneratorEventArgs>? OnPlusGenerator;
+
+    /// <summary>
+    /// 使用布尔值产生式的事件
+    /// </summary>
+    public event EventHandler<BooleanGeneratorEventArgs>? OnBooleanGenerator;
+
+    /// <summary>
+    /// 没有参数的过程调用产生式事件
+    /// </summary>
+    public event EventHandler<NoParameterProcedureCallGeneratorEventArgs>? OnNoParameterProcedureCallGenerator;
+
+    /// <summary>
+    /// 过程调用产生式的事件
+    /// </summary>
+    public event EventHandler<ProcedureCallGeneratorEventArgs>? OnProcedureCallGenerator;
 
     private PascalType? _factorType;
 
@@ -97,10 +126,7 @@ public class Factor : NonTerminatedSyntaxNode
 
             return _factorType;
         }
-        set
-        {
-            _factorType = value;
-        }
+        set { _factorType = value; }
     }
 
     public static Factor Create(List<SyntaxNodeBase> children)
@@ -112,51 +138,94 @@ public class Factor : NonTerminatedSyntaxNode
     {
         if (Children.Count == 1)
         {
-            //factor -> num
             if (Children[0].IsTerminated)
             {
                 SemanticToken token = Children[0].Convert<TerminatedSyntaxNode>().Token;
-                OnNumberGenerator?.Invoke(this,
-                    new OnNumberGeneratorEventArgs { Token = token.Convert<NumberSemanticToken>() });
+
+                switch (token.TokenType)
+                {
+                    // factor -> num
+                    case SemanticTokenType.Number:
+                        OnNumberGenerator?.Invoke(this,
+                            new NumberGeneratorEventArgs { Token = token.Convert<NumberSemanticToken>() });
+                        break;
+                    // factor -> true | false
+                    case SemanticTokenType.Keyword:
+                        KeywordSemanticToken keywordSemanticToken = token.Convert<KeywordSemanticToken>();
+
+                        switch (keywordSemanticToken.KeywordType)
+                        {
+                            case KeywordType.True:
+                                OnBooleanGenerator?.Invoke(this, new BooleanGeneratorEventArgs { Value = true });
+                                break;
+                            case KeywordType.False:
+                                OnBooleanGenerator?.Invoke(this, new BooleanGeneratorEventArgs { Value = false });
+                                break;
+                        }
+
+                        break;
+                }
             }
-            // factor -> variable
             else
             {
                 OnVariableGenerator?.Invoke(this,
-                    new OnVariableGeneratorEventArgs { Variable = Children[0].Convert<Variable>() });
+                    new VariableGeneratorEventArgs { Variable = Children[0].Convert<Variable>() });
             }
         }
-        //factor -> ( expression )
         else if (Children.Count == 3)
         {
-            OnParethnesisGenerator?.Invoke(this,
-                new OnParethnesisGeneratorEventArgs { Expression = Children[1].Convert<Expression>() });
+            TerminatedSyntaxNode terminatedSyntaxNode = Children[0].Convert<TerminatedSyntaxNode>();
+
+            // factor -> ( expression )
+            if (terminatedSyntaxNode.Token.TokenType == SemanticTokenType.Delimiter)
+            {
+                OnParethnesisGenerator?.Invoke(this,
+                    new ParethnesisGeneratorEventArgs { Expression = Children[1].Convert<Expression>() });
+            }
+            else
+            {
+                // factor -> id ( )
+                OnNoParameterProcedureCallGenerator?.Invoke(this, new NoParameterProcedureCallGeneratorEventArgs
+                {
+                    ProcedureName = terminatedSyntaxNode.Token.Convert<IdentifierSemanticToken>()
+                });
+            }
         }
-        //factor -> id ( expression )
         else if (Children.Count == 4)
         {
-            OnProcedureCallGenerator?.Invoke(this,
-                new OnProcedureCallGeneratorEventArgs
-                {
-                    ProcedureName =
-                        Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
-                    Parameters = Children[2].Convert<ExpressionList>()
-                });
+            // factor -> id ( expressionList)
+            OnProcedureCallGenerator?.Invoke(this, new ProcedureCallGeneratorEventArgs
+            {
+                ProcedureName = Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
+                Parameters = Children[2].Convert<ExpressionList>()
+            });
         }
         else
         {
+
             SemanticToken token = Children[0].Convert<TerminatedSyntaxNode>().Token;
             Factor factor = Children[1].Convert<Factor>();
 
             if (token.TokenType == SemanticTokenType.Keyword)
             {
                 // factor -> not factor
-                OnNotGenerator?.Invoke(this, new OnNotGeneratorEventArgs { Factor = factor });
+                OnNotGenerator?.Invoke(this, new NotGeneratorEventArgs { Factor = factor });
             }
             else
             {
-                // factor -> uminus factor
-                OnUminusGenerator?.Invoke(this, new OnUminusGeneratorEventArgs { Factor = factor });
+                OperatorSemanticToken operatorSemanticToken = token.Convert<OperatorSemanticToken>();
+
+                switch (operatorSemanticToken.OperatorType)
+                {
+                    // factor -> + factor
+                    case OperatorType.Plus:
+                        OnPlusGenerator?.Invoke(this, new PlusGeneratorEventArgs { Factor = factor });
+                        break;
+                    // factor -> - factor
+                    case OperatorType.Minus:
+                        OnUminusGenerator?.Invoke(this, new UminusGeneratorEventArgs { Factor = factor });
+                        break;
+                }
             }
         }
 

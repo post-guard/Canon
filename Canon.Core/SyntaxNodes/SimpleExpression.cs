@@ -5,12 +5,12 @@ using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnTermGeneratorEventArgs : EventArgs
+public class TermGeneratorEventArgs : EventArgs
 {
     public required Term Term { get; init; }
 }
 
-public class OnAddGeneratorEventArgs : EventArgs
+public class AddGeneratorEventArgs : EventArgs
 {
     public required SimpleExpression Left { get; init; }
 
@@ -38,12 +38,12 @@ public class SimpleExpression : NonTerminatedSyntaxNode
     /// <summary>
     /// 直接赋值产生式的事件
     /// </summary>
-    public event EventHandler<OnTermGeneratorEventArgs>? OnTermGenerator;
+    public event EventHandler<TermGeneratorEventArgs>? OnTermGenerator;
 
     /// <summary>
     /// 加法产生式的事件
     /// </summary>
-    public event EventHandler<OnAddGeneratorEventArgs>? OnAddGenerator;
+    public event EventHandler<AddGeneratorEventArgs>? OnAddGenerator;
 
     private PascalType? _simpleExpressionType;
 
@@ -73,14 +73,14 @@ public class SimpleExpression : NonTerminatedSyntaxNode
     {
         if (Children.Count == 1)
         {
-            OnTermGenerator?.Invoke(this, new OnTermGeneratorEventArgs
+            OnTermGenerator?.Invoke(this, new TermGeneratorEventArgs
             {
                 Term = Children[0].Convert<Term>()
             });
         }
         else
         {
-            OnAddGenerator?.Invoke(this, new OnAddGeneratorEventArgs
+            OnAddGenerator?.Invoke(this, new AddGeneratorEventArgs
             {
                 Left = Children[0].Convert<SimpleExpression>(),
                 Operator = Children[1].Convert<AddOperator>(),

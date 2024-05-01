@@ -8,6 +8,11 @@ public class PascalFunctionType(List<PascalParameterType> parameters, PascalType
 
     public PascalType ReturnType { get; } = returnType;
 
+    /// <summary>
+    /// Pascal核心库函数的类型
+    /// </summary>
+    public static PascalFunctionType CoreFuntionType => new PascalFunctionType([], PascalBasicType.Void);
+
     public override string TypeName
     {
         get

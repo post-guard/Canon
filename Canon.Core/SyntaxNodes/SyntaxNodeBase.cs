@@ -5,7 +5,7 @@ using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public abstract class SyntaxNodeBase : ICCodeGenerator
+public abstract class SyntaxNodeBase
 {
     public abstract bool IsTerminated { get; }
 
@@ -23,13 +23,6 @@ public abstract class SyntaxNodeBase : ICCodeGenerator
         }
 
         return result;
-    }
-
-    /// <summary>
-    /// 语法树节点基类对于生成C代码的默认实现
-    /// </summary>
-    public virtual void GenerateCCode(CCodeBuilder builder)
-    {
     }
 
     public override string ToString()

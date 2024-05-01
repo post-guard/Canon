@@ -7,7 +7,7 @@ namespace Canon.Tests.SemanticTests;
 
 public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 {
-    private readonly TestLogger<TypeCheckVisitor> _logger = new(testOutputHelper);
+    private readonly TestLogger _logger = new(testOutputHelper);
 
     [Fact]
     public void ConstTypeTest()
@@ -547,6 +547,92 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 
         TypeCheckVisitor visitor = CheckType(program);
         Assert.True(visitor.IsError);
+    }
+
+    [Fact]
+    public void TrueFalseTest()
+    {
+        const string program = """
+                               program main;
+                               var a : boolean;
+                               begin
+                                a := true;
+                                a := false;
+                               end.
+                               """;
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.False(visitor.IsError);
+    }
+
+    [Fact]
+    public void NotTest()
+    {
+        const string program = """
+                               program main;
+                               var a: integer;
+                               begin
+                               a := 60;
+                               write(not a);
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.False(visitor.IsError);
+    }
+
+    [Fact]
+    public void PascalFunctionTest()
+    {
+        const string program = """
+                               program main;
+                               var a : integer;
+                               begin
+                               write(a);
+                               read(a);
+                               writeln(a);
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.False(visitor.IsError);
+    }
+
+    [Fact]
+    public void FunctionCalculateTest()
+    {
+        const string program = """
+                               program main;
+                               var a : integer;
+                               function test : integer;
+                               begin
+                                test := 1;
+                               end;
+                               begin
+                               a := a + test;
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.False(visitor.IsError);
+    }
+
+    [Fact]
+    public void FunctionParameterCalculationTest()
+    {
+        const string program = """
+                               program main;
+                               var a : integer;
+                               function test (p : integer) : integer;
+                               begin
+                               test := p;
+                               end;
+                               begin
+                               a := 1 + test(1);
+                               end.
+                               """;
+
+        TypeCheckVisitor visitor = CheckType(program);
+        Assert.False(visitor.IsError);
     }
 
     private TypeCheckVisitor CheckType(string program)

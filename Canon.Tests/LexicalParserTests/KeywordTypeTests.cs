@@ -26,6 +26,8 @@ public class KeywordTypeTests
     [InlineData("to", KeywordType.To)]
     [InlineData("do", KeywordType.Do)]
     [InlineData("DO", KeywordType.Do)]
+    [InlineData("true", KeywordType.True)]
+    [InlineData("false", KeywordType.False)]
     public void SmokeTest(string input, KeywordType type)
     {
         IEnumerable<SemanticToken> tokensEnumerable = _lexer.Tokenize(new StringSourceReader(input));

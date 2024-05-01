@@ -62,7 +62,9 @@ public enum KeywordType
     Not,
     Mod,
     And,
-    Or
+    Or,
+    True,
+    False
 }
 
 public enum OperatorType
@@ -98,12 +100,4 @@ public enum StateType
     BreakPoint,
     Unknown,
     Done
-}
-
-public enum BasicIdType
-{
-    Int,
-    Real,
-    Char,
-    Bool
 }

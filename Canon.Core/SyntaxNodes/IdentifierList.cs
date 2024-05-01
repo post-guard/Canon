@@ -5,14 +5,14 @@ using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnIdentifierGeneratorEventArgs : EventArgs
+public class IdentifierGeneratorEventArgs : EventArgs
 {
     public required IdentifierSemanticToken IdentifierToken { get; init; }
 
     public required IdentifierList IdentifierList { get; init; }
 }
 
-public class OnTypeGeneratorEventArgs : EventArgs
+public class TypeGeneratorEventArgs : EventArgs
 {
     public required TypeSyntaxNode TypeSyntaxNode { get; init; }
 }
@@ -66,9 +66,9 @@ public class IdentifierList : NonTerminatedSyntaxNode
     /// </summary>
     public bool IsProcedure { get; set; }
 
-    public event EventHandler<OnIdentifierGeneratorEventArgs>? OnIdentifierGenerator;
+    public event EventHandler<IdentifierGeneratorEventArgs>? OnIdentifierGenerator;
 
-    public event EventHandler<OnTypeGeneratorEventArgs>? OnTypeGenerator;
+    public event EventHandler<TypeGeneratorEventArgs>? OnTypeGenerator;
 
     public static IdentifierList Create(List<SyntaxNodeBase> children)
     {
@@ -80,11 +80,11 @@ public class IdentifierList : NonTerminatedSyntaxNode
         if (Children.Count == 2)
         {
             OnTypeGenerator?.Invoke(this,
-                new OnTypeGeneratorEventArgs { TypeSyntaxNode = Children[1].Convert<TypeSyntaxNode>() });
+                new TypeGeneratorEventArgs { TypeSyntaxNode = Children[1].Convert<TypeSyntaxNode>() });
         }
         else
         {
-            OnIdentifierGenerator?.Invoke(this, new OnIdentifierGeneratorEventArgs
+            OnIdentifierGenerator?.Invoke(this, new IdentifierGeneratorEventArgs
             {
                 IdentifierToken = Children[1].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
                 IdentifierList = Children[2].Convert<IdentifierList>()

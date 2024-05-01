@@ -31,7 +31,9 @@ public static class LexRules
             { "not", KeywordType.Not },
             { "mod", KeywordType.Mod },
             { "and", KeywordType.And },
-            { "or", KeywordType.Or }
+            { "or", KeywordType.Or },
+            { "true", KeywordType.True },
+            { "false", KeywordType.False }
         };
 
     public static bool GetKeywordTypeByKeywprd(string keyword, out KeywordType type)

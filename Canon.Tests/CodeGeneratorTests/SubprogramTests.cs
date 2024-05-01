@@ -72,13 +72,37 @@ public class SubprogramTests
 
         string result = visitor.Builder.Build();
         _output.WriteLine(result);
-        Assert.Equal("#include <stdbool.h>\n#include <stdio.h>\nbool b, a;" +
-                     "\nint func1(int* a, int b, double c)\n{\nint func1;\n" +
-                     "{\n(*a) = b + c;\nfunc1 = (*a) * 3;\n;\n}\nreturn func1;\n}\n" +
-                     "char func2(bool* a, bool* b, char c[][6])\n{\nchar func2;\n" +
-                     "{\n(*a) = (*b) && (!(*b));\nfunc2 = c[5-0][8-3];\n;\n}\nreturn func2;\n}" +
-                     "\nint main()\n{\n;\n\nreturn 0;\n}\n", visitor.Builder.Build());
+        Assert.Equal("""
+                     #include <stdbool.h>
+                     #include <stdio.h>
+                     bool b, a;
+                     int func1(int* a, int b, double c)
+                     {
+                     int func1;
+                     {
+                     (*a) = b + c;
+                     func1 = (*a) * 3;
+                     ;
+                     }
+                     return func1;
+                     }
+                     char func2(bool* a, bool* b, char c[][6])
+                     {
+                     char func2;
+                     {
+                     (*a) = (*b) && (~(*b));
+                     func2 = c[5-0][8-3];
+                     ;
+                     }
+                     return func2;
+                     }
+                     int main()
+                     {
+                     ;
+
+                     return 0;
+                     }
+
+                     """, visitor.Builder.Build());
     }
-
-
 }

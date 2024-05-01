@@ -33,7 +33,7 @@ def compile_files():
         print("Info: compile ", file)
         if not (Path("open_set") / file.stem).exists():
             os.system("fpc " + str(file))
-        os.system("./pacss -i " + str(file))
+        os.system("./pascc -i " + str(file))
         c_file = "./open_set/" + file.stem + ".c"
         c_binary = "open_set/" + file.stem + ".out"
         os.system("gcc " + c_file + " -o " + c_binary)

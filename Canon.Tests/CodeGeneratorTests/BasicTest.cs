@@ -30,6 +30,7 @@ public class BasicTest
 
         string result = visitor.Builder.Build();
         _output.WriteLine(result);
-        Assert.Equal("#include <stdbool.h>\n#include <stdio.h>\nint main()\n{\n;\n\nreturn 0;\n}\n", visitor.Builder.Build());
+        Assert.Equal("#include <stdbool.h>\n#include <stdio.h>\nint main()\n{\n;\n\nreturn 0;\n}\n",
+            visitor.Builder.Build());
     }
 }

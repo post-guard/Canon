@@ -4,9 +4,9 @@ using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnProcedureGeneratorEventArgs : EventArgs;
+public class ProcedureGeneratorEventArgs : EventArgs;
 
-public class OnFunctionGeneratorEventArgs : EventArgs
+public class FunctionGeneratorEventArgs : EventArgs
 {
     public required BasicType ReturnType { get; init; }
 }
@@ -40,9 +40,9 @@ public class SubprogramHead : NonTerminatedSyntaxNode
         RaiseEvent();
     }
 
-    public event EventHandler<OnProcedureGeneratorEventArgs>? OnProcedureGenerator;
+    public event EventHandler<ProcedureGeneratorEventArgs>? OnProcedureGenerator;
 
-    public event EventHandler<OnFunctionGeneratorEventArgs>? OnFunctionGenerator;
+    public event EventHandler<FunctionGeneratorEventArgs>? OnFunctionGenerator;
 
     public static SubprogramHead Create(List<SyntaxNodeBase> children)
     {
@@ -71,12 +71,12 @@ public class SubprogramHead : NonTerminatedSyntaxNode
     {
         if (IsProcedure)
         {
-            OnProcedureGenerator?.Invoke(this, new OnProcedureGeneratorEventArgs());
+            OnProcedureGenerator?.Invoke(this, new ProcedureGeneratorEventArgs());
         }
         else
         {
             OnFunctionGenerator?.Invoke(this,
-                new OnFunctionGeneratorEventArgs { ReturnType = Children[4].Convert<BasicType>() });
+                new FunctionGeneratorEventArgs { ReturnType = Children[4].Convert<BasicType>() });
         }
 
         OnProcedureGenerator = null;

@@ -101,7 +101,7 @@ public static class PascalGrammar
             ]
         },
         {
-            // ConstValue -> +num | -num | num | 'letter'
+            // ConstValue -> +num | -num | num | 'letter' | true | false
             new NonTerminator(NonTerminatorType.ConstValue), [
                 [
                     new Terminator(OperatorType.Plus), Terminator.NumberTerminator
@@ -114,6 +114,12 @@ public static class PascalGrammar
                 ],
                 [
                     Terminator.CharacterTerminator,
+                ],
+                [
+                    new Terminator(KeywordType.True)
+                ],
+                [
+                    new Terminator(KeywordType.False)
                 ]
             ]
         },
@@ -247,6 +253,10 @@ public static class PascalGrammar
                 ],
                 [
                     new Terminator(DelimiterType.LeftParenthesis),
+                    new Terminator(DelimiterType.RightParenthesis)
+                ],
+                [
+                    new Terminator(DelimiterType.LeftParenthesis),
                     new NonTerminator(NonTerminatorType.ParameterList),
                     new Terminator(DelimiterType.RightParenthesis)
                 ]
@@ -334,13 +344,10 @@ public static class PascalGrammar
         {
             // Statement -> ε
             //           | Variable AssignOp Expression
-            //           | FuncId AssignOp Expression
             //           | ProcedureCall
             //           | CompoundStatement
             //           | if Expression then Statement ElsePart
             //           | for id AssignOp Expression to Expression do Statement
-            //           | read ( VariableList )
-            //           | write( ExpressionList )
             // 注意这里 read 和 write 作为普通的函数调用处理了
             // 因此下面并没有单独声明
             new NonTerminator(NonTerminatorType.Statement), [
@@ -351,12 +358,6 @@ public static class PascalGrammar
                 [
                     // Variable AssignOp Expression
                     new NonTerminator(NonTerminatorType.Variable),
-                    new Terminator(OperatorType.Assign),
-                    new NonTerminator(NonTerminatorType.Expression)
-                ],
-                [
-                    // FuncId AssignOp Expression
-                    Terminator.IdentifierTerminator,
                     new Terminator(OperatorType.Assign),
                     new NonTerminator(NonTerminatorType.Expression)
                 ],
@@ -426,10 +427,15 @@ public static class PascalGrammar
             ]
         },
         {
-            // ProcedureCall -> id | id ( ExpressionList )
+            // ProcedureCall -> id | id() | id ( ExpressionList )
             new NonTerminator(NonTerminatorType.ProcedureCall), [
                 [
                     Terminator.IdentifierTerminator,
+                ],
+                [
+                    Terminator.IdentifierTerminator,
+                    new Terminator(DelimiterType.LeftParenthesis),
+                    new Terminator(DelimiterType.RightParenthesis)
                 ],
                 [
                     Terminator.IdentifierTerminator,
@@ -506,9 +512,13 @@ public static class PascalGrammar
         {
             // Factor -> num | Variable
             //         | ( Expression )
-            //         | id ( ExpressionList )
+            //         | id ()
+            //         | id (ExpressionList)
             //         | not Factor
-            //         | minus Factor
+            //         | - Factor
+            //         | + Factor
+            //         | true
+            //         | false
             new NonTerminator(NonTerminatorType.Factor), [
                 [
                     Terminator.NumberTerminator,
@@ -524,6 +534,11 @@ public static class PascalGrammar
                 [
                     Terminator.IdentifierTerminator,
                     new Terminator(DelimiterType.LeftParenthesis),
+                    new Terminator(DelimiterType.RightParenthesis)
+                ],
+                [
+                    Terminator.IdentifierTerminator,
+                    new Terminator(DelimiterType.LeftParenthesis),
                     new NonTerminator(NonTerminatorType.ExpressionList),
                     new Terminator(DelimiterType.RightParenthesis)
                 ],
@@ -534,6 +549,16 @@ public static class PascalGrammar
                 [
                     new Terminator(OperatorType.Minus),
                     new NonTerminator(NonTerminatorType.Factor)
+                ],
+                [
+                    new Terminator(OperatorType.Plus),
+                    new NonTerminator(NonTerminatorType.Factor)
+                ],
+                [
+                    new Terminator(KeywordType.True)
+                ],
+                [
+                    new Terminator(KeywordType.False)
                 ]
             ]
         },

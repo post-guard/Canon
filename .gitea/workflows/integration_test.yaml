@@ -1,8 +1,5 @@
 name: Integration Test
-on:
-    push:
-        branches:
-            - master
+on: [push]
 
 jobs:
     Open-Set-Test:
@@ -18,8 +15,10 @@ jobs:
                     save-always: true
             -   name: Build binary file
                 run: |
+                    cd ./Canon.Console
                     dotnet publish
-                    cp ./Canon.Console/bin/Release/net8.0/linux-x64/publish/Canon.Console ./pacss
+                    cd ..
+                    cp ./Canon.Console/bin/Release/net8.0/linux-x64/publish/Canon.Console ./pascc
             -   name: Build open set binary
                 run: |
                     python scripts/integration_test.py run

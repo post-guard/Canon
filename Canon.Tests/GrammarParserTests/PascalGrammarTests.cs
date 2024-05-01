@@ -9,10 +9,10 @@ public class PascalGrammarTests
     public void DoNothingTest()
     {
         const string program = """
-                         program DoNothing;
-                         begin
-                         end.
-                         """;
+                               program DoNothing;
+                               begin
+                               end.
+                               """;
 
         ProgramStruct root = CompilerHelpers.Analyse(program);
         Assert.Equal("DoNothing", root.Head.ProgramName.LiteralValue);
@@ -156,6 +156,88 @@ public class PascalGrammarTests
                                begin
                                doSomething;
                                end;
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void ProcedureCallTest()
+    {
+        const string program = """
+                               program main;
+                               var a : integer;
+                               function test : integer;
+                               begin
+                               end;
+                               begin
+                               test;
+                               a := test;
+                               test();
+                               a := test();
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void ProcedureDefinitionTest()
+    {
+        const string program = """
+                               program main;
+                               procedure test();
+                               begin
+                               end;
+                               begin
+                               test();
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void FactorTest()
+    {
+        const string program = """
+                               program main;
+                               var a : integer;
+                               begin
+                               a := 1 + +1;
+                               a := 1 - -1;
+                               a := 1 + -1;
+                               a := 1 - +1;
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void TrueFalseTest()
+    {
+        const string program = """
+                               program main;
+                               const a = true; b = false;
+                               var c, d : boolean;
+                               begin
+                               c := true;
+                               d := false;
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
+
+    [Fact]
+    public void ProcedureAndVariableTest()
+    {
+        const string program = """
+                               program main;
+                               begin
+                               test
                                end.
                                """;
 

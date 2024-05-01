@@ -1,4 +1,6 @@
 ﻿using Canon.Core.Abstractions;
+using Canon.Core.Enums;
+using Canon.Core.Exceptions;
 
 namespace Canon.Core.GrammarParser;
 
@@ -45,13 +47,23 @@ public class Grammar
             {
                 if (expression.Pos == expression.Right.Count)
                 {
-                    transformer.ReduceTable.TryAdd(expression.LookAhead, new ReduceInformation(
-                        expression.Right.Count, expression.Left));
+                    if (transformer.ShiftTable.ContainsKey(expression.LookAhead))
+                    {
+                        throw new ReduceAndShiftConflictException();
+                    }
+
+                    if (!transformer.ReduceTable.TryAdd(expression.LookAhead,
+                            new ReduceInformation(expression.Right.Count, expression.Left)))
+                    {
+                        // 发生归约-归约冲突
+                        throw new ReduceConflictException(state, expression.LookAhead, expression.Left,
+                            transformer.ReduceTable[expression.LookAhead].Left);
+                    }
                 }
             }
 
             // 生成移进的迁移表
-            foreach (KeyValuePair<TerminatorBase,LrState> pair in state.Transformer)
+            foreach (KeyValuePair<TerminatorBase, LrState> pair in state.Transformer)
             {
                 ITransformer targetTransformer;
                 if (transformers.TryGetValue(pair.Value, out Transformer? oldTransformer2))
@@ -64,7 +76,19 @@ public class Grammar
                     transformers.Add(pair.Value, newTransformer);
                     targetTransformer = newTransformer;
                 }
-                transformer.ShiftTable.TryAdd(pair.Key, targetTransformer);
+
+                // 检测移进-归约冲突
+                if (pair.Key.IsTerminated)
+                {
+                    Terminator terminator = (Terminator)pair.Key;
+                    // hack 对于ElsePart的移进-归约冲突
+                    if (terminator != new Terminator(KeywordType.Else) && transformer.ReduceTable.ContainsKey(terminator))
+                    {
+                        throw new ReduceAndShiftConflictException();
+                    }
+                }
+
+                transformer.ShiftTable.Add(pair.Key, targetTransformer);
             }
         }
 

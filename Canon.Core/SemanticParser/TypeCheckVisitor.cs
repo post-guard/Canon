@@ -1,4 +1,5 @@
-﻿using Canon.Core.Abstractions;
+﻿using System.Diagnostics.CodeAnalysis;
+using Canon.Core.Abstractions;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
@@ -7,8 +8,11 @@ using Expression = Canon.Core.SyntaxNodes.Expression;
 
 namespace Canon.Core.SemanticParser;
 
-public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : SyntaxNodeVisitor
+public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisitor
 {
+    /// <summary>
+    /// 当前遍历阶段的符号表
+    /// </summary>
     public SymbolTable SymbolTable { get; private set; } = new();
 
     /// <summary>
@@ -91,88 +95,63 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
             }
         };
 
+        // factor -> true | false
+        factor.OnBooleanGenerator += (_, _) => { factor.FactorType = PascalBasicType.Boolean; };
+
         // factor -> variable
         factor.OnVariableGenerator += (_, e) => { factor.FactorType = e.Variable.VariableType; };
 
         // factor -> (expression)
         factor.OnParethnesisGenerator += (_, e) => { factor.FactorType = e.Expression.ExpressionType; };
 
-        // factor -> id (expression_list)
-        factor.OnProcedureCallGenerator += (_, e) =>
+        // factor -> id ()
+        factor.OnNoParameterProcedureCallGenerator += (_, e) =>
         {
-            if (!SymbolTable.TryGetSymbol(e.ProcedureName.IdentifierName, out Symbol? procedure))
+            if (ValidateProcedureCall(e.ProcedureName, [], out PascalFunctionType? functionType))
             {
-                IsError = true;
-                logger?.LogError("Procedure '{}' does not define.", e.ProcedureName.IdentifierName);
-                return;
-            }
-
-            PascalFunctionType? functionType = procedure.SymbolType as PascalFunctionType;
-            if (functionType is null)
-            {
-                if (SymbolTable.TryGetParent(out SymbolTable? parent))
+                if (functionType.ReturnType != PascalBasicType.Void)
                 {
-                    if (parent.TryGetSymbol(e.ProcedureName.IdentifierName, out procedure))
-                    {
-                        functionType = procedure.SymbolType as PascalFunctionType;
-                    }
-                }
-            }
-
-            if (functionType is null)
-            {
-                IsError = true;
-                logger?.LogError("'{}' is not call able.", e.ProcedureName.IdentifierName);
-                return;
-            }
-
-            if (functionType.ReturnType == PascalBasicType.Void)
-            {
-                IsError = true;
-                logger?.LogError("Procedure '{}' returns void.", e.ProcedureName.IdentifierName);
-                return;
-            }
-
-            factor.FactorType = functionType.ReturnType;
-
-            if (e.Parameters.Expressions.Count != functionType.Parameters.Count)
-            {
-                IsError = true;
-                logger?.LogError("Procedure '{}' expects {} parameters but {} provided.",
-                    e.ProcedureName.IdentifierName,
-                    functionType.Parameters.Count,
-                    e.Parameters.Expressions.Count);
-                return;
-            }
-
-            foreach ((Expression expression, PascalParameterType parameterType) in e.Parameters.Expressions.Zip(
-                         functionType.Parameters))
-            {
-                if (expression.ExpressionType != parameterType.ParameterType)
-                {
-                    IsError = true;
-                    logger?.LogError("Parameter expect '{}' but '{}'",
-                        parameterType.ParameterType.TypeName, expression.ExpressionType);
+                    factor.FactorType = functionType.ReturnType;
                     return;
                 }
+                else
+                {
+                    IsError = true;
+                    logger?.LogError("The procedure '{}' returns void.", e.ProcedureName.IdentifierName);
+                }
             }
+
+            factor.FactorType = PascalBasicType.Void;
         };
 
-        // factor -> factor
-        factor.OnNotGenerator += (_, e) =>
+        // factor -> id ( ExpressionList)
+        factor.OnProcedureCallGenerator += (_, e) =>
         {
-            if (e.Factor.FactorType != PascalBasicType.Boolean)
+            if (ValidateProcedureCall(e.ProcedureName, e.Parameters.Expressions, out PascalFunctionType? functionType))
             {
-                IsError = true;
-                logger?.LogError("The boolean type is expected.");
-                return;
+                if (functionType.ReturnType != PascalBasicType.Void)
+                {
+                    factor.FactorType = functionType.ReturnType;
+                    return;
+                }
+                else
+                {
+                    IsError = true;
+                    logger?.LogError("The procedure '{}' returns void.", e.ProcedureName.IdentifierName);
+                }
             }
 
-            factor.FactorType = PascalBasicType.Boolean;
+            factor.FactorType = PascalBasicType.Void;
         };
+
+        // factor -> not factor
+        factor.OnNotGenerator += (_, e) => { factor.FactorType = e.Factor.FactorType; };
 
         // factor -> uminus factor
         factor.OnUminusGenerator += (_, e) => { factor.FactorType = e.Factor.FactorType; };
+
+        // factor -> plus factor
+        factor.OnPlusGenerator += (_, e) => { factor.FactorType = e.Factor.FactorType; };
     }
 
     public override void PostVisit(Term term)
@@ -308,7 +287,7 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
     /// <summary>
     /// 多个ValueParameter下定义的参数列表
     /// </summary>
-    protected readonly List<List<Symbol>> _valueParameters = [];
+    protected readonly List<List<Symbol>> ValueParameters = [];
 
     public override void PreVisit(Subprogram subprogram)
     {
@@ -334,7 +313,7 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
         base.PreVisit(subprogramHead);
 
         _parameters = null;
-        _valueParameters.Clear();
+        ValueParameters.Clear();
     }
 
     public override void PostVisit(SubprogramHead subprogramHead)
@@ -351,7 +330,7 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
 
         // 正序遍历_valueParameter
         // 倒序遍历其中的列表
-        foreach (List<Symbol> children in _valueParameters)
+        foreach (List<Symbol> children in ValueParameters)
         {
             foreach (Symbol symbol in children.AsEnumerable().Reverse())
             {
@@ -397,7 +376,7 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
 
         valueParameter.IdentifierList.IsProcedure = true;
         _parameters = [];
-        _valueParameters.Add(_parameters);
+        ValueParameters.Add(_parameters);
         if (valueParameter.IsReference)
         {
             valueParameter.IdentifierList.IsReference = true;
@@ -496,72 +475,22 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
     public override void PostVisit(ProcedureCall procedureCall)
     {
         base.PostVisit(procedureCall);
-        // 查看当前符号表中procedureId是否注册
-
-        if (!SymbolTable.TryGetSymbol(procedureCall.ProcedureId.IdentifierName, out Symbol? procedure))
-        {
-            // id没有定义
-            IsError = true;
-            logger?.LogError("procedure '{}' is not defined.", procedureCall.ProcedureId.LiteralValue);
-            return;
-        }
-
-        if (procedure.SymbolType is not PascalFunctionType functionType)
-        {
-            // id不是函数类型,要找父符号表
-            if (!SymbolTable.TryGetParent(out SymbolTable? parent))
-            {
-                // 没找到父符号表,说明这个id是非函数变量
-                IsError = true;
-                logger?.LogError("Identifier '{}' is not a call-able.", procedureCall.ProcedureId.LiteralValue);
-                return;
-            }
-
-            if (!parent.TryGetSymbol(procedureCall.ProcedureId.IdentifierName, out Symbol? procedureParent))
-            {
-                // 找到父符号表但没有找到该id,说明这个id没定义
-                IsError = true;
-                logger?.LogError("procedure '{}' is not defined.", procedureCall.ProcedureId.LiteralValue);
-                return;
-            }
-
-            // 父符号表中找到该id
-            if (procedureParent.SymbolType is not PascalFunctionType functionTypeParent)
-            {
-                // 该符号不是函数类型
-                IsError = true;
-                logger?.LogError("Identifier '{}' is not a call-able.", procedureParent.SymbolName);
-                return;
-            }
-            // 该符号是函数类型,赋给procedure
-            procedure = procedureParent;
-            functionType = functionTypeParent;
-        }
 
         procedureCall.OnParameterGenerator += (_, e) =>
         {
-            // 检查procedure输入参数个数是否相符
-            if (e.Parameters.Expressions.Count != functionType.Parameters.Count)
+            if (ValidateProcedureCall(procedureCall.ProcedureId, e.Parameters.Expressions,
+                    out PascalFunctionType? functionType))
             {
-                IsError = true;
-                logger?.LogError("Procedure '{}' expects {} parameters but {} provided.",
-                    procedure.SymbolName,
-                    functionType.Parameters.Count,
-                    e.Parameters.Expressions.Count);
-                return;
+                procedureCall.ReturnType = functionType.ReturnType;
             }
+        };
 
-            // 检查每个参数的类型与procedure参数定义类型是否相符
-            foreach ((Expression expression, PascalParameterType parameterType) in e.Parameters.Expressions.Zip(
-                         functionType.Parameters))
+        procedureCall.OnNoParameterGenerator += (_, _) =>
+        {
+            if (ValidateProcedureCall(procedureCall.ProcedureId, [],
+                    out PascalFunctionType? functionType))
             {
-                if (expression.ExpressionType != parameterType.ParameterType)
-                {
-                    IsError = true;
-                    logger?.LogError("Parameter expect '{}' but '{}'",
-                        parameterType.ParameterType.TypeName, expression.ExpressionType);
-                    return;
-                }
+                procedureCall.ReturnType = functionType.ReturnType;
             }
         };
     }
@@ -569,9 +498,19 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
     public override void PostVisit(Variable variable)
     {
         base.PostVisit(variable);
+
         if (SymbolTable.TryGetSymbol(variable.Identifier.IdentifierName, out Symbol? id))
         {
             variable.VariableType = id.SymbolType;
+
+            if (variable.VariableType is PascalFunctionType functionType)
+            {
+                // 考虑不带参数的函数调用
+                if (functionType.Parameters.Count == 0 && functionType.ReturnType != PascalBasicType.Void)
+                {
+                    variable.VariableType = functionType.ReturnType;
+                }
+            }
 
             for (int i = 0; i < variable.VarPart.IndexCount; i++)
             {
@@ -613,5 +552,91 @@ public class TypeCheckVisitor(ILogger<TypeCheckVisitor>? logger = null) : Syntax
 
             identifierVarPart.IndexCount = e.IndexParameters.Expressions.Count;
         };
+    }
+
+    private static readonly HashSet<string> s_pascalCoreProcedures =
+    [
+        "read",
+        "readln",
+        "write",
+        "writeln"
+    ];
+
+    /// <summary>
+    /// 验证过程调用的类型正确性
+    /// </summary>
+    /// <param name="procedureName">过程的名称</param>
+    /// <param name="parameters">调用过程的参数</param>
+    /// <param name="functionType">过程的类型</param>
+    /// <returns>是否正确进行调用</returns>
+    private bool ValidateProcedureCall(IdentifierSemanticToken procedureName, List<Expression> parameters,
+        [NotNullWhen(true)] out PascalFunctionType? functionType)
+    {
+        if (s_pascalCoreProcedures.Contains(procedureName.IdentifierName))
+        {
+            functionType = PascalFunctionType.CoreFuntionType;
+            return true;
+        }
+
+        if (!SymbolTable.TryGetSymbol(procedureName.IdentifierName, out Symbol? symbol))
+        {
+            functionType = null;
+            IsError = true;
+            logger?.LogError("Identifier '{}' is not defined.", procedureName.IdentifierName);
+            return false;
+        }
+
+        PascalFunctionType? targetFunctionType = null;
+        if (symbol.SymbolType is not PascalFunctionType pascalFunctionType)
+        {
+            // 尝试查询父级符号表
+            // 处理过程定义中的递归调用问题
+            if (SymbolTable.TryGetParent(out SymbolTable? parent))
+            {
+                if (parent.TryGetSymbol(procedureName.IdentifierName, out Symbol? parentSymbol))
+                {
+                    if (parentSymbol.SymbolType is PascalFunctionType parentFunctionType)
+                    {
+                        targetFunctionType = parentFunctionType;
+                    }
+                }
+            }
+        }
+        else
+        {
+            targetFunctionType = pascalFunctionType;
+        }
+
+        if (targetFunctionType is null)
+        {
+            functionType = null;
+            IsError = true;
+            logger?.LogError("Identifier '{}' is not call-able.", procedureName.IdentifierName);
+            return false;
+        }
+
+        if (targetFunctionType.Parameters.Count != parameters.Count)
+        {
+            functionType = null;
+            IsError = true;
+            logger?.LogError("Procedure '{}' needs {} parameters but provide {} parameters.",
+                procedureName.IdentifierName,
+                targetFunctionType.Parameters.Count, parameters.Count);
+            return false;
+        }
+
+        foreach ((Expression expression, PascalParameterType parameterType) in parameters.Zip(targetFunctionType
+                     .Parameters))
+        {
+            if (expression.ExpressionType != parameterType.ParameterType)
+            {
+                IsError = true;
+                logger?.LogError("Parameter expect '{}' but '{}' is provided.",
+                    parameterType.ParameterType, expression.ExpressionType);
+            }
+        }
+
+        functionType = targetFunctionType;
+        return true;
     }
 }

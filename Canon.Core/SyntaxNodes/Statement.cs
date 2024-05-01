@@ -5,21 +5,14 @@ using Canon.Core.LexicalParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnAssignGeneratorEventArgs : EventArgs
+public class AssignGeneratorEventArgs : EventArgs
 {
     public required Variable Variable { get; init; }
 
     public required Expression Expression { get; init; }
 }
 
-public class OnReturnGeneratorEventArgs : EventArgs
-{
-    public required IdentifierSemanticToken FunctionName { get; set; }
-
-    public required Expression Expression { get; init; }
-}
-
-public class OnIfGeneratorEventArgs : EventArgs
+public class IfGeneratorEventArgs : EventArgs
 {
     public required Expression Condition { get; init; }
 
@@ -28,7 +21,7 @@ public class OnIfGeneratorEventArgs : EventArgs
     public required ElsePart ElseSentence { get; init; }
 }
 
-public class OnForGeneratorEventArgs : EventArgs
+public class ForGeneratorEventArgs : EventArgs
 {
     public required IdentifierSemanticToken Iterator { get; init; }
 
@@ -58,22 +51,17 @@ public class Statement : NonTerminatedSyntaxNode
     /// <summary>
     /// 使用赋值产生式的事件
     /// </summary>
-    public event EventHandler<OnAssignGeneratorEventArgs>? OnAssignGenerator;
-
-    /// <summary>
-    /// 使用返回产生式的事件
-    /// </summary>
-    public event EventHandler<OnReturnGeneratorEventArgs>? OnReturnGenerator;
+    public event EventHandler<AssignGeneratorEventArgs>? OnAssignGenerator;
 
     /// <summary>
     /// 使用If产生式的事件
     /// </summary>
-    public event EventHandler<OnIfGeneratorEventArgs>? OnIfGenerator;
+    public event EventHandler<IfGeneratorEventArgs>? OnIfGenerator;
 
     /// <summary>
     /// 使用For产生式的事件
     /// </summary>
-    public event EventHandler<OnForGeneratorEventArgs>? OnForGenerator;
+    public event EventHandler<ForGeneratorEventArgs>? OnForGenerator;
 
     public static Statement Create(List<SyntaxNodeBase> children)
     {
@@ -84,41 +72,32 @@ public class Statement : NonTerminatedSyntaxNode
     {
         if (Children.Count == 3)
         {
-            if (Children[0].IsTerminated)
-            {
-                OnReturnGenerator?.Invoke(this, new OnReturnGeneratorEventArgs
+            OnAssignGenerator?.Invoke(this,
+                new AssignGeneratorEventArgs
                 {
-                    FunctionName = Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
-                    Expression = Children[2].Convert<Expression>()
+                    Variable = Children[0].Convert<Variable>(), Expression = Children[2].Convert<Expression>()
                 });
-            }
-            else
-            {
-                OnAssignGenerator?.Invoke(this, new OnAssignGeneratorEventArgs
-                {
-                    Variable = Children[0].Convert<Variable>(),
-                    Expression = Children[2].Convert<Expression>()
-                });
-            }
         }
         else if (Children.Count == 5)
         {
-            OnIfGenerator?.Invoke(this, new OnIfGeneratorEventArgs
-            {
-                Condition = Children[1].Convert<Expression>(),
-                Sentence = Children[3].Convert<Statement>(),
-                ElseSentence = Children[4].Convert<ElsePart>()
-            });
+            OnIfGenerator?.Invoke(this,
+                new IfGeneratorEventArgs
+                {
+                    Condition = Children[1].Convert<Expression>(),
+                    Sentence = Children[3].Convert<Statement>(),
+                    ElseSentence = Children[4].Convert<ElsePart>()
+                });
         }
         else if (Children.Count == 8)
         {
-            OnForGenerator?.Invoke(this, new OnForGeneratorEventArgs
-            {
-                Iterator = Children[1].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
-                Begin = Children[3].Convert<Expression>(),
-                End = Children[5].Convert<Expression>(),
-                Sentence = Children[7].Convert<Statement>()
-            });
+            OnForGenerator?.Invoke(this,
+                new ForGeneratorEventArgs
+                {
+                    Iterator = Children[1].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
+                    Begin = Children[3].Convert<Expression>(),
+                    End = Children[5].Convert<Expression>(),
+                    Sentence = Children[7].Convert<Statement>()
+                });
         }
     }
 }

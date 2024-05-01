@@ -5,12 +5,12 @@ using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnFactorGeneratorEventArgs : EventArgs
+public class FactorGeneratorEventArgs : EventArgs
 {
     public required Factor Factor { get; init; }
 }
 
-public class OnMultiplyGeneratorEventArgs : EventArgs
+public class MultiplyGeneratorEventArgs : EventArgs
 {
     public required Term Left { get; init; }
 
@@ -38,12 +38,12 @@ public class Term : NonTerminatedSyntaxNode
     /// <summary>
     /// 直接赋值产生式的事件
     /// </summary>
-    public event EventHandler<OnFactorGeneratorEventArgs>? OnFactorGenerator;
+    public event EventHandler<FactorGeneratorEventArgs>? OnFactorGenerator;
 
     /// <summary>
     /// 乘法产生式的事件
     /// </summary>
-    public event EventHandler<OnMultiplyGeneratorEventArgs>? OnMultiplyGenerator;
+    public event EventHandler<MultiplyGeneratorEventArgs>? OnMultiplyGenerator;
 
     private PascalType? _termType;
 
@@ -73,14 +73,14 @@ public class Term : NonTerminatedSyntaxNode
     {
         if (Children.Count == 1)
         {
-            OnFactorGenerator?.Invoke(this, new OnFactorGeneratorEventArgs
+            OnFactorGenerator?.Invoke(this, new FactorGeneratorEventArgs
             {
                 Factor = Children[0].Convert<Factor>()
             });
         }
         else
         {
-            OnMultiplyGenerator?.Invoke(this, new OnMultiplyGeneratorEventArgs
+            OnMultiplyGenerator?.Invoke(this, new MultiplyGeneratorEventArgs
             {
                 Left = Children[0].Convert<Term>(),
                 Operator = Children[1].Convert<MultiplyOperator>(),

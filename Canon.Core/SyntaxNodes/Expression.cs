@@ -6,12 +6,12 @@ using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
-public class OnSimpleExpressionGeneratorEventArgs : EventArgs
+public class SimpleExpressionGeneratorEventArgs : EventArgs
 {
     public required SimpleExpression SimpleExpression { get; init; }
 }
 
-public class OnRelationGeneratorEventArgs : EventArgs
+public class RelationGeneratorEventArgs : EventArgs
 {
     public required SimpleExpression Left { get; init; }
 
@@ -76,12 +76,12 @@ public class Expression : NonTerminatedSyntaxNode
     /// <summary>
     /// 直接赋值产生式的事件
     /// </summary>
-    public event EventHandler<OnSimpleExpressionGeneratorEventArgs>? OnSimpleExpressionGenerator;
+    public event EventHandler<SimpleExpressionGeneratorEventArgs>? OnSimpleExpressionGenerator;
 
     /// <summary>
     /// 关系产生式的事件
     /// </summary>
-    public event EventHandler<OnRelationGeneratorEventArgs>? OnRelationGenerator;
+    public event EventHandler<RelationGeneratorEventArgs>? OnRelationGenerator;
 
     private PascalType? _expressionType;
 
@@ -111,14 +111,14 @@ public class Expression : NonTerminatedSyntaxNode
     {
         if (Children.Count == 1)
         {
-            OnSimpleExpressionGenerator?.Invoke(this, new OnSimpleExpressionGeneratorEventArgs
+            OnSimpleExpressionGenerator?.Invoke(this, new SimpleExpressionGeneratorEventArgs
             {
                 SimpleExpression = Children[0].Convert<SimpleExpression>()
             });
         }
         else
         {
-            OnRelationGenerator?.Invoke(this, new OnRelationGeneratorEventArgs
+            OnRelationGenerator?.Invoke(this, new RelationGeneratorEventArgs
             {
                 Left = Children[0].Convert<SimpleExpression>(),
                 Operator = Children[1].Convert<RelationOperator>(),

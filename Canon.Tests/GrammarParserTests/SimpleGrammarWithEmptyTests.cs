@@ -1,5 +1,5 @@
-﻿using Canon.Core.Abstractions;
-using Canon.Core.Enums;
+﻿using Canon.Core.Enums;
+using Canon.Core.Exceptions;
 using Canon.Core.GrammarParser;
 using Xunit.Abstractions;
 
@@ -159,11 +159,6 @@ public class SimpleGrammarWithEmptyTests(ITestOutputHelper testOutputHelper)
         };
 
         Grammar grammar = builder.Build();
-        IGrammarParser parser = grammar.ToGrammarParser();
-
-        ITransformer transformer1 = parser.BeginTransformer;
-        Assert.Equal(3, transformer1.ShiftTable.Count);
-        Assert.Single(transformer1.ReduceTable);
-        Assert.Contains(new NonTerminator(NonTerminatorType.ProgramStruct),transformer1.ShiftTable);
+        Assert.Throws<ReduceAndShiftConflictException>(() => grammar.ToGrammarParser());
     }
 }

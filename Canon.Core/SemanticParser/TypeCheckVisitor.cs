@@ -88,50 +88,46 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
             {
                 case NumberType.Integer:
                     factor.FactorType = PascalBasicType.Integer;
+                    factor.VariableType = PascalBasicType.Integer;
                     break;
                 case NumberType.Real:
                     factor.FactorType = PascalBasicType.Real;
+                    factor.VariableType = PascalBasicType.Real;
                     break;
             }
         };
 
         // factor -> true | false
-        factor.OnBooleanGenerator += (_, _) => { factor.FactorType = PascalBasicType.Boolean; };
+        factor.OnBooleanGenerator += (_, _) =>
+        {
+            factor.FactorType = PascalBasicType.Boolean;
+            factor.VariableType = PascalBasicType.Boolean;
+        };
 
         // factor -> variable
-        factor.OnVariableGenerator += (_, e) => { factor.FactorType = e.Variable.VariableType; };
+        factor.OnVariableGenerator += (_, e) =>
+        {
+            factor.FactorType = e.Variable.VariableType;
+            factor.VariableType = e.Variable.VariableType;
+        };
+
 
         // factor -> (expression)
-        factor.OnParethnesisGenerator += (_, e) => { factor.FactorType = e.Expression.ExpressionType; };
-
-        // factor -> id ()
-        factor.OnNoParameterProcedureCallGenerator += (_, e) =>
+        factor.OnParethnesisGenerator += (_, e) =>
         {
-            if (ValidateProcedureCall(e.ProcedureName, [], out PascalFunctionType? functionType))
-            {
-                if (functionType.ReturnType != PascalBasicType.Void)
-                {
-                    factor.FactorType = functionType.ReturnType;
-                    return;
-                }
-                else
-                {
-                    IsError = true;
-                    logger?.LogError("The procedure '{}' returns void.", e.ProcedureName.IdentifierName);
-                }
-            }
-
-            factor.FactorType = PascalBasicType.Void;
+            factor.FactorType = e.Expression.ExpressionType;
+            factor.VariableType = e.Expression.VariableType;
         };
 
         // factor -> id ( ExpressionList)
         factor.OnProcedureCallGenerator += (_, e) =>
         {
-            if (ValidateProcedureCall(e.ProcedureName, e.Parameters.Expressions, out PascalFunctionType? functionType))
+            if (ValidateProcedureCall(e.ProcedureName, e.Parameters, out PascalFunctionType? functionType))
             {
                 if (functionType.ReturnType != PascalBasicType.Void)
                 {
                     factor.FactorType = functionType.ReturnType;
+                    factor.VariableType = functionType.ReturnType;
                     return;
                 }
                 else
@@ -142,29 +138,47 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
             }
 
             factor.FactorType = PascalBasicType.Void;
+            factor.VariableType = PascalBasicType.Void;
         };
 
         // factor -> not factor
-        factor.OnNotGenerator += (_, e) => { factor.FactorType = e.Factor.FactorType; };
+        factor.OnNotGenerator += (_, e) =>
+        {
+            factor.FactorType = e.Factor.FactorType;
+            factor.VariableType = e.Factor.VariableType;
+        };
 
         // factor -> uminus factor
-        factor.OnUminusGenerator += (_, e) => { factor.FactorType = e.Factor.FactorType; };
+        factor.OnUminusGenerator += (_, e) =>
+        {
+            factor.FactorType = e.Factor.FactorType;
+            factor.VariableType = e.Factor.VariableType;
+        };
 
         // factor -> plus factor
-        factor.OnPlusGenerator += (_, e) => { factor.FactorType = e.Factor.FactorType; };
+        factor.OnPlusGenerator += (_, e) =>
+        {
+            factor.FactorType = e.Factor.FactorType;
+            factor.VariableType = e.Factor.VariableType;
+        };
     }
 
     public override void PostVisit(Term term)
     {
         base.PostVisit(term);
 
-        term.OnFactorGenerator += (_, e) => { term.TermType = e.Factor.FactorType; };
+        term.OnFactorGenerator += (_, e) =>
+        {
+            term.TermType = e.Factor.FactorType;
+            term.VariableType = e.Factor.VariableType;
+        };
 
         term.OnMultiplyGenerator += (_, e) =>
         {
             if (PascalType.IsCalculatable(e.Left.TermType) && PascalType.IsCalculatable(e.Right.FactorType))
             {
                 term.TermType = e.Left.TermType + e.Right.FactorType;
+                term.VariableType = e.Left.TermType + e.Right.FactorType;
                 return;
             }
 
@@ -177,13 +191,18 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
     {
         base.PostVisit(simpleExpression);
 
-        simpleExpression.OnTermGenerator += (_, e) => { simpleExpression.SimpleExpressionType = e.Term.TermType; };
+        simpleExpression.OnTermGenerator += (_, e) =>
+        {
+            simpleExpression.SimpleExpressionType = e.Term.TermType;
+            simpleExpression.VariableType = e.Term.VariableType;
+        };
 
         simpleExpression.OnAddGenerator += (_, e) =>
         {
             if (PascalType.IsCalculatable(e.Left.SimpleExpressionType) && PascalType.IsCalculatable(e.Right.TermType))
             {
                 simpleExpression.SimpleExpressionType = e.Left.SimpleExpressionType + e.Right.TermType;
+                simpleExpression.VariableType = e.Left.VariableType + e.Right.VariableType;
                 return;
             }
 
@@ -199,9 +218,14 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         expression.OnSimpleExpressionGenerator += (_, e) =>
         {
             expression.ExpressionType = e.SimpleExpression.SimpleExpressionType;
+            expression.VariableType = e.SimpleExpression.VariableType;
         };
 
-        expression.OnRelationGenerator += (_, _) => { expression.ExpressionType = PascalBasicType.Boolean; };
+        expression.OnRelationGenerator += (_, _) =>
+        {
+            expression.ExpressionType = PascalBasicType.Boolean;
+            expression.VariableType = PascalBasicType.Boolean;
+        };
     }
 
     public override void PostVisit(TypeSyntaxNode typeSyntaxNode)
@@ -334,7 +358,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         {
             foreach (Symbol symbol in children.AsEnumerable().Reverse())
             {
-                parameters.Add(new PascalParameterType(symbol.SymbolType, symbol.Reference));
+                parameters.Add(new PascalParameterType(symbol.SymbolType, symbol.Reference, symbol.SymbolName));
             }
         }
 
@@ -422,13 +446,13 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
                     e.Variable.Identifier.IdentifierName);
             }
 
-            if (e.Variable.VariableType != e.Expression.ExpressionType)
+            if (e.Variable.VariableType != e.Expression.VariableType)
             {
                 IsError = true;
                 logger?.LogError("Variable '{}' type mismatch, expect '{}' but '{}'.",
                     e.Variable.Identifier.IdentifierName,
                     e.Variable.VariableType.ToString(),
-                    e.Expression.ExpressionType.ToString());
+                    e.Expression.VariableType.ToString());
             }
         };
 

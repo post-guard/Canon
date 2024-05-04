@@ -28,7 +28,6 @@ builder.Services.AddSingleton<IGrammarParser>(
     _ => GeneratedGrammarParser.Instance);
 builder.Services.AddSingleton<SyntaxTreePresentationService>();
 builder.Services.AddSingleton<SyntaxTreeTraveller>();
-builder.Services.AddTransient<CCodeGenerateVisitor>();
 builder.Services.AddTransient<CompilerService>();
 builder.Services.AddHostedService<DatabaseSetupService>();
 

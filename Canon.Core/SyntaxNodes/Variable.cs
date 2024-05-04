@@ -9,28 +9,6 @@ public class Variable : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.Variable;
 
-    private PascalType? _variableType;
-
-    /// <summary>
-    /// Variable实际的类型,用于数组赋值
-    /// </summary>
-    public PascalType VariableType
-    {
-        get
-        {
-            if (_variableType is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return _variableType;
-        }
-        set
-        {
-            _variableType = value;
-        }
-    }
-
     /// <summary>
     /// 变量的名称
     /// </summary>

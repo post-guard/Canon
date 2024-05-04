@@ -1,6 +1,6 @@
 ﻿using System.Collections;
-using Canon.Core.Abstractions;
 using Canon.Core.Enums;
+using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -11,6 +11,44 @@ public abstract class NonTerminatedSyntaxNode : SyntaxNodeBase, IEnumerable<Synt
     public abstract NonTerminatorType Type { get; }
 
     public required List<SyntaxNodeBase> Children { get; init; }
+
+    private PascalType? _variableType;
+
+    private string? _variableName;
+
+    public PascalType VariableType
+    {
+        get
+        {
+            if (_variableType is null)
+            {
+                throw new InvalidOperationException("Did not set the type of the node");
+            }
+
+            return _variableType;
+        }
+        set
+        {
+            _variableType = value;
+        }
+    }
+
+    public string VariableName
+    {
+        get
+        {
+            if (_variableName is null)
+            {
+                throw new InvalidOperationException("Did not set the name of the node");
+            }
+
+            return _variableName;
+        }
+        set
+        {
+            _variableName = value;
+        }
+    }
 
     public IEnumerator<SyntaxNodeBase> GetEnumerator()
     {

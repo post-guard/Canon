@@ -23,6 +23,11 @@ public class IdentifierVarPart : NonTerminatedSyntaxNode
     /// </summary>
     public List<int> LeftBounds = new();
 
+    /// <summary>
+    /// 索引中的表达式
+    /// </summary>
+    public List<Expression> Expressions { get; } = [];
+
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);
@@ -42,7 +47,16 @@ public class IdentifierVarPart : NonTerminatedSyntaxNode
 
     public static IdentifierVarPart Create(List<SyntaxNodeBase> children)
     {
-        return new IdentifierVarPart { Children = children };
+        IdentifierVarPart result = new() { Children = children };
+
+        if (children.Count == 3)
+        {
+            ExpressionList expressionList = children[1].Convert<ExpressionList>();
+
+            result.Expressions.AddRange(expressionList.Expressions);
+        }
+
+        return result;
     }
 
     private void RaiseEvent()

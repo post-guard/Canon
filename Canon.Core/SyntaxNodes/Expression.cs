@@ -50,9 +50,22 @@ public class Expression : NonTerminatedSyntaxNode
     /// 当前表达式对应的数组下标维度的左边界
     /// </summary>
     public int LeftBound;
+
+    /// <summary>
+    /// 是否为FOR语句中的起始语句
+    /// </summary>
     public bool IsForConditionBegin { get; set; }
+
+    /// <summary>
+    /// 是否为FOR语句中的结束语句
+    /// </summary>
     public bool IsForConditionEnd { get; set; }
     public bool IsAssign { get; set; }
+
+    /// <summary>
+    /// 是否为IF语句中的条件语句
+    /// </summary>
+    public bool IsIfCondition { get; set; }
 
     private IdentifierSemanticToken? _iterator;
 

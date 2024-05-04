@@ -16,8 +16,16 @@ public class ProcedureCall : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.ProcedureCall;
 
+    /// <summary>
+    /// 调用函数的名称
+    /// </summary>
     public IdentifierSemanticToken ProcedureId
         => Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>();
+
+    /// <summary>
+    /// 调用函数的参数
+    /// </summary>
+    public List<Expression> Parameters { get; } = [];
 
     /// <summary>
     /// 调用函数时含有参数的事件
@@ -62,7 +70,14 @@ public class ProcedureCall : NonTerminatedSyntaxNode
 
     public static ProcedureCall Create(List<SyntaxNodeBase> children)
     {
-        return new ProcedureCall { Children = children };
+        ProcedureCall result = new() { Children = children };
+
+        if (children.Count == 4)
+        {
+            result.Parameters.AddRange(children[2].Convert<ExpressionList>().Expressions);
+        }
+
+        return result;
     }
 
     private void RaiseEvent()

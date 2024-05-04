@@ -36,14 +36,14 @@ public class PascalTypeTests
     [Fact]
     public void PascalFunctionTypeTests()
     {
-        PascalType function1 = new PascalFunctionType([new PascalParameterType(PascalBasicType.Integer, false)],
+        PascalType function1 = new PascalFunctionType([new PascalParameterType(PascalBasicType.Integer, false, "a")],
             PascalBasicType.Void);
-        PascalType function2 = new PascalFunctionType([new PascalParameterType(PascalBasicType.Integer, false)],
+        PascalType function2 = new PascalFunctionType([new PascalParameterType(PascalBasicType.Integer, false, "a")],
             PascalBasicType.Void);
 
         Assert.Equal(function1, function2);
 
-        PascalType function3 = new PascalFunctionType([new PascalParameterType(PascalBasicType.Real, true)],
+        PascalType function3 = new PascalFunctionType([new PascalParameterType(PascalBasicType.Real, true, "a")],
             PascalBasicType.Integer);
         Assert.NotEqual(function1, function3);
     }

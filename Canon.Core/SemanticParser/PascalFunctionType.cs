@@ -11,7 +11,7 @@ public class PascalFunctionType(List<PascalParameterType> parameters, PascalType
     /// <summary>
     /// Pascal核心库函数的类型
     /// </summary>
-    public static PascalFunctionType CoreFuntionType => new PascalFunctionType([], PascalBasicType.Void);
+    public static PascalFunctionType CoreFuntionType => new([], PascalBasicType.Void);
 
     public override string TypeName
     {

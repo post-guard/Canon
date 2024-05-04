@@ -21,7 +21,7 @@ public class Compiler(
         IEnumerable<SemanticToken> tokens = lexer.Tokenize(await CreateSourceReader());
         ProgramStruct root = grammarParser.Analyse(tokens);
 
-        CCodeGenerateVisitor visitor = new();
+        CodeGeneratorVisitor visitor = new();
         traveller.Travel(root, visitor);
 
         await WriteToOutputFile(visitor.Builder.Build());

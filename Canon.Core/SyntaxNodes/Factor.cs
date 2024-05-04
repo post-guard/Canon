@@ -20,16 +20,11 @@ public class ParethnesisGeneratorEventArgs : EventArgs
     public required Expression Expression { get; init; }
 }
 
-public class NoParameterProcedureCallGeneratorEventArgs : EventArgs
-{
-    public required IdentifierSemanticToken ProcedureName { get; init; }
-}
-
 public class ProcedureCallGeneratorEventArgs : EventArgs
 {
     public required IdentifierSemanticToken ProcedureName { get; init; }
 
-    public required ExpressionList Parameters { get; init; }
+    public List<Expression> Parameters { get; } = [];
 }
 
 public class NotGeneratorEventArgs : EventArgs
@@ -102,11 +97,6 @@ public class Factor : NonTerminatedSyntaxNode
     /// 使用布尔值产生式的事件
     /// </summary>
     public event EventHandler<BooleanGeneratorEventArgs>? OnBooleanGenerator;
-
-    /// <summary>
-    /// 没有参数的过程调用产生式事件
-    /// </summary>
-    public event EventHandler<NoParameterProcedureCallGeneratorEventArgs>? OnNoParameterProcedureCallGenerator;
 
     /// <summary>
     /// 过程调用产生式的事件
@@ -185,7 +175,7 @@ public class Factor : NonTerminatedSyntaxNode
             else
             {
                 // factor -> id ( )
-                OnNoParameterProcedureCallGenerator?.Invoke(this, new NoParameterProcedureCallGeneratorEventArgs
+                OnProcedureCallGenerator?.Invoke(this, new ProcedureCallGeneratorEventArgs
                 {
                     ProcedureName = terminatedSyntaxNode.Token.Convert<IdentifierSemanticToken>()
                 });
@@ -194,11 +184,13 @@ public class Factor : NonTerminatedSyntaxNode
         else if (Children.Count == 4)
         {
             // factor -> id ( expressionList)
-            OnProcedureCallGenerator?.Invoke(this, new ProcedureCallGeneratorEventArgs
+            ProcedureCallGeneratorEventArgs eventArgs = new()
             {
-                ProcedureName = Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
-                Parameters = Children[2].Convert<ExpressionList>()
-            });
+                ProcedureName =
+                    Children[0].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
+            };
+            eventArgs.Parameters.AddRange(Children[2].Convert<ExpressionList>().Expressions);
+            OnProcedureCallGenerator?.Invoke(this, eventArgs);
         }
         else
         {

@@ -72,6 +72,8 @@ public class ConstValue : NonTerminatedSyntaxNode
         }
     }
 
+    public string ValueString { get; set; } = string.Empty;
+
     /// <summary>
     /// 使用数值产生式的事件
     /// </summary>

@@ -66,6 +66,11 @@ public class IdentifierList : NonTerminatedSyntaxNode
     /// </summary>
     public bool IsProcedure { get; set; }
 
+    /// <summary>
+    /// 是否为变量定义中使用
+    /// </summary>
+    public bool IsVariableDefinition { get; set; }
+
     public event EventHandler<IdentifierGeneratorEventArgs>? OnIdentifierGenerator;
 
     public event EventHandler<TypeGeneratorEventArgs>? OnTypeGenerator;

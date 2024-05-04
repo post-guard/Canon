@@ -1,10 +1,12 @@
 ﻿namespace Canon.Core.SemanticParser;
 
-public class PascalParameterType(PascalType parameterType, bool isVar) : PascalType
+public class PascalParameterType(PascalType parameterType, bool isVar, string parameterName) : PascalType
 {
     public PascalType ParameterType { get; } = parameterType;
 
     public bool IsVar { get; } = isVar;
+
+    public string ParameterName { get; } = parameterName;
 
     public override string TypeName
     {

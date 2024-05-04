@@ -10,7 +10,7 @@ public class CompoundStatement : NonTerminatedSyntaxNode
     /// <summary>
     /// 是否为主函数部分
     /// </summary>
-    public bool IsMain;
+    public bool IsMain { get; set; }
 
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {

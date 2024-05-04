@@ -7,33 +7,33 @@ using Canon.Tests.Utils;
 
 namespace Canon.Tests.LexicalParserTests
 {
-    public class CharacterTypeTests
+    public class CharacterTypeTests(ITestOutputHelper testOutputHelper)
     {
-        private readonly ITestOutputHelper _testOutputHelper;
         private readonly ILexer _lexer = new Lexer();
-        public CharacterTypeTests(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
-        }
 
         [Theory]
-        [InlineData("'a'", "a")]
-        [InlineData("'Hello, World!'", "Hello, World!")]
-
-        public void TestCharacterType(string input, string? expectedResult)
+        [InlineData("'a'", 'a')]
+        [InlineData("'+'", '+')]
+        public void TestCharacterType(string input, char expectedResult)
         {
             IEnumerable<SemanticToken> tokensEnumerable = _lexer.Tokenize(new StringSourceReader(input));
             List<SemanticToken> tokens = tokensEnumerable.ToList();
-            if (expectedResult == null)
-            {
-                Assert.Throws<LexemeException>(() => tokens);
-            }
-            else
-            {
-                _testOutputHelper.WriteLine(tokens[0].LiteralValue);
-                Assert.Equal(SemanticTokenType.Character, tokens[0].TokenType);
-                Assert.Equal(expectedResult, tokens[0].LiteralValue);
-            }
+
+            testOutputHelper.WriteLine(tokens[0].LiteralValue);
+            Assert.Equal(SemanticTokenType.Character, tokens[0].TokenType);
+            Assert.Equal(expectedResult, tokens[0].Convert<CharacterSemanticToken>().ParseAsCharacter());
+        }
+
+        [Theory]
+        [InlineData("'Hello, world'", "Hello, world")]
+        [InlineData("'asdfasdf'", "asdfasdf")]
+        public void StringTypeTest(string input, string expect)
+        {
+            IEnumerable<SemanticToken> tokens = _lexer.Tokenize(new StringSourceReader(input));
+            SemanticToken token = tokens.First();
+
+            Assert.Equal(SemanticTokenType.String, token.TokenType);
+            Assert.Equal(expect, token.Convert<StringSemanticToken>().ParseAsString());
         }
 
         [Theory]
@@ -42,11 +42,11 @@ namespace Canon.Tests.LexicalParserTests
         [InlineData("'This", 1, 5, LexemeErrorType.UnclosedStringLiteral)]
         [InlineData("x @", 1, 3, LexemeErrorType.UnknownCharacterOrString)]
         //[InlineData("\"x\'", 1, 3, LexemeException.LexemeErrorType.UnclosedStringLiteral)]
-        public void TestParseCharacterError(string input,  uint expectedLine, uint expectedCharPosition, LexemeErrorType expectedErrorType)
+        public void TestParseCharacterError(string input, uint expectedLine, uint expectedCharPosition,
+            LexemeErrorType expectedErrorType)
         {
-
             var ex = Assert.Throws<LexemeException>(() => _lexer.Tokenize(new StringSourceReader(input)).ToList());
-            _testOutputHelper.WriteLine(ex.ToString());
+            testOutputHelper.WriteLine(ex.ToString());
             Assert.Equal(expectedErrorType, ex.ErrorType);
             Assert.Equal(expectedLine, ex.Line);
             Assert.Equal(expectedCharPosition, ex.CharPosition);

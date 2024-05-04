@@ -16,6 +16,13 @@ public static class LexemeFactory
                 };
                 token = characterSemanticToken;
                 break;
+            case SemanticTokenType.String:
+                StringSemanticToken stringSemanticToken = new()
+                {
+                    LinePos = line, CharacterPos = chPos, LiteralValue = literal,
+                };
+                token = stringSemanticToken;
+                break;
             case SemanticTokenType.Identifier:
                 IdentifierSemanticToken identifierSemanticToken = new()
                 {

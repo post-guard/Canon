@@ -80,6 +80,7 @@ public class Lexer : ILexer
         }
 
         _tokens.Add(SemanticToken.End);
+
         return _tokens;
     }
 
@@ -447,7 +448,6 @@ public class Lexer : ILexer
                 }
                 break;
             case '\'':
-            case '\"':
                 {
                     // 重置_token，准备收集字符串内容
                     ResetTokenBuilder();
@@ -464,8 +464,18 @@ public class Lexer : ILexer
                         }
                     }
 
-                    _semanticToken = LexemeFactory.MakeToken(SemanticTokenType.Character,
-                        GetCurrentTokenString(), _line, _chPos);
+                    string currentString = GetCurrentTokenString();
+                    if (currentString.Length > 1)
+                    {
+                        _semanticToken = LexemeFactory.MakeToken(SemanticTokenType.String,
+                            currentString, _line, _chPos);
+                    }
+                    else
+                    {
+                        _semanticToken = LexemeFactory.MakeToken(SemanticTokenType.Character,
+                            currentString, _line, _chPos);
+                    }
+
 
                     ResetTokenBuilder();
 

@@ -39,7 +39,7 @@ public class PascalGrammarTests
     {
         const string program = """
                                program exFunction;
-                               const str = 'result is : ';
+                               const str = 'a';
                                var a, b : Integer;
                                begin
                                writeln( str, ret );

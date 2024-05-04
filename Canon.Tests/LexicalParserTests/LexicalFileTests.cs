@@ -17,9 +17,9 @@ public class LexicalFileTests(ITestOutputHelper testOutputHelper)
         string pascalProgram = """
                                program HelloWorld;
                                var
-                               message: string;
+                               message: char;
                                begin
-                               message := 'hello, world!';
+                               message := 'h';
                                writeln(message);
                                end.
                                """;
@@ -32,7 +32,7 @@ public class LexicalFileTests(ITestOutputHelper testOutputHelper)
             SemanticTokenType.Keyword,
             SemanticTokenType.Identifier,
             SemanticTokenType.Delimiter,
-            SemanticTokenType.Identifier,
+            SemanticTokenType.Keyword,
             SemanticTokenType.Delimiter,
             SemanticTokenType.Keyword,
             SemanticTokenType.Identifier,

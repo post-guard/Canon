@@ -104,6 +104,32 @@ public abstract class SemanticToken : IEquatable<SemanticToken>
 public class CharacterSemanticToken : SemanticToken
 {
     public override SemanticTokenType TokenType => SemanticTokenType.Character;
+
+    /// <summary>
+    /// 获得令牌代表的字符
+    /// </summary>
+    /// <returns>字符</returns>
+    public char ParseAsCharacter()
+    {
+        return char.Parse(LiteralValue);
+    }
+}
+
+/// <summary>
+/// 字符串类型记号
+/// </summary>
+public class StringSemanticToken : SemanticToken
+{
+    public override SemanticTokenType TokenType => SemanticTokenType.String;
+
+    /// <summary>
+    /// 获得令牌代表的字符串
+    /// </summary>
+    /// <returns>字符串</returns>
+    public string ParseAsString()
+    {
+        return LiteralValue;
+    }
 }
 
 /// <summary>

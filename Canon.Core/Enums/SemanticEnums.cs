@@ -8,6 +8,7 @@ public enum SemanticTokenType
     Delimiter,
     Identifier,
     Character,
+    String,
     Empty,
     /// <summary>
     /// 语法分析中的栈底符号

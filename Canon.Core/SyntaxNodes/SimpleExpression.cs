@@ -1,7 +1,5 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
-using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -44,25 +42,6 @@ public class SimpleExpression : NonTerminatedSyntaxNode
     /// 加法产生式的事件
     /// </summary>
     public event EventHandler<AddGeneratorEventArgs>? OnAddGenerator;
-
-    private PascalType? _simpleExpressionType;
-
-    public PascalType SimpleExpressionType
-    {
-        get
-        {
-            if (_simpleExpressionType is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return _simpleExpressionType;
-        }
-        set
-        {
-            _simpleExpressionType = value;
-        }
-    }
 
     public static SimpleExpression Create(List<SyntaxNodeBase> children)
     {

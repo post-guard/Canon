@@ -1,7 +1,6 @@
 ﻿using Canon.Core.Abstractions;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
-using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 

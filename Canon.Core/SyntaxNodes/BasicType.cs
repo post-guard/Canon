@@ -1,5 +1,4 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 using Canon.Core.SemanticParser;
@@ -10,7 +9,6 @@ public class BasicType : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.BasicType;
 
-    public bool IsProcedure;
     /// <summary>
     /// BasicType代表的Pascal类型
     /// </summary>

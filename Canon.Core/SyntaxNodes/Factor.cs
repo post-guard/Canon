@@ -1,7 +1,6 @@
 ﻿using Canon.Core.Abstractions;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
-using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -102,22 +101,6 @@ public class Factor : NonTerminatedSyntaxNode
     /// 过程调用产生式的事件
     /// </summary>
     public event EventHandler<ProcedureCallGeneratorEventArgs>? OnProcedureCallGenerator;
-
-    private PascalType? _factorType;
-
-    public PascalType FactorType
-    {
-        get
-        {
-            if (_factorType is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return _factorType;
-        }
-        set { _factorType = value; }
-    }
 
     public static Factor Create(List<SyntaxNodeBase> children)
     {

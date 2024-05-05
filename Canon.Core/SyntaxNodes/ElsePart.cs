@@ -1,5 +1,4 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 
 namespace Canon.Core.SyntaxNodes;

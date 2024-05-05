@@ -1,7 +1,5 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
-using Canon.Core.SemanticParser;
 
 namespace Canon.Core.SyntaxNodes;
 
@@ -44,25 +42,6 @@ public class Term : NonTerminatedSyntaxNode
     /// 乘法产生式的事件
     /// </summary>
     public event EventHandler<MultiplyGeneratorEventArgs>? OnMultiplyGenerator;
-
-    private PascalType? _termType;
-
-    public PascalType TermType
-    {
-        get
-        {
-            if (_termType is null)
-            {
-                throw new InvalidOperationException();
-            }
-
-            return _termType;
-        }
-        set
-        {
-            _termType = value;
-        }
-    }
 
     public static Term Create(List<SyntaxNodeBase> children)
     {

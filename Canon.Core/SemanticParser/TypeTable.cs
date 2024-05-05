@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Security;
-using Canon.Core.Exceptions;
 
 namespace Canon.Core.SemanticParser;
 

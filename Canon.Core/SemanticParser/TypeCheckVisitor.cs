@@ -87,11 +87,9 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
             switch (e.Token.NumberType)
             {
                 case NumberType.Integer:
-                    factor.FactorType = PascalBasicType.Integer;
                     factor.VariableType = PascalBasicType.Integer;
                     break;
                 case NumberType.Real:
-                    factor.FactorType = PascalBasicType.Real;
                     factor.VariableType = PascalBasicType.Real;
                     break;
             }
@@ -100,14 +98,12 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         // factor -> true | false
         factor.OnBooleanGenerator += (_, _) =>
         {
-            factor.FactorType = PascalBasicType.Boolean;
             factor.VariableType = PascalBasicType.Boolean;
         };
 
         // factor -> variable
         factor.OnVariableGenerator += (_, e) =>
         {
-            factor.FactorType = e.Variable.VariableType;
             factor.VariableType = e.Variable.VariableType;
         };
 
@@ -115,7 +111,6 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         // factor -> (expression)
         factor.OnParethnesisGenerator += (_, e) =>
         {
-            factor.FactorType = e.Expression.ExpressionType;
             factor.VariableType = e.Expression.VariableType;
         };
 
@@ -126,7 +121,6 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
             {
                 if (functionType.ReturnType != PascalBasicType.Void)
                 {
-                    factor.FactorType = functionType.ReturnType;
                     factor.VariableType = functionType.ReturnType;
                     return;
                 }
@@ -137,28 +131,24 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
                 }
             }
 
-            factor.FactorType = PascalBasicType.Void;
             factor.VariableType = PascalBasicType.Void;
         };
 
         // factor -> not factor
         factor.OnNotGenerator += (_, e) =>
         {
-            factor.FactorType = e.Factor.FactorType;
             factor.VariableType = e.Factor.VariableType;
         };
 
         // factor -> uminus factor
         factor.OnUminusGenerator += (_, e) =>
         {
-            factor.FactorType = e.Factor.FactorType;
             factor.VariableType = e.Factor.VariableType;
         };
 
         // factor -> plus factor
         factor.OnPlusGenerator += (_, e) =>
         {
-            factor.FactorType = e.Factor.FactorType;
             factor.VariableType = e.Factor.VariableType;
         };
     }
@@ -169,16 +159,14 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
 
         term.OnFactorGenerator += (_, e) =>
         {
-            term.TermType = e.Factor.FactorType;
             term.VariableType = e.Factor.VariableType;
         };
 
         term.OnMultiplyGenerator += (_, e) =>
         {
-            if (PascalType.IsCalculatable(e.Left.TermType) && PascalType.IsCalculatable(e.Right.FactorType))
+            if (PascalType.IsCalculatable(e.Left.VariableType) && PascalType.IsCalculatable(e.Right.VariableType))
             {
-                term.TermType = e.Left.TermType + e.Right.FactorType;
-                term.VariableType = e.Left.TermType + e.Right.FactorType;
+                term.VariableType = e.Left.VariableType + e.Right.VariableType;
                 return;
             }
 
@@ -193,15 +181,13 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
 
         simpleExpression.OnTermGenerator += (_, e) =>
         {
-            simpleExpression.SimpleExpressionType = e.Term.TermType;
             simpleExpression.VariableType = e.Term.VariableType;
         };
 
         simpleExpression.OnAddGenerator += (_, e) =>
         {
-            if (PascalType.IsCalculatable(e.Left.SimpleExpressionType) && PascalType.IsCalculatable(e.Right.TermType))
+            if (PascalType.IsCalculatable(e.Left.VariableType) && PascalType.IsCalculatable(e.Right.VariableType))
             {
-                simpleExpression.SimpleExpressionType = e.Left.SimpleExpressionType + e.Right.TermType;
                 simpleExpression.VariableType = e.Left.VariableType + e.Right.VariableType;
                 return;
             }
@@ -217,13 +203,11 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
 
         expression.OnSimpleExpressionGenerator += (_, e) =>
         {
-            expression.ExpressionType = e.SimpleExpression.SimpleExpressionType;
             expression.VariableType = e.SimpleExpression.VariableType;
         };
 
         expression.OnRelationGenerator += (_, _) =>
         {
-            expression.ExpressionType = PascalBasicType.Boolean;
             expression.VariableType = PascalBasicType.Boolean;
         };
     }
@@ -468,7 +452,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
             }
 
             // 检查ExpressionA是否为Integer
-            if (e.Begin.ExpressionType != PascalBasicType.Integer)
+            if (e.Begin.VariableType != PascalBasicType.Integer)
             {
                 IsError = true;
                 logger?.LogError("The loop begin parameter is not integer.");
@@ -476,7 +460,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
             }
 
             // 检查ExpressionB是否为Integer
-            if (e.End.ExpressionType != PascalBasicType.Integer)
+            if (e.End.VariableType != PascalBasicType.Integer)
             {
                 IsError = true;
                 logger?.LogError("The loop end parameter is not integer.");
@@ -487,11 +471,11 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         statement.OnIfGenerator += (_, e) =>
         {
             // 条件是否为Boolean
-            if (e.Condition.ExpressionType != PascalBasicType.Boolean)
+            if (e.Condition.VariableType != PascalBasicType.Boolean)
             {
                 IsError = true;
                 logger?.LogError("Expect '{}' but '{}'.", PascalBasicType.Boolean.TypeName,
-                    e.Condition.ExpressionType.ToString());
+                    e.Condition.VariableType.ToString());
             }
         };
     }
@@ -566,11 +550,11 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         {
             foreach (Expression expression in e.IndexParameters.Expressions)
             {
-                if (expression.ExpressionType != PascalBasicType.Integer)
+                if (expression.VariableType != PascalBasicType.Integer)
                 {
                     IsError = true;
                     logger?.LogError("Index of array expect 'int' but '{}'",
-                        expression.ExpressionType.ToString());
+                        expression.VariableType.ToString());
                 }
             }
 
@@ -652,11 +636,11 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         foreach ((Expression expression, PascalParameterType parameterType) in parameters.Zip(targetFunctionType
                      .Parameters))
         {
-            if (expression.ExpressionType != parameterType.ParameterType)
+            if (expression.VariableType != parameterType.ParameterType)
             {
                 IsError = true;
                 logger?.LogError("Parameter expect '{}' but '{}' is provided.",
-                    parameterType.ParameterType, expression.ExpressionType);
+                    parameterType.ParameterType, expression.VariableType);
             }
         }
 

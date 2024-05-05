@@ -1,5 +1,4 @@
 ﻿using System.Text;
-using Canon.Core.SemanticParser;
 
 namespace Canon.Core.CodeGenerators;
 
@@ -12,11 +11,6 @@ public class CCodeBuilder
 
     private int _scopeCount = 0;
     private string _scopeEmpty = string.Empty;
-
-    public void AddString(string code)
-    {
-        _builder.Append(code);
-    }
 
     public void AddLine(string code)
     {

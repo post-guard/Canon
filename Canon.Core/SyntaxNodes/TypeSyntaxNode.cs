@@ -1,5 +1,4 @@
 ﻿using Canon.Core.Abstractions;
-using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.SemanticParser;
 
@@ -36,11 +35,6 @@ public class TypeSyntaxNode : NonTerminatedSyntaxNode
     public event EventHandler<BasicTypeGeneratorEventArgs>? OnBasicTypeGenerator;
 
     public event EventHandler<ArrayTypeGeneratorEventArgs>? OnArrayTypeGenerator;
-
-    /// <summary>
-    /// 是否在过程定义中使用
-    /// </summary>
-    public bool IsProcedure { get; set; }
 
     private PascalType? _pascalType;
 

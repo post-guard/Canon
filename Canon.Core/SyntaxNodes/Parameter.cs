@@ -12,12 +12,6 @@ public class Parameter : NonTerminatedSyntaxNode
     /// </summary>
     public bool IsVar { get; private init; }
 
-    /// <summary>
-    /// 声明的变量名称
-    /// </summary>
-    public ValueParameter ValueParameter =>
-        IsVar ? Children[0].Convert<VarParameter>().ValueParameter : Children[0].Convert<ValueParameter>();
-
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);

@@ -26,8 +26,6 @@ public class SubprogramHead : NonTerminatedSyntaxNode
     public IdentifierSemanticToken SubprogramName =>
         Children[1].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>();
 
-    public FormalParameter Parameters => Children[2].Convert<FormalParameter>();
-
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);

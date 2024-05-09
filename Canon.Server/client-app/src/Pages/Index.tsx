@@ -56,7 +56,7 @@ export function Index() {
             }
         }
         getCompileInstance();
-    }, []);
+    }, [location.pathname]);
 
 
     const handleValueChange = (value: string) => {

@@ -29,6 +29,17 @@ public class ForGeneratorEventArgs : EventArgs
     public required Expression End { get; init; }
 
     public required Statement Sentence { get; init; }
+
+    public required TerminatedSyntaxNode Do { get; init; }
+}
+
+public class WhileGeneratorEventArgs : EventArgs
+{
+    public required Expression Condition { get; init; }
+
+    public required Statement Sentence { get; init; }
+
+    public required TerminatedSyntaxNode Do { get; init; }
 }
 
 public class Statement : NonTerminatedSyntaxNode
@@ -62,6 +73,11 @@ public class Statement : NonTerminatedSyntaxNode
     /// </summary>
     public event EventHandler<ForGeneratorEventArgs>? OnForGenerator;
 
+    /// <summary>
+    /// 使用While产生式的事件
+    /// </summary>
+    public event EventHandler<WhileGeneratorEventArgs>? OnWhileGenerator;
+
     public static Statement Create(List<SyntaxNodeBase> children)
     {
         return new Statement { Children = children };
@@ -75,6 +91,16 @@ public class Statement : NonTerminatedSyntaxNode
                 new AssignGeneratorEventArgs
                 {
                     Variable = Children[0].Convert<Variable>(), Expression = Children[2].Convert<Expression>()
+                });
+        }
+        else if (Children.Count == 4)
+        {
+            OnWhileGenerator?.Invoke(this,
+                new WhileGeneratorEventArgs
+                {
+                    Condition = Children[1].Convert<Expression>(),
+                    Do = Children[2].Convert<TerminatedSyntaxNode>(),
+                    Sentence = Children[3].Convert<Statement>(),
                 });
         }
         else if (Children.Count == 5)
@@ -95,6 +121,7 @@ public class Statement : NonTerminatedSyntaxNode
                     Iterator = Children[1].Convert<TerminatedSyntaxNode>().Token.Convert<IdentifierSemanticToken>(),
                     Begin = Children[3].Convert<Expression>(),
                     End = Children[5].Convert<Expression>(),
+                    Do = Children[6].Convert<TerminatedSyntaxNode>(),
                     Sentence = Children[7].Convert<Statement>()
                 });
         }

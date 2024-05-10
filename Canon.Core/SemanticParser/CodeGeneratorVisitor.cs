@@ -294,6 +294,18 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         };
     }
 
+    public override void PreVisit(Expression expression)
+    {
+        base.PreVisit(expression);
+
+        if (expression.IsWhileCondition)
+        {
+            GenerateWhileLabel();
+            Builder.AddLine($"""
+                             {_whileBeginLabels.Peek()}:;
+                             """);
+        }
+    }
     public override void PostVisit(Expression expression)
     {
         base.PostVisit(expression);
@@ -332,6 +344,11 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         if (expression.IsForConditionEnd)
         {
             _forEndConditions.Push(expression.VariableName);
+        }
+
+        if (expression.IsWhileCondition)
+        {
+            _whileConditionNames.Push(expression.VariableName);
         }
     }
 
@@ -386,6 +403,21 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
     /// </summary>
     private readonly Stack<string> _forEndLabels = new();
 
+    /// <summary>
+    /// WHILE语句条件变量的标签
+    /// </summary>
+    private readonly Stack<string> _whileConditionNames = new();
+
+    /// <summary>
+    /// WHILE语句开始的标签
+    /// </summary>
+    private readonly Stack<string> _whileBeginLabels = new();
+
+    /// <summary>
+    /// WHILE语句结束的标签
+    /// </summary>
+    private readonly Stack<string> _whileEndLabels = new();
+
     public override void PreVisit(Statement statement)
     {
         base.PreVisit(statement);
@@ -396,7 +428,14 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         {
             e.Begin.IsForConditionBegin = true;
             e.End.IsForConditionEnd = true;
+            e.Do.IsForNode = true;
             _forVariables.Push(e.Iterator.IdentifierName);
+        };
+
+        statement.OnWhileGenerator += (_, e) =>
+        {
+            e.Do.IsWhileNode = true;
+            e.Condition.IsWhileCondition = true;
         };
     }
 
@@ -433,6 +472,17 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
             _forVariables.Pop();
             _forBeginConditions.Pop();
             _forEndConditions.Pop();
+        };
+
+        statement.OnWhileGenerator += (_, _) =>
+        {
+            Builder.AddLine($"""
+                             goto {_whileBeginLabels.Peek()};
+                             {_whileEndLabels.Peek()}:;
+                             """);
+            _whileBeginLabels.Pop();
+            _whileEndLabels.Pop();
+            _whileConditionNames.Pop();
         };
     }
 
@@ -605,13 +655,26 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
                                      """);
                     break;
                 case KeywordType.Do:
-                    Builder.AddLine($"""
-                                     if ({_forVariables.Peek()} <= {_forEndConditions.Peek()})
-                                         goto {_forLabels.Peek()};
-                                     else
-                                         goto {_forEndLabels.Peek()};
-                                     {_forLabels.Peek()}:;
-                                     """);
+                    if (terminatedSyntaxNode.IsForNode)
+                    {
+                        Builder.AddLine($"""
+                                         if ({_forVariables.Peek()} <= {_forEndConditions.Peek()})
+                                             goto {_forLabels.Peek()};
+                                         else
+                                             goto {_forEndLabels.Peek()};
+                                         {_forLabels.Peek()}:;
+                                         """);
+                    }
+
+                    if (terminatedSyntaxNode.IsWhileNode)
+                    {
+                        // GenerateWhileLabel();
+                        Builder.AddLine($"""
+                                         if (!{_whileConditionNames.Peek()})
+                                             goto {_whileEndLabels.Peek()};
+                                         """);
+                    }
+
                     break;
             }
         }
@@ -878,6 +941,18 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         _forLabels.Push($"for_{_labelCount}");
         _forConditionLabels.Push($"for_condition_{_labelCount}");
         _forEndLabels.Push($"for_end_{_labelCount}");
+
+        _labelCount += 1;
+    }
+
+    /// <summary>
+    /// 产生WHILE语句中的标签
+    /// </summary>
+    private void GenerateWhileLabel()
+    {
+        _whileBeginLabels.Push($"while_{_labelCount}");
+        _whileConditionNames.Push($"while_condition_{_labelCount}");
+        _whileEndLabels.Push($"while_end_{_labelCount}");
 
         _labelCount += 1;
     }

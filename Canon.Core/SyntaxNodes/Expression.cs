@@ -49,6 +49,11 @@ public class Expression : NonTerminatedSyntaxNode
     public bool IsIfCondition { get; set; }
 
     /// <summary>
+    /// 是否为WHILE语句中的条件语句
+    /// </summary>
+    public bool IsWhileCondition { get; set; }
+
+    /// <summary>
     /// 直接赋值产生式的事件
     /// </summary>
     public event EventHandler<SimpleExpressionGeneratorEventArgs>? OnSimpleExpressionGenerator;

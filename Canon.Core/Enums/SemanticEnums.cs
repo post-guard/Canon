@@ -65,7 +65,8 @@ public enum KeywordType
     And,
     Or,
     True,
-    False
+    False,
+    While
 }
 
 public enum OperatorType

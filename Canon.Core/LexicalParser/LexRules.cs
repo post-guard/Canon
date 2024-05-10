@@ -33,7 +33,8 @@ public static class LexRules
             { "and", KeywordType.And },
             { "or", KeywordType.Or },
             { "true", KeywordType.True },
-            { "false", KeywordType.False }
+            { "false", KeywordType.False },
+            { "while", KeywordType.While }
         };
 
     public static bool GetKeywordTypeByKeywprd(string keyword, out KeywordType type)

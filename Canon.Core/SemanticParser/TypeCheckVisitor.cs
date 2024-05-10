@@ -478,6 +478,18 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
                     e.Condition.VariableType.ToString());
             }
         };
+
+        // statement -> while Expression do Statement
+        statement.OnWhileGenerator += (_, e) =>
+        {
+            // 条件是否为Boolean
+            if (e.Condition.VariableType != PascalBasicType.Boolean)
+            {
+                IsError = true;
+                logger?.LogError("Expect '{}' but '{}'.", PascalBasicType.Boolean.TypeName,
+                    e.Condition.VariableType.ToString());
+            }
+        };
     }
 
     public override void PostVisit(ProcedureCall procedureCall)

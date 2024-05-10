@@ -243,4 +243,19 @@ public class PascalGrammarTests
 
         CompilerHelpers.Analyse(program);
     }
+
+    [Fact]
+    public void WhileLoopTest()
+    {
+        const string program = """
+                               program main;
+                               var i : integer;
+                               begin
+                               while i < 10 do
+                               i := i + 1;
+                               end.
+                               """;
+
+        CompilerHelpers.Analyse(program);
+    }
 }

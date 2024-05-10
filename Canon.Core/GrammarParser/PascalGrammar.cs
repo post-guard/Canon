@@ -348,6 +348,7 @@ public static class PascalGrammar
             //           | CompoundStatement
             //           | if Expression then Statement ElsePart
             //           | for id AssignOp Expression to Expression do Statement
+            //           | while Expression do Statement
             // 注意这里 read 和 write 作为普通的函数调用处理了
             // 因此下面并没有单独声明
             new NonTerminator(NonTerminatorType.Statement), [
@@ -384,6 +385,13 @@ public static class PascalGrammar
                     new Terminator(OperatorType.Assign),
                     new NonTerminator(NonTerminatorType.Expression),
                     new Terminator(KeywordType.To),
+                    new NonTerminator(NonTerminatorType.Expression),
+                    new Terminator(KeywordType.Do),
+                    new NonTerminator(NonTerminatorType.Statement)
+                ],
+                [
+                    // while Expression do Statement
+                    new Terminator(KeywordType.While),
                     new NonTerminator(NonTerminatorType.Expression),
                     new Terminator(KeywordType.Do),
                     new NonTerminator(NonTerminatorType.Statement)

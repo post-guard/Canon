@@ -7,6 +7,16 @@ public class TerminatedSyntaxNode : SyntaxNodeBase
 {
     public override bool IsTerminated => true;
 
+    /// <summary>
+    /// 是否为For循环定义中的DO节点
+    /// </summary>
+    public bool IsForNode { get; set; }
+
+    /// <summary>
+    /// 是否为While循环定义中的DO节点
+    /// </summary>
+    public bool IsWhileNode { get; set; }
+
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);

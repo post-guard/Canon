@@ -28,6 +28,7 @@ public class KeywordTypeTests
     [InlineData("DO", KeywordType.Do)]
     [InlineData("true", KeywordType.True)]
     [InlineData("false", KeywordType.False)]
+    [InlineData("while",KeywordType.While)]
     public void SmokeTest(string input, KeywordType type)
     {
         IEnumerable<SemanticToken> tokensEnumerable = _lexer.Tokenize(new StringSourceReader(input));

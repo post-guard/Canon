@@ -50,6 +50,11 @@ public class Factor : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.Factor;
 
+    /// <summary>
+    /// 是否为条件判断语句
+    /// </summary>
+    public bool IsCondition { get; set; }
+
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);
@@ -158,10 +163,11 @@ public class Factor : NonTerminatedSyntaxNode
             else
             {
                 // factor -> id ( )
-                OnProcedureCallGenerator?.Invoke(this, new ProcedureCallGeneratorEventArgs
-                {
-                    ProcedureName = terminatedSyntaxNode.Token.Convert<IdentifierSemanticToken>()
-                });
+                OnProcedureCallGenerator?.Invoke(this,
+                    new ProcedureCallGeneratorEventArgs
+                    {
+                        ProcedureName = terminatedSyntaxNode.Token.Convert<IdentifierSemanticToken>()
+                    });
             }
         }
         else if (Children.Count == 4)
@@ -177,7 +183,6 @@ public class Factor : NonTerminatedSyntaxNode
         }
         else
         {
-
             SemanticToken token = Children[0].Convert<TerminatedSyntaxNode>().Token;
             Factor factor = Children[1].Convert<Factor>();
 

@@ -146,6 +146,19 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         Builder.EndScope();
     }
 
+    public override void PreVisit(Factor factor)
+    {
+        base.PreVisit(factor);
+
+        factor.OnParethnesisGenerator += (_, e) => { e.Expression.IsCondition = factor.IsCondition; };
+
+        factor.OnNotGenerator += (_, e) => { e.Factor.IsCondition = factor.IsCondition; };
+
+        factor.OnUminusGenerator += (_, e) => { e.Factor.IsCondition = factor.IsCondition; };
+
+        factor.OnPlusGenerator += (_, e) => { e.Factor.IsCondition = factor.IsCondition; };
+    }
+
     public override void PostVisit(Factor factor)
     {
         base.PostVisit(factor);
@@ -256,7 +269,23 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
             return;
         }
 
-        variable.VariableName = variable.Identifier.IdentifierName;
+        // 虽然这里这样可能会生成来类似于 &*x 的代码
+        // 但是可以正常运行
+        variable.VariableName =
+            symbol.Reference ? $"*{variable.Identifier.IdentifierName}" : variable.Identifier.IdentifierName;
+    }
+
+    public override void PreVisit(Term term)
+    {
+        base.PreVisit(term);
+
+        term.OnMultiplyGenerator += (_, e) =>
+        {
+            e.Left.IsCondition = term.IsCondition;
+            e.Right.IsCondition = term.IsCondition;
+        };
+
+        term.OnFactorGenerator += (_, e) => { e.Factor.IsCondition = term.IsCondition; };
     }
 
     public override void PostVisit(Term term)
@@ -274,6 +303,19 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
                 $"{e.Left.VariableName} {GenerateMultipleOperator(e.Operator)} {e.Right.VariableName};");
             term.VariableName = temporaryName;
         };
+    }
+
+    public override void PreVisit(SimpleExpression simpleExpression)
+    {
+        base.PreVisit(simpleExpression);
+
+        simpleExpression.OnAddGenerator += (_, e) =>
+        {
+            e.Left.IsCondition = simpleExpression.IsCondition;
+            e.Right.IsCondition = simpleExpression.IsCondition;
+        };
+
+        simpleExpression.OnTermGenerator += (_, e) => { e.Term.IsCondition = simpleExpression.IsCondition; };
     }
 
     public override void PostVisit(SimpleExpression simpleExpression)
@@ -298,6 +340,16 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
     {
         base.PreVisit(expression);
 
+        expression.OnSimpleExpressionGenerator += (_, e) =>
+        {
+            e.SimpleExpression.IsCondition = expression.IsCondition;
+        };
+
+        expression.OnRelationGenerator += (_, e) =>
+        {
+            e.Left.IsCondition = expression.IsCondition;
+            e.Right.IsCondition = expression.IsCondition;
+        };
         if (expression.IsWhileCondition)
         {
             GenerateWhileLabel();
@@ -306,6 +358,7 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
                              """);
         }
     }
+
     public override void PostVisit(Expression expression)
     {
         base.PostVisit(expression);
@@ -422,7 +475,11 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
     {
         base.PreVisit(statement);
 
-        statement.OnIfGenerator += (_, e) => { e.Condition.IsIfCondition = true; };
+        statement.OnIfGenerator += (_, e) =>
+        {
+            e.Condition.IsIfCondition = true;
+            e.Condition.IsCondition = true;
+        };
 
         statement.OnForGenerator += (_, e) =>
         {
@@ -445,16 +502,6 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
 
         statement.OnAssignGenerator += (_, e) =>
         {
-            if (!SymbolTable.TryGetSymbol(e.Variable.Identifier.IdentifierName, out Symbol? symbol))
-            {
-                return;
-            }
-
-            if (symbol.Reference)
-            {
-                e.Variable.VariableName = "*" + e.Variable.VariableName;
-            }
-
             Builder.AddLine($"{e.Variable.VariableName} = {e.Expression.VariableName};");
         };
 
@@ -686,7 +733,7 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
 
         if (procedureId == "write" || procedureId == "writeln")
         {
-            string result = $"printf(\"{GenerateFormatString(parameters) + isReturn}\"";
+            string result = $"printf(\"{GenerateFormatString(parameters, true) + isReturn}\"";
 
             foreach (Expression parameter in parameters)
             {
@@ -748,7 +795,22 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         {
             if (parameterType.IsVar)
             {
-                parameterValue += $", &{parameter.VariableName}";
+                // 这里需要判断parameter是否也为引用类型
+                if (SymbolTable.TryGetSymbol(parameter.VariableName, out Symbol? parameterSymboe))
+                {
+                    if (parameterSymboe.Reference)
+                    {
+                        parameterValue += $", {parameter.VariableName}";
+                    }
+                    else
+                    {
+                        parameterValue += $", &{parameter.VariableName}";
+                    }
+                }
+                else
+                {
+                    parameterValue += $", &{parameter.VariableName}";
+                }
             }
             else
             {
@@ -768,22 +830,23 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         {
             if (expression.VariableType == PascalBasicType.Integer)
             {
-                value += "%d ";
+                value += "%d";
             }
 
             if (expression.VariableType == PascalBasicType.Real)
             {
                 // 这里需要按照输出调整
-                value += output ? "%.6lf " : "%lf ";
+                // 在输出real的前面需要添加一个空格
+                value += output ? "%.6lf" : "%lf";
             }
 
             if (expression.VariableType == PascalBasicType.Character)
             {
-                value += "%c ";
+                value += "%c";
             }
         }
 
-        return value.Trim();
+        return value;
     }
 
     private static string GenerateBasicTypeString(PascalType pascalType)

@@ -21,6 +21,11 @@ public class Term : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.Term;
 
+    /// <summary>
+    /// 是否为条件判断语句
+    /// </summary>
+    public bool IsCondition { get; set; }
+
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);
@@ -52,19 +57,17 @@ public class Term : NonTerminatedSyntaxNode
     {
         if (Children.Count == 1)
         {
-            OnFactorGenerator?.Invoke(this, new FactorGeneratorEventArgs
-            {
-                Factor = Children[0].Convert<Factor>()
-            });
+            OnFactorGenerator?.Invoke(this, new FactorGeneratorEventArgs { Factor = Children[0].Convert<Factor>() });
         }
         else
         {
-            OnMultiplyGenerator?.Invoke(this, new MultiplyGeneratorEventArgs
-            {
-                Left = Children[0].Convert<Term>(),
-                Operator = Children[1].Convert<MultiplyOperator>(),
-                Right = Children[2].Convert<Factor>()
-            });
+            OnMultiplyGenerator?.Invoke(this,
+                new MultiplyGeneratorEventArgs
+                {
+                    Left = Children[0].Convert<Term>(),
+                    Operator = Children[1].Convert<MultiplyOperator>(),
+                    Right = Children[2].Convert<Factor>()
+                });
         }
 
         OnFactorGenerator = null;

@@ -49,6 +49,11 @@ public class Expression : NonTerminatedSyntaxNode
     public bool IsIfCondition { get; set; }
 
     /// <summary>
+    /// 是否为条件判断语句
+    /// </summary>
+    public bool IsCondition { get; set; }
+
+    /// <summary>
     /// 是否为WHILE语句中的条件语句
     /// </summary>
     public bool IsWhileCondition { get; set; }

@@ -21,6 +21,11 @@ public class SimpleExpression : NonTerminatedSyntaxNode
 {
     public override NonTerminatorType Type => NonTerminatorType.SimpleExpression;
 
+    /// <summary>
+    /// 是否为条件判断语句
+    /// </summary>
+    public bool IsCondition { get; set; }
+
     public override void PreVisit(SyntaxNodeVisitor visitor)
     {
         visitor.PreVisit(this);
@@ -52,19 +57,17 @@ public class SimpleExpression : NonTerminatedSyntaxNode
     {
         if (Children.Count == 1)
         {
-            OnTermGenerator?.Invoke(this, new TermGeneratorEventArgs
-            {
-                Term = Children[0].Convert<Term>()
-            });
+            OnTermGenerator?.Invoke(this, new TermGeneratorEventArgs { Term = Children[0].Convert<Term>() });
         }
         else
         {
-            OnAddGenerator?.Invoke(this, new AddGeneratorEventArgs
-            {
-                Left = Children[0].Convert<SimpleExpression>(),
-                Operator = Children[1].Convert<AddOperator>(),
-                Right = Children[2].Convert<Term>()
-            });
+            OnAddGenerator?.Invoke(this,
+                new AddGeneratorEventArgs
+                {
+                    Left = Children[0].Convert<SimpleExpression>(),
+                    Operator = Children[1].Convert<AddOperator>(),
+                    Right = Children[2].Convert<Term>()
+                });
         }
 
         OnTermGenerator = null;

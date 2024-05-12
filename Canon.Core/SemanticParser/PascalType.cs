@@ -1,4 +1,6 @@
-﻿namespace Canon.Core.SemanticParser;
+﻿using Canon.Core.Enums;
+
+namespace Canon.Core.SemanticParser;
 
 /// <summary>
 /// Pascal类型基类
@@ -10,6 +12,18 @@ public abstract class PascalType : IEquatable<PascalType>
     /// </summary>
     public abstract string TypeName { get; }
 
+    /// <summary>
+    /// 将当前类型转换为引用类型
+    /// 原有类型变量保持不变
+    /// </summary>
+    /// <returns>原有Pascal类型的引用类型</returns>
+    public abstract PascalType ToReferenceType();
+
+    /// <summary>
+    /// 是否为引用类型
+    /// </summary>
+    public bool IsReference { get; init; }
+
     public virtual bool Equals(PascalType? other)
     {
         if (other is null)
@@ -17,7 +31,7 @@ public abstract class PascalType : IEquatable<PascalType>
             return false;
         }
 
-        return TypeName == other.TypeName;
+        return IsReference == other.IsReference;
     }
 
     public T Convert<T>() where T : PascalType
@@ -42,7 +56,7 @@ public abstract class PascalType : IEquatable<PascalType>
 
     public override int GetHashCode()
     {
-        return TypeName.GetHashCode();
+        return IsReference.GetHashCode();
     }
 
     public static bool operator ==(PascalType a, PascalType b)
@@ -57,34 +71,21 @@ public abstract class PascalType : IEquatable<PascalType>
 
     public static PascalType operator +(PascalType a, PascalType b)
     {
-        if (!IsCalculatable(a) || !IsCalculatable(b))
-        {
-            throw new InvalidOperationException();
-        }
-
-        if (a == PascalBasicType.Boolean && b == PascalBasicType.Boolean)
+        if (a is PascalBasicType { Type: BasicType.Boolean } && b is PascalBasicType { Type: BasicType.Boolean })
         {
             return PascalBasicType.Boolean;
         }
 
-        if (a == PascalBasicType.Integer && b == PascalBasicType.Integer)
+        if (a is PascalBasicType { Type: BasicType.Integer } && b is PascalBasicType { Type: BasicType.Integer })
         {
             return PascalBasicType.Integer;
         }
-        else
+
+        if (a is PascalBasicType { Type : BasicType.Real } && b is PascalBasicType { Type: BasicType.Real })
         {
             return PascalBasicType.Real;
         }
-    }
 
-    /// <summary>
-    /// 是否为可计算的类型
-    /// </summary>
-    /// <param name="pascalType">需要判断的Pascal类型</param>
-    /// <returns>是否为可计算的类型</returns>
-    public static bool IsCalculatable(PascalType pascalType)
-    {
-        return pascalType == PascalBasicType.Integer || pascalType == PascalBasicType.Real
-                                                     || pascalType == PascalBasicType.Boolean;
+        return PascalBasicType.Void;
     }
 }

@@ -1,26 +1,16 @@
 ﻿namespace Canon.Core.SemanticParser;
 
-public class PascalParameterType(PascalType parameterType, bool isVar, string parameterName) : PascalType
+public class PascalParameterType(PascalType parameterType, string parameterName) : PascalType
 {
     public PascalType ParameterType { get; } = parameterType;
 
-    public bool IsVar { get; } = isVar;
-
     public string ParameterName { get; } = parameterName;
 
-    public override string TypeName
+    public override string TypeName => $"{ParameterType}_{ParameterName}";
+
+    public override PascalType ToReferenceType()
     {
-        get
-        {
-            if (IsVar)
-            {
-                return $"var_{ParameterType.TypeName}";
-            }
-            else
-            {
-                return ParameterType.TypeName;
-            }
-        }
+        throw new InvalidOperationException("The parameter type can not be reference.");
     }
 
     public override bool Equals(PascalType? other)
@@ -30,11 +20,11 @@ public class PascalParameterType(PascalType parameterType, bool isVar, string pa
             return false;
         }
 
-        return ParameterType == parameterType.ParameterType && IsVar == parameterType.IsVar;
+        return ParameterType == parameterType.ParameterType && base.Equals(parameterType);
     }
 
     public override int GetHashCode()
     {
-        return ParameterType.GetHashCode() ^ IsVar.GetHashCode();
+        return base.GetHashCode() ^ ParameterType.GetHashCode();
     }
 }

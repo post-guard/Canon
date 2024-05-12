@@ -69,7 +69,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
 
         if (!SymbolTable.TryAddSymbol(new Symbol
             {
-                Const = true, SymbolName = token.IdentifierName, SymbolType = constValue.ConstType
+                SymbolName = token.IdentifierName, SymbolType = constValue.ConstType, Const = true
             }))
         {
             IsError = true;
@@ -96,23 +96,14 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         };
 
         // factor -> true | false
-        factor.OnBooleanGenerator += (_, _) =>
-        {
-            factor.VariableType = PascalBasicType.Boolean;
-        };
+        factor.OnBooleanGenerator += (_, _) => { factor.VariableType = PascalBasicType.Boolean; };
 
         // factor -> variable
-        factor.OnVariableGenerator += (_, e) =>
-        {
-            factor.VariableType = e.Variable.VariableType;
-        };
+        factor.OnVariableGenerator += (_, e) => { factor.VariableType = e.Variable.VariableType; };
 
 
         // factor -> (expression)
-        factor.OnParethnesisGenerator += (_, e) =>
-        {
-            factor.VariableType = e.Expression.VariableType;
-        };
+        factor.OnParethnesisGenerator += (_, e) => { factor.VariableType = e.Expression.VariableType; };
 
         // factor -> id ( ExpressionList)
         factor.OnProcedureCallGenerator += (_, e) =>
@@ -135,43 +126,30 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         };
 
         // factor -> not factor
-        factor.OnNotGenerator += (_, e) =>
-        {
-            factor.VariableType = e.Factor.VariableType;
-        };
+        factor.OnNotGenerator += (_, e) => { factor.VariableType = e.Factor.VariableType; };
 
         // factor -> uminus factor
-        factor.OnUminusGenerator += (_, e) =>
-        {
-            factor.VariableType = e.Factor.VariableType;
-        };
+        factor.OnUminusGenerator += (_, e) => { factor.VariableType = e.Factor.VariableType; };
 
         // factor -> plus factor
-        factor.OnPlusGenerator += (_, e) =>
-        {
-            factor.VariableType = e.Factor.VariableType;
-        };
+        factor.OnPlusGenerator += (_, e) => { factor.VariableType = e.Factor.VariableType; };
     }
 
     public override void PostVisit(Term term)
     {
         base.PostVisit(term);
 
-        term.OnFactorGenerator += (_, e) =>
-        {
-            term.VariableType = e.Factor.VariableType;
-        };
+        term.OnFactorGenerator += (_, e) => { term.VariableType = e.Factor.VariableType; };
 
         term.OnMultiplyGenerator += (_, e) =>
         {
-            if (PascalType.IsCalculatable(e.Left.VariableType) && PascalType.IsCalculatable(e.Right.VariableType))
-            {
-                term.VariableType = e.Left.VariableType + e.Right.VariableType;
-                return;
-            }
+            term.VariableType = e.Left.VariableType + e.Right.VariableType;
 
-            IsError = true;
-            logger?.LogError("Can't calculate");
+            if (term.VariableType == PascalBasicType.Void)
+            {
+                IsError = true;
+                logger?.LogError("Can't calculate");
+            }
         };
     }
 
@@ -179,21 +157,17 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
     {
         base.PostVisit(simpleExpression);
 
-        simpleExpression.OnTermGenerator += (_, e) =>
-        {
-            simpleExpression.VariableType = e.Term.VariableType;
-        };
+        simpleExpression.OnTermGenerator += (_, e) => { simpleExpression.VariableType = e.Term.VariableType; };
 
         simpleExpression.OnAddGenerator += (_, e) =>
         {
-            if (PascalType.IsCalculatable(e.Left.VariableType) && PascalType.IsCalculatable(e.Right.VariableType))
-            {
-                simpleExpression.VariableType = e.Left.VariableType + e.Right.VariableType;
-                return;
-            }
+            simpleExpression.VariableType = e.Left.VariableType + e.Right.VariableType;
 
-            IsError = true;
-            logger?.LogError("Can't calculate");
+            if (simpleExpression.VariableType == PascalBasicType.Void)
+            {
+                IsError = true;
+                logger?.LogError("Can't calculate");
+            }
         };
     }
 
@@ -206,10 +180,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
             expression.VariableType = e.SimpleExpression.VariableType;
         };
 
-        expression.OnRelationGenerator += (_, _) =>
-        {
-            expression.VariableType = PascalBasicType.Boolean;
-        };
+        expression.OnRelationGenerator += (_, _) => { expression.VariableType = PascalBasicType.Boolean; };
     }
 
     public override void PostVisit(TypeSyntaxNode typeSyntaxNode)
@@ -251,7 +222,12 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
     {
         base.PostVisit(identifierList);
 
-        identifierList.OnTypeGenerator += (_, e) => { identifierList.DefinitionType = e.TypeSyntaxNode.PascalType; };
+        identifierList.OnTypeGenerator += (_, e) =>
+        {
+            identifierList.DefinitionType = identifierList.IsReference
+                ? e.TypeSyntaxNode.PascalType.ToReferenceType()
+                : e.TypeSyntaxNode.PascalType;
+        };
 
         identifierList.OnIdentifierGenerator += (_, e) =>
         {
@@ -259,9 +235,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
 
             Symbol symbol = new()
             {
-                SymbolName = e.IdentifierToken.IdentifierName,
-                SymbolType = identifierList.DefinitionType,
-                Reference = identifierList.IsReference
+                SymbolName = e.IdentifierToken.IdentifierName, SymbolType = identifierList.DefinitionType,
             };
             SymbolTable.TryAddSymbol(symbol);
 
@@ -342,7 +316,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         {
             foreach (Symbol symbol in children.AsEnumerable().Reverse())
             {
-                parameters.Add(new PascalParameterType(symbol.SymbolType, symbol.Reference, symbol.SymbolName));
+                parameters.Add(new PascalParameterType(symbol.SymbolType, symbol.SymbolName));
             }
         }
 
@@ -398,8 +372,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
         Symbol symbol = new()
         {
             SymbolName = valueParameter.Token.IdentifierName,
-            SymbolType = valueParameter.IdentifierList.DefinitionType,
-            Reference = valueParameter.IsReference
+            SymbolType = valueParameter.IdentifierList.DefinitionType
         };
         SymbolTable.TryAddSymbol(symbol);
 

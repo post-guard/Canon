@@ -36,7 +36,21 @@ public interface IGrammarParser
         {
             AnalyseState top = stack.Peek();
 
-            // 首先尝试进行归约
+            // 首先尝试进行移进
+            if (top.State.ShiftTable.TryGetValue(enumerator.Current, out ITransformer? next))
+            {
+                stack.Push(new AnalyseState(next, SyntaxNodeBase.Create(enumerator.Current)));
+                if (enumerator.MoveNext())
+                {
+                    continue;
+                }
+                else
+                {
+                    throw new GrammarException(stack.Peek().State);
+                }
+            }
+
+            // 再进行归约
             if (top.State.ReduceTable.TryGetValue(enumerator.Current, out ReduceInformation? information))
             {
                 if (information.Left == Begin)
@@ -58,20 +72,6 @@ public interface IGrammarParser
                 stack.Push(new AnalyseState(stack.Peek().State.ShiftTable[information.Left],
                     SyntaxNodeBase.Create(leftType, children)));
                 continue;
-            }
-
-            // 如果没有成功归约就进行移进
-            if (top.State.ShiftTable.TryGetValue(enumerator.Current, out ITransformer? next))
-            {
-                stack.Push(new AnalyseState(next, SyntaxNodeBase.Create(enumerator.Current)));
-                if (enumerator.MoveNext())
-                {
-                    continue;
-                }
-                else
-                {
-                    throw new GrammarException(stack.Peek().State);
-                }
             }
 
             throw new GrammarException(stack.Peek().State, enumerator.Current);

@@ -9,13 +9,13 @@ public class SymbolTableTests
     {
         SymbolTable table = new();
 
-        Assert.True(table.TryGetType("integer", out PascalType? integer));
+        Assert.True(table.TryGetType("Integer", out PascalType? integer));
         Assert.Equal(PascalBasicType.Integer, integer);
-        Assert.True(table.TryGetType("real", out PascalType? real));
+        Assert.True(table.TryGetType("Real", out PascalType? real));
         Assert.Equal(PascalBasicType.Real, real);
-        Assert.True(table.TryGetType("boolean", out PascalType? boolean));
+        Assert.True(table.TryGetType("Boolean", out PascalType? boolean));
         Assert.Equal(PascalBasicType.Boolean, boolean);
-        Assert.True(table.TryGetType("char", out PascalType? character));
+        Assert.True(table.TryGetType("Character", out PascalType? character));
         Assert.Equal(PascalBasicType.Character, character);
     }
 
@@ -25,10 +25,7 @@ public class SymbolTableTests
         SymbolTable table = new();
 
         Assert.True(table.TryAddSymbol(new Symbol { SymbolName = "a", SymbolType = PascalBasicType.Integer }));
-        Assert.True(table.TryAddSymbol(new Symbol
-        {
-            SymbolName = "temperature", SymbolType = PascalBasicType.Real, Const = true
-        }));
+        Assert.True(table.TryAddSymbol(new Symbol { SymbolName = "temperature", SymbolType = PascalBasicType.Real }));
 
         Assert.True(table.TryGetSymbol("a", out Symbol? a));
         Assert.Equal(PascalBasicType.Integer, a.SymbolType);
@@ -42,18 +39,12 @@ public class SymbolTableTests
         SymbolTable table = new();
 
         Assert.True(table.TryAddSymbol(new Symbol { SymbolName = "a", SymbolType = PascalBasicType.Integer }));
-        Assert.True(table.TryAddSymbol(new Symbol
-        {
-            SymbolName = "temperature", SymbolType = PascalBasicType.Real, Const = true
-        }));
+        Assert.True(table.TryAddSymbol(new Symbol { SymbolName = "temperature", SymbolType = PascalBasicType.Real }));
 
         SymbolTable child = table.CreateChildTable();
 
-        Assert.True(child.TryAddSymbol(new Symbol{SymbolName = "a", SymbolType = PascalBasicType.Real}));
-        Assert.True(child.TryAddSymbol(new Symbol
-        {
-            SymbolName = "level2", SymbolType = PascalBasicType.Boolean, Reference = true
-        }));
+        Assert.True(child.TryAddSymbol(new Symbol { SymbolName = "a", SymbolType = PascalBasicType.Real }));
+        Assert.True(child.TryAddSymbol(new Symbol { SymbolName = "level2", SymbolType = PascalBasicType.Boolean }));
 
         Assert.True(child.TryGetSymbol("a", out Symbol? a));
         Assert.Equal(PascalBasicType.Real, a.SymbolType);

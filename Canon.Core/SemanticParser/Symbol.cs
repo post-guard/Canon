@@ -20,11 +20,6 @@ public class Symbol : IEquatable<Symbol>
     /// </summary>
     public bool Const { get; init; }
 
-    /// <summary>
-    /// 是否为引用变量
-    /// </summary>
-    public bool Reference { get; init; }
-
     public bool Equals(Symbol? other)
     {
         if (other is null)
@@ -33,9 +28,8 @@ public class Symbol : IEquatable<Symbol>
         }
 
         return SymbolName == other.SymbolName
-               && SymbolType == other.SymbolType
-               && Const == other.Const
-               && Reference == other.Reference;
+            && SymbolType == other.SymbolType
+            && Const == other.Const;
     }
 
     public override int GetHashCode()
@@ -53,6 +47,3 @@ public class Symbol : IEquatable<Symbol>
         return Equals(other);
     }
 }
-
-
-

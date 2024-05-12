@@ -126,9 +126,9 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 
         Assert.True(visitor.SymbolTable.TryGetSymbol("test", out Symbol? symbol));
         Assert.Equal(symbol.SymbolType, new PascalFunctionType([
-            new PascalParameterType(PascalBasicType.Integer, false, "a"),
-            new PascalParameterType(PascalBasicType.Integer, false, "a"),
-            new PascalParameterType(PascalBasicType.Integer, false, "a")
+            new PascalParameterType(PascalBasicType.Integer, "a"),
+            new PascalParameterType(PascalBasicType.Integer, "a"),
+            new PascalParameterType(PascalBasicType.Integer, "a")
         ], PascalBasicType.Void));
     }
 
@@ -148,9 +148,9 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 
         Assert.True(visitor.SymbolTable.TryGetSymbol("test", out Symbol? symbol));
         Assert.Equal(symbol.SymbolType, new PascalFunctionType([
-            new PascalParameterType(PascalBasicType.Real, true, "a"),
-            new PascalParameterType(PascalBasicType.Real, true, "a"),
-            new PascalParameterType(PascalBasicType.Real, true, "a")
+            new PascalParameterType(PascalBasicType.Real.ToReferenceType(),"a"),
+            new PascalParameterType(PascalBasicType.Real.ToReferenceType(), "a"),
+            new PascalParameterType(PascalBasicType.Real.ToReferenceType(), "a")
         ], PascalBasicType.Void));
     }
 
@@ -170,10 +170,10 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 
         Assert.True(visitor.SymbolTable.TryGetSymbol("test", out Symbol? symbol));
         Assert.Equal(symbol.SymbolType, new PascalFunctionType([
-            new PascalParameterType(PascalBasicType.Integer, false, "a"),
-            new PascalParameterType(PascalBasicType.Integer, false, "a"),
-            new PascalParameterType(PascalBasicType.Character, true, "a"),
-            new PascalParameterType(PascalBasicType.Character, true, "a")
+            new PascalParameterType(PascalBasicType.Integer, "a"),
+            new PascalParameterType(PascalBasicType.Integer, "a"),
+            new PascalParameterType(PascalBasicType.Character.ToReferenceType(), "a"),
+            new PascalParameterType(PascalBasicType.Character.ToReferenceType(), "a")
         ], PascalBasicType.Void));
     }
 
@@ -193,10 +193,10 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 
         Assert.True(visitor.SymbolTable.TryGetSymbol("test", out Symbol? symbol));
         Assert.Equal(symbol.SymbolType, new PascalFunctionType([
-            new PascalParameterType(PascalBasicType.Integer, false, "a"),
-            new PascalParameterType(PascalBasicType.Integer, false, "a"),
-            new PascalParameterType(PascalBasicType.Character, true, "a"),
-            new PascalParameterType(PascalBasicType.Character, true, "a")
+            new PascalParameterType(PascalBasicType.Integer, "a"),
+            new PascalParameterType(PascalBasicType.Integer, "a"),
+            new PascalParameterType(PascalBasicType.Character.ToReferenceType(), "a"),
+            new PascalParameterType(PascalBasicType.Character.ToReferenceType(), "a")
         ], PascalBasicType.Real));
     }
 
@@ -219,16 +219,16 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 
         Assert.True(visitor.SymbolTable.TryGetSymbol("test1", out Symbol? symbol));
         Assert.Equal(symbol.SymbolType, new PascalFunctionType([
-            new PascalParameterType(PascalBasicType.Integer, false, "a"),
-            new PascalParameterType(PascalBasicType.Real, true, "a"),
-            new PascalParameterType(PascalBasicType.Real, true, "a"),
-            new PascalParameterType(PascalBasicType.Boolean, false, "a")
+            new PascalParameterType(PascalBasicType.Integer, "a"),
+            new PascalParameterType(PascalBasicType.Real.ToReferenceType(), "a"),
+            new PascalParameterType(PascalBasicType.Real.ToReferenceType(), "a"),
+            new PascalParameterType(PascalBasicType.Boolean, "a")
         ], PascalBasicType.Void));
 
         Assert.True(visitor.SymbolTable.TryGetSymbol("test2", out symbol));
         Assert.Equal(symbol.SymbolType, new PascalFunctionType([
-            new PascalParameterType(PascalBasicType.Boolean, true, "a"),
-            new PascalParameterType(PascalBasicType.Boolean, true, "a")
+            new PascalParameterType(PascalBasicType.Boolean.ToReferenceType(), "a"),
+            new PascalParameterType(PascalBasicType.Boolean.ToReferenceType(), "a")
         ], PascalBasicType.Boolean));
     }
 
@@ -279,7 +279,6 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
 
         Assert.True(visitor.SymbolTable.TryGetSymbol("a", out Symbol? symbol));
         Assert.Equal(PascalBasicType.Integer, symbol.SymbolType);
-        Assert.True(symbol.Const);
 
         Assert.True(visitor.SymbolTable.TryGetSymbol("b", out symbol));
         Assert.Equal(PascalBasicType.Real, symbol.SymbolType);
@@ -290,7 +289,7 @@ public class TypeCheckVisitorTests(ITestOutputHelper testOutputHelper)
         Assert.True(visitor.SymbolTable.TryGetSymbol("test", out symbol));
         Assert.Equal(
             new PascalFunctionType([
-                new PascalParameterType(PascalBasicType.Boolean, false, "a")
+                new PascalParameterType(PascalBasicType.Boolean, "a")
             ], PascalBasicType.Void), symbol.SymbolType);
 
         Assert.False(visitor.SymbolTable.TryGetSymbol("d", out symbol));

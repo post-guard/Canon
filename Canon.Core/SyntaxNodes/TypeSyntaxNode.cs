@@ -59,6 +59,11 @@ public class TypeSyntaxNode : NonTerminatedSyntaxNode
         }
     }
 
+    /// <summary>
+    /// 是否为定义引用变量
+    /// </summary>
+    public bool IsReference { get; set; }
+
     public static TypeSyntaxNode Create(List<SyntaxNodeBase> children)
     {
         return new TypeSyntaxNode { Children = children };

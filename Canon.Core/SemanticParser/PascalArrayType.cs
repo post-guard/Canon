@@ -10,6 +10,11 @@ public class PascalArrayType(PascalType elementType, int begin, int end) : Pasca
 
     public override string TypeName => $"{ElementType.TypeName}_{Begin}_{End}";
 
+    public override PascalType ToReferenceType()
+    {
+        throw new InvalidOperationException("Array type can not be reference.");
+    }
+
     public override bool Equals(PascalType? other)
     {
         if (other is not PascalArrayType pascalArrayType)
@@ -27,12 +32,13 @@ public class PascalArrayType(PascalType elementType, int begin, int end) : Pasca
             return false;
         }
 
-        return true;
+        return base.Equals(pascalArrayType);
     }
 
     public override int GetHashCode()
     {
-        return ElementType.GetHashCode()
+        return base.GetHashCode()
+               ^ ElementType.GetHashCode()
                ^ Begin.GetHashCode()
                ^ End.GetHashCode();
     }

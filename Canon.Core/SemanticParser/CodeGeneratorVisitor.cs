@@ -3,6 +3,7 @@ using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
+using BasicType = Canon.Core.Enums.BasicType;
 
 namespace Canon.Core.SemanticParser;
 
@@ -272,7 +273,9 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         // 虽然这里这样可能会生成来类似于 &*x 的代码
         // 但是可以正常运行
         variable.VariableName =
-            symbol.Reference ? $"*{variable.Identifier.IdentifierName}" : variable.Identifier.IdentifierName;
+            symbol.SymbolType.IsReference
+                ? $"*{variable.Identifier.IdentifierName}"
+                : variable.Identifier.IdentifierName;
     }
 
     public override void PreVisit(Term term)
@@ -608,8 +611,7 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
 
             if (parameter.ParameterType is PascalBasicType)
             {
-                string refValue = parameter.IsVar ? "*" : string.Empty;
-                value = $"{GenerateBasicTypeString(parameter.ParameterType)} {refValue}{parameter.ParameterName}";
+                value = $"{GenerateBasicTypeString(parameter.ParameterType)} {parameter.ParameterName}";
             }
 
             if (parameter.ParameterType is PascalArrayType)
@@ -793,24 +795,9 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         foreach ((Expression parameter, PascalParameterType parameterType) in
                  parameters.Zip(functionType.Parameters))
         {
-            if (parameterType.IsVar)
+            if (parameterType.ParameterType.IsReference)
             {
-                // 这里需要判断parameter是否也为引用类型
-                if (SymbolTable.TryGetSymbol(parameter.VariableName, out Symbol? parameterSymboe))
-                {
-                    if (parameterSymboe.Reference)
-                    {
-                        parameterValue += $", {parameter.VariableName}";
-                    }
-                    else
-                    {
-                        parameterValue += $", &{parameter.VariableName}";
-                    }
-                }
-                else
-                {
-                    parameterValue += $", &{parameter.VariableName}";
-                }
+                parameterValue += $", &{parameter.VariableName}";
             }
             else
             {
@@ -851,29 +838,21 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
 
     private static string GenerateBasicTypeString(PascalType pascalType)
     {
-        if (pascalType == PascalBasicType.Character)
+        if (pascalType is not PascalBasicType basicType)
         {
-            return "char";
+            return string.Empty;
         }
 
-        if (pascalType == PascalBasicType.Boolean)
+        switch (basicType.Type)
         {
-            return "bool";
-        }
-
-        if (pascalType == PascalBasicType.Integer)
-        {
-            return "int";
-        }
-
-        if (pascalType == PascalBasicType.Real)
-        {
-            return "double";
-        }
-
-        if (pascalType == PascalBasicType.Void)
-        {
-            return "void";
+            case BasicType.Integer:
+                return basicType.IsReference ? "int *" : "int";
+            case BasicType.Real:
+                return basicType.IsReference ? "double *" : "double";
+            case BasicType.Character:
+                return basicType.IsReference ? "char *" : "char";
+            case BasicType.Boolean:
+                return basicType.IsReference ? "bool *" : "bool";
         }
 
         return string.Empty;

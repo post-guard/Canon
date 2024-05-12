@@ -29,6 +29,11 @@ public class PascalFunctionType(List<PascalParameterType> parameters, PascalType
         }
     }
 
+    public override PascalType ToReferenceType()
+    {
+        throw new InvalidOperationException("Function type can not be reference.");
+    }
+
     public override bool Equals(PascalType? other)
     {
         if (other is not PascalFunctionType functionType)
@@ -49,12 +54,12 @@ public class PascalFunctionType(List<PascalParameterType> parameters, PascalType
             }
         }
 
-        return true;
+        return base.Equals(functionType);
     }
 
     public override int GetHashCode()
     {
-        int code = ReturnType.GetHashCode();
+        int code = base.GetHashCode() ^ ReturnType.GetHashCode();
 
         foreach (PascalParameterType parameter in Parameters)
         {

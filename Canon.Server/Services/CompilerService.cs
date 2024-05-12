@@ -40,7 +40,7 @@ public class CompilerService(
         await using Stream imageStream = syntaxTreePresentationService.Present(root);
         string filename = await gridFsService.UploadStream(imageStream, "image/png");
 
-        CodeGeneratorVisitor visitor = new();
+        CodeGeneratorVisitor visitor = new(compilerLogger);
         traveller.Travel(root, visitor);
 
         CompileResult result = new()

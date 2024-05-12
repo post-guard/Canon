@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Canon.Core.Abstractions;
 using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
 using Canon.Core.GrammarParser;
@@ -9,7 +10,7 @@ using Expression = Canon.Core.SyntaxNodes.Expression;
 
 namespace Canon.Core.SemanticParser;
 
-public class CodeGeneratorVisitor : TypeCheckVisitor
+public class CodeGeneratorVisitor(ICompilerLogger? logger = null) : TypeCheckVisitor(logger)
 {
     public CCodeBuilder Builder { get; } = new();
 

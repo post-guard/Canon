@@ -71,17 +71,24 @@ public abstract class PascalType : IEquatable<PascalType>
 
     public static PascalType operator +(PascalType a, PascalType b)
     {
-        if (a is PascalBasicType { Type: BasicType.Boolean } && b is PascalBasicType { Type: BasicType.Boolean })
+        if (a is not PascalBasicType aType || b is not PascalBasicType bType)
+        {
+            return PascalBasicType.Void;
+        }
+
+        if (aType.Type == BasicType.Boolean && bType.Type == BasicType.Boolean)
         {
             return PascalBasicType.Boolean;
         }
 
-        if (a is PascalBasicType { Type: BasicType.Integer } && b is PascalBasicType { Type: BasicType.Integer })
+        if (aType.Type == BasicType.Integer && bType.Type == BasicType.Integer)
         {
             return PascalBasicType.Integer;
         }
 
-        if (a is PascalBasicType { Type : BasicType.Real } && b is PascalBasicType { Type: BasicType.Real })
+        if ((aType.Type == BasicType.Real && bType.Type == BasicType.Real)
+            || (aType.Type == BasicType.Real && bType.Type == BasicType.Integer)
+            || (aType.Type == BasicType.Integer && bType.Type == BasicType.Real))
         {
             return PascalBasicType.Real;
         }

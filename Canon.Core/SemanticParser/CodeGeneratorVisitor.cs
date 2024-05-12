@@ -1,9 +1,11 @@
 ﻿using System.Globalization;
 using Canon.Core.CodeGenerators;
 using Canon.Core.Enums;
+using Canon.Core.GrammarParser;
 using Canon.Core.LexicalParser;
 using Canon.Core.SyntaxNodes;
 using BasicType = Canon.Core.Enums.BasicType;
+using Expression = Canon.Core.SyntaxNodes.Expression;
 
 namespace Canon.Core.SemanticParser;
 
@@ -278,6 +280,12 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
                 : variable.Identifier.IdentifierName;
     }
 
+    private record CircuitLabel(string Circuit, string End);
+
+    private readonly Stack<CircuitLabel> _andCircuitLabels = [];
+
+    private readonly Stack<CircuitLabel> _orCircuitLabels = [];
+
     public override void PreVisit(Term term)
     {
         base.PreVisit(term);
@@ -286,25 +294,56 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         {
             e.Left.IsCondition = term.IsCondition;
             e.Right.IsCondition = term.IsCondition;
+
+            if (e.Operator.OperatorToken == new Terminator(KeywordType.And))
+            {
+                _andCircuitLabels.Push(new CircuitLabel($"and_circult_{_labelCount}",
+                    $"and_end_{_labelCount}"));
+                _labelCount += 1;
+            }
         };
 
         term.OnFactorGenerator += (_, e) => { e.Factor.IsCondition = term.IsCondition; };
     }
 
+    private string? _termVariableName;
+
     public override void PostVisit(Term term)
     {
         base.PostVisit(term);
 
-        term.OnFactorGenerator += (_, e) => { term.VariableName = e.Factor.VariableName; };
+        term.OnFactorGenerator += (_, e) =>
+        {
+            term.VariableName = e.Factor.VariableName;
+            _termVariableName = term.VariableName;
+        };
 
         term.OnMultiplyGenerator += (_, e) =>
         {
             string temporaryName = GenerateTemporaryVariable();
 
-            Builder.AddLine(
-                $"{GenerateBasicTypeString(term.VariableType)} {temporaryName} = " +
-                $"{e.Left.VariableName} {GenerateMultipleOperator(e.Operator)} {e.Right.VariableName};");
+            if (e.Operator.OperatorToken == new Terminator(KeywordType.And))
+            {
+                // 处理and的短路代码
+                Builder.AddLine($"""
+                                 bool {temporaryName} = {e.Left.VariableName} && {e.Right.VariableName};
+                                 goto {_andCircuitLabels.Peek().End};
+                                 {_andCircuitLabels.Peek().Circuit}:;
+                                 {temporaryName} = false;
+                                 {_andCircuitLabels.Peek().End}:;
+                                 """);
+
+                _andCircuitLabels.Pop();
+            }
+            else
+            {
+                Builder.AddLine(
+                    $"{GenerateBasicTypeString(term.VariableType)} {temporaryName} = " +
+                    $"{e.Left.VariableName} {GenerateMultipleOperator(e.Operator)} {e.Right.VariableName};");
+            }
+
             term.VariableName = temporaryName;
+            _termVariableName = temporaryName;
         };
     }
 
@@ -316,26 +355,58 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
         {
             e.Left.IsCondition = simpleExpression.IsCondition;
             e.Right.IsCondition = simpleExpression.IsCondition;
+
+            if (e.Operator.OperatorToken == new Terminator(KeywordType.Or))
+            {
+                _orCircuitLabels.Push(new CircuitLabel($"or_circuit_{_labelCount}",
+                    $"or_end_circuit_{_labelCount}"));
+                _labelCount += 1;
+            }
         };
 
         simpleExpression.OnTermGenerator += (_, e) => { e.Term.IsCondition = simpleExpression.IsCondition; };
     }
 
+    private string? _simpleExpressionVairableName;
+
     public override void PostVisit(SimpleExpression simpleExpression)
     {
         base.PostVisit(simpleExpression);
 
-        simpleExpression.OnTermGenerator += (_, e) => { simpleExpression.VariableName = e.Term.VariableName; };
+        simpleExpression.OnTermGenerator += (_, e) =>
+        {
+            simpleExpression.VariableName = e.Term.VariableName;
+            _simpleExpressionVairableName = simpleExpression.VariableName;
+        };
 
         simpleExpression.OnAddGenerator += (_, e) =>
         {
             string temporaryName = GenerateTemporaryVariable();
 
-            Builder.AddLine(
-                $"{GenerateBasicTypeString(simpleExpression.VariableType)} {temporaryName} = " +
-                $"{e.Left.VariableName} {GenerateAddOperator(e.Operator)} {e.Right.VariableName};");
+            if (e.Operator.OperatorToken == new Terminator(KeywordType.Or))
+            {
+                // or的短路代码
+                Builder.AddLine($"""
+                                bool {temporaryName};
+                                {temporaryName} = {e.Left.VariableName} || {e.Right.VariableName};
+                                goto {_orCircuitLabels.Peek().End};
+                                {_orCircuitLabels.Peek().Circuit}:;
+                                {temporaryName} = true;
+                                {_orCircuitLabels.Peek().End}:;
+                                """);
+
+                _orCircuitLabels.Pop();
+            }
+            else
+            {
+                Builder.AddLine(
+                    $"{GenerateBasicTypeString(simpleExpression.VariableType)} {temporaryName} = " +
+                    $"{e.Left.VariableName} {GenerateAddOperator(e.Operator)} {e.Right.VariableName};");
+            }
+
 
             simpleExpression.VariableName = temporaryName;
+            _simpleExpressionVairableName = temporaryName;
         };
     }
 
@@ -723,7 +794,20 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
                                              goto {_whileEndLabels.Peek()};
                                          """);
                     }
-
+                    break;
+                case KeywordType.And:
+                    // 加上and短路的判断代码
+                    Builder.AddLine($"""
+                                    if (!{_termVariableName})
+                                        goto {_andCircuitLabels.Peek().Circuit};
+                                    """);
+                    break;
+                case KeywordType.Or:
+                   // 加上or短路的判断代码
+                   Builder.AddLine($"""
+                                   if ({_simpleExpressionVairableName})
+                                        goto {_orCircuitLabels.Peek().Circuit};
+                                   """);
                     break;
             }
         }
@@ -853,6 +937,8 @@ public class CodeGeneratorVisitor : TypeCheckVisitor
                 return basicType.IsReference ? "char *" : "char";
             case BasicType.Boolean:
                 return basicType.IsReference ? "bool *" : "bool";
+            case BasicType.Void:
+                return "void";
         }
 
         return string.Empty;

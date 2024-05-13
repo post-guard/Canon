@@ -9,6 +9,9 @@ public class CompileResponse
     public string Id { get; set; }
 
     [Required]
+    public bool Error { get; set; }
+
+    [Required]
     public string SourceCode { get; set; }
 
     [Required]
@@ -35,7 +38,8 @@ public class CompileResponse
 
     public CompileResponse(CompileResult result)
     {
-        Id = result.CompileId;
+        Id = result.Id.ToString();
+        Error = result.Error;
         SourceCode = result.SourceCode;
         CompiledCode = result.CompiledCode;
         ImageAddress = $"/api/file/{result.SytaxTreeImageFilename}";

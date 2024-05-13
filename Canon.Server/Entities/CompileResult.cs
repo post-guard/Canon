@@ -7,8 +7,7 @@ public class CompileResult
 {
     public ObjectId Id { get; set; }
 
-    [MaxLength(40)]
-    public string CompileId { get; set; } = string.Empty;
+    public bool Error { get; set; }
 
     public string SourceCode { get; set; } = string.Empty;
 

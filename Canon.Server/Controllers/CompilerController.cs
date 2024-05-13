@@ -3,6 +3,7 @@ using Canon.Server.Entities;
 using Canon.Server.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using MongoDB.Bson;
 
 namespace Canon.Server.Controllers;
 
@@ -35,7 +36,7 @@ public class CompilerController(CompileDbContext dbContext, CompilerService comp
     public async Task<ActionResult<CompileResponse>> GetResponse(string compileId)
     {
         CompileResult? result = await (from item in dbContext.CompileResults.AsNoTracking()
-            where item.CompileId == compileId
+            where item.Id == new ObjectId(compileId)
             select item).FirstOrDefaultAsync();
 
         if (result is null)
@@ -59,7 +60,7 @@ public class CompilerController(CompileDbContext dbContext, CompilerService comp
     public async Task<IActionResult> DeleteCompileResult(string compileId)
     {
         CompileResult? result = await (from item in dbContext.CompileResults
-            where item.CompileId == compileId
+            where item.Id == new ObjectId(compileId)
             select item).FirstOrDefaultAsync();
 
         if (result is null)

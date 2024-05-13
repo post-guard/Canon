@@ -115,6 +115,7 @@ export interface components {
   schemas: {
     CompileResponse: {
       id: string;
+      error: boolean;
       sourceCode: string;
       compiledCode: string;
       imageAddress: string;

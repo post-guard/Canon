@@ -8,7 +8,7 @@ namespace Canon.Core.Exceptions;
 /// <summary>
 /// 语法分析中引发的异常
 /// </summary>
-public class GrammarException : Exception
+public class GrammarException : CanonException
 {
     public override string Message { get; }
 

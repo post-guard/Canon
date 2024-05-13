@@ -1,12 +1,12 @@
-import {AppBar, Button, Grid, Toolbar, Typography} from "@mui/material";
-import {InputField} from "./InputField.tsx";
-import {CSSProperties, useEffect, useState} from "react";
-import {OutputField} from "./OutputField.tsx";
+import { AppBar, Button, Grid, Toolbar, Typography } from "@mui/material";
+import { InputField } from "./InputField.tsx";
+import { CSSProperties, useEffect, useState } from "react";
+import { OutputField } from "./OutputField.tsx";
 import createClient from "openapi-fetch";
 import * as openapi from '../openapi';
-import {enqueueSnackbar} from "notistack";
-import {useNavigate} from "react-router-dom";
-import {HistoryPage} from "./HistoryPage.tsx";
+import { enqueueSnackbar } from "notistack";
+import { useNavigate } from "react-router-dom";
+import { HistoryPage } from "./HistoryPage.tsx";
 
 const client = createClient<openapi.paths>();
 
@@ -16,13 +16,14 @@ export function Index() {
     const [inputValue, setInputValue] = useState('');
     const [outputValue, setOutputValue] = useState<openapi.components["schemas"]["CompileResponse"]>({
         compiledCode: "",
+        error: false,
         sourceCode: "",
         id: "",
         imageAddress: "",
         compileTime: "",
         compileInformation: ""
     });
-    const [historyPageState,setHistoryPageState] = useState(false);
+    const [historyPageState, setHistoryPageState] = useState(false);
     const navigate = useNavigate(); // 跳转hook
 
     useEffect(() => {
@@ -32,6 +33,7 @@ export function Index() {
             setInputValue("");
             setOutputValue({
                 compiledCode: "",
+                error: false,
                 sourceCode: "",
                 id: "",
                 imageAddress: "pic/uncompiled.png",
@@ -41,14 +43,14 @@ export function Index() {
             return;
         }
         const getCompileInstance = async () => {
-            const {data} = await client.GET("/api/Compiler/{compileId}", {
+            const { data } = await client.GET("/api/Compiler/{compileId}", {
                 params:
+                {
+                    path:
                     {
-                        path:
-                            {
-                                compileId: path
-                            }
+                        compileId: path
                     }
+                }
             })
             if (data !== undefined) {
                 setInputValue(data.sourceCode);
@@ -66,21 +68,24 @@ export function Index() {
 
     async function compilerButtonClick() {
 
-        const {data} = await client.POST("/api/Compiler", {
+        const { data } = await client.POST("/api/Compiler", {
             body: {
                 code: inputValue
             }
-        })
+        });
 
-        if (data !== undefined) {
-            setOutputValue(data);
-            enqueueSnackbar("编译成功", {variant: "success", anchorOrigin: {vertical: 'bottom', horizontal: 'right'}});
-            navigate(`/${data.id}`, {})
+        if (data == undefined) {
+            enqueueSnackbar("内部错误", { variant: "error", anchorOrigin: { vertical: 'bottom', horizontal: 'right' } });
+            return;
+        }
 
+        if (!data.error) {
+            enqueueSnackbar("编译成功", { variant: "success", anchorOrigin: { vertical: 'bottom', horizontal: 'right' } });
         } else {
             // error
-            enqueueSnackbar("编译失败", {variant: "error", anchorOrigin: {vertical: 'bottom', horizontal: 'right'}});
+            enqueueSnackbar("编译失败", { variant: "error", anchorOrigin: { vertical: 'bottom', horizontal: 'right' } });
         }
+        navigate(`/${data.id}`, {})
     }
 
     function historyButtonClick() {
@@ -89,9 +94,9 @@ export function Index() {
 
     return <>
         <div className={"title"}
-             style={titleClassCss}>
-            <AppBar style={{zIndex: 0}}>
-                <Toolbar style={{width: '100%'}}>
+            style={titleClassCss}>
+            <AppBar style={{ zIndex: 0 }}>
+                <Toolbar style={{ width: '100%' }}>
                     <Typography variant="h6">
                         Canon
                     </Typography>
@@ -101,9 +106,9 @@ export function Index() {
                         transform: "translateX(-50%)",
                         fontSize: "medium",
                     }}
-                            variant="outlined"
-                            color="inherit"
-                            onClick={compilerButtonClick}
+                        variant="outlined"
+                        color="inherit"
+                        onClick={compilerButtonClick}
                     >
                         编译
                     </Button>
@@ -113,29 +118,29 @@ export function Index() {
                         right: "10%",
                         fontSize: "medium",
                     }}
-                            variant="text"
-                            color="inherit"
-                            onClick={historyButtonClick}>
-                            历史记录
+                        variant="text"
+                        color="inherit"
+                        onClick={historyButtonClick}>
+                        历史记录
                     </Button>
                 </Toolbar>
             </AppBar>
         </div>
 
         <div className={"content"}
-             style={contentClassCss}>
-            <Grid container spacing={2} style={{width: "100%", height: "100%"}}>
-                <Grid item xs={12} sm={6} style={{width: "100%", height: "100%"}}>
+            style={contentClassCss}>
+            <Grid container spacing={2} style={{ width: "100%", height: "100%" }}>
+                <Grid item xs={12} sm={6} style={{ width: "100%", height: "100%" }}>
                     <InputField defaultValue={inputValue} onValueChange={handleValueChange}>
                     </InputField>
                 </Grid>
-                <Grid item xs={12} sm={6} style={{width: "100%", height: "100%"}}>
+                <Grid item xs={12} sm={6} style={{ width: "100%", height: "100%" }}>
                     <OutputField data={outputValue}>
                     </OutputField>
                 </Grid>
             </Grid>
         </div>
-        <HistoryPage state = {historyPageState} setState={setHistoryPageState}>
+        <HistoryPage state={historyPageState} setState={setHistoryPageState}>
 
         </HistoryPage>
     </>

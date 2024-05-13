@@ -22,7 +22,6 @@ builder.Services.AddDbContext<CompileDbContext>(options =>
     options.UseMongoDB(connectionString, "Canon");
 });
 builder.Services.AddGridFs(connectionString, "Canon");
-builder.Services.AddSingleton<ICompilerLogger, CompilerLogger>();
 builder.Services.AddTransient<ILexer, Lexer>();
 builder.Services.AddSingleton<IGrammarParser>(
     _ => GeneratedGrammarParser.Instance);

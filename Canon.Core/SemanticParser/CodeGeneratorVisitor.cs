@@ -791,7 +791,7 @@ public class CodeGeneratorVisitor(ICompilerLogger? logger = null) : TypeCheckVis
                     {
                         // GenerateWhileLabel();
                         Builder.AddLine($"""
-                                         if (!{_whileConditionNames.Peek()})
+                                         if ({_whileConditionNames.Peek()} == false)
                                              goto {_whileEndLabels.Peek()};
                                          """);
                     }
@@ -1080,7 +1080,7 @@ public class CodeGeneratorVisitor(ICompilerLogger? logger = null) : TypeCheckVis
     private void GenerateWhileLabel()
     {
         _whileBeginLabels.Push($"while_{_labelCount}");
-        _whileConditionNames.Push($"while_condition_{_labelCount}");
+        //_whileConditionNames.Push($"while_condition_{_labelCount}");
         _whileEndLabels.Push($"while_end_{_labelCount}");
 
         _labelCount += 1;

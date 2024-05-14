@@ -44,7 +44,16 @@ public class SymbolTable
     /// </summary>
     /// <param name="symbol">欲添加的符号</param>
     /// <returns>是否添加成功</returns>
-    public bool TryAddSymbol(Symbol symbol) => _symbols.TryAdd(symbol.SymbolName, symbol);
+    public bool TryAddSymbol(Symbol symbol)
+    {
+        if (_symbols.ContainsKey(symbol.SymbolName))
+        {
+            return false;
+        }
+
+        _symbols.Add(symbol.SymbolName, symbol);
+        return true;
+    }
 
     /// <summary>
     /// 尝试从符号表极其父符号表查找符号

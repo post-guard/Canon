@@ -54,4 +54,14 @@ public class SymbolTableTests
         Assert.True(table.TryGetSymbol("temperature", out Symbol? temp));
         Assert.Equal(PascalBasicType.Real, temp.SymbolType);
     }
+
+    [Fact]
+    public void DuplicatedTest()
+    {
+        SymbolTable table = new();
+
+        Assert.True(table.TryAddSymbol(
+            new Symbol{SymbolName = "a", SymbolType = PascalBasicType.Integer, Const = true}));
+        Assert.False(table.TryAddSymbol(new Symbol{SymbolName = "a", SymbolType = PascalBasicType.Boolean}));
+    }
 }

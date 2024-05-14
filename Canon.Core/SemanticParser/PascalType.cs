@@ -31,7 +31,7 @@ public abstract class PascalType : IEquatable<PascalType>
             return false;
         }
 
-        return IsReference == other.IsReference;
+        return true;
     }
 
     public T Convert<T>() where T : PascalType

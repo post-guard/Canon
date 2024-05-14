@@ -31,7 +31,7 @@ public class CodeGeneratorVisitor(ICompilerLogger? logger = null) : TypeCheckVis
 
     public override void PostVisit(ConstDeclaration constDeclaration)
     {
-        base.PreVisit(constDeclaration);
+        base.PostVisit(constDeclaration);
 
         (IdentifierSemanticToken token, ConstValue constValue) = constDeclaration.ConstValue;
 

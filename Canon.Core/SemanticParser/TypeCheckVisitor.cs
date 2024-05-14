@@ -22,7 +22,7 @@ public class TypeCheckVisitor(ICompilerLogger? logger = null) : SyntaxNodeVisito
 
     public override void PreVisit(ConstDeclaration constDeclaration)
     {
-        base.PostVisit(constDeclaration);
+        base.PreVisit(constDeclaration);
 
         (IdentifierSemanticToken token, ConstValue constValue) = constDeclaration.ConstValue;
 

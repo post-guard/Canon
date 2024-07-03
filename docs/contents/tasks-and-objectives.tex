@@ -1,0 +1,27 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+\section{课程设计的任务和目标}
+
+课程设计的目标是设计一个针对Pascal-S语言的编译程序，使用C语言作为编译器的目标语言。
+
+课程设计的目标是设计并实现一个编译器，该编译器能够将Pascal-S语言编写的源代码转换为C语言代码。Pascal-S是Pascal语言的一个子集，专门用于教学目的，它包含了Pascal语言的核心特性，但去除了一些复杂的构造以简化学习和编译过程。
+
+编译器的设计将分为几个主要部分：
+
+\begin{enumerate}
+  \item \textbf{词法分析器(Lexical Analyzer)}: 该部分将读取源代码，并将其分解成一系列的标记（tokens），这些标记是编译过程中语法分析的基本单位。
+  \item \textbf{语法分析器(Syntax Analyzer)}: 语法分析器将使用词法分析器提供的标记来构建抽象语法树（AST）。AST是源代码的树状表示，反映了程序的结构。
+  \item \textbf{语义分析器(Semantic Analyzer)}: 语义分析器将检查AST以确保源代码的逻辑是一致的，例如变量的声明与使用是否匹配，类型是否兼容等。
+\item \textbf{中间代码生成器(Intermediate Code Generator)}: 该部分将AST转换为中间表示（IR），IR是一种更接近机器语言的代码形式，但仍然保畴一定程度的抽象。
+  \item \textbf{代码优化器(Code Optimizer)}: 代码优化器将对IR进行分析和转换，以提高生成的C代码的效率和性能。
+  \item \textbf{目标代码生成器(Target Code Generator)}: 最后，目标代码生成器将把优化后的IR转换为C语言代码，这是编译过程的最终产物。
+\end{enumerate}
+
+此外，编译器还将包括错误处理机制，以便在编译过程中捕捉并报告错误，帮助用户理解并修正源代码中的问题。
+
+整个编译器的设计将遵循模块化原则，每个部分都将有明确的接口和职责，以便于测试和维护。我们还将使用C语言的特性，如指针和结构体，来高效地实现编译器的各个组成部分。
+
+最终，我们的目标是实现一个健壮的编译器，它不仅能够正确地将Pascal-S代码转换为C代码，而且还能够提供有用的错误信息，帮助用户改进他们的源代码。
+
+\end{document}

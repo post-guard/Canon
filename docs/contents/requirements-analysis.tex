@@ -1,0 +1,118 @@
+\documentclass[../main.tex]{subfiles}
+
+\begin{document}
+\section{需求分析}
+
+% 包括：数据流图、功能及数据说明等
+% 开发环境
+
+\subsection{开发环境}
+
+在本次课程设计中，我们没有使用编译原理课程设计的传统工具：flex和bison，而是决定自行手动实现词法分析和语法分析。因此，我们在进行开发环境选型是就具有较高的灵活性，不必拘泥于C++语言。在综合了小组人员的开发经验和各个不同语言的优劣之后，我们决定选择.NET平台的C\#语言作为我们的开发语言。使用C\#语言作为开发语言所给我们带来的好处有：
+\begin{itemize}
+    \item C\#是一门面向对象的新式类型安全语言，具有自动垃圾回收的功能。
+    \item .NET平台提供了多种不同的部署方式。可以直接AOT(Ahead of time)编译到单个可执行程序，亦可以使用JIT(Just in time)编译的方式使用运行时进行运行。因此在共享同样的核心库时，我们可以提供编译到单个可执行文件的编译器程序，也可以基于.NET强大的Web开发能力提供在线编译器。
+    \item C\#在全平台上提供了统一的开发和运行体验，适用于我们小组中需要兼容多个平台开发的需求。
+\end{itemize}
+
+此外，为了提高开发效率和代码的可维护性，我们还选用了一些辅助工具和库：
+\begin{itemize}
+    \item \textbf{Gitea}：我们通过使用自行搭建的Gitea服务器进行版本控制，这样可以确保团队成员之间的代码同步和变更记录。
+    \item \textbf{Gitea Actions}：我们依托Gitea提供的丰富持续集成、自动部署的功能，编写了一系列的自动化脚本，在每次提交新代码和合并到主线代码时运行单元测试和集成测试。
+\end{itemize}
+
+为了撰写开发文档和实验报告，我们利用了Overleaf和飞书的在线文档协作功能。这使得文档的共享和协作变得更加高效和便捷，尤其是在团队分布在不同地点时。
+
+\subsection{功能分析}
+
+在需求文档中提供的Pascal-S语法基础上，我们希望我们的编译器支持如下的Pascal语法和功能：
+\begin{enumerate}
+    \item 支持Pascal-S语法中的常见数据类型，包括整数、浮点数、字符值和布尔值。
+    \item 支持Pascal-S语法中的常见流程控制语句，包括分支语句，循环语句(While循环和For循环)
+    \item 支持Pascal-S语法中的流程定义和函数定义
+    \item 支持Pascal-S标准库中的输入输出函数(write, writeln, read)
+\end{enumerate}
+
+基于上述语法和功能，我们基于Pascal-S语法设计了如下的Pascal语法。
+
+\subsubsection{支持的Pascal语法}\label{pascal_grammar}
+
+\begin{lstlisting}[
+    style=grammar,
+    caption={Pascal-S语法},
+]
+ProgramStart -> ProgramStruct
+ProgramStruct -> ProgramHead ; ProgramBody .
+ProgramHead -> program id (IdList) | program id
+ProgramBody -> ConstDeclarations
+               VarDeclarations
+               SubprogramDeclarations
+               CompoundStatement
+IdList -> , id IdList | : Type
+ConstDeclarations -> $\epsilon$ | const ConstDeclaration ;
+ConstDeclaration -> id = ConstValue | ConstDeclaration ; id = ConstValue
+ConstValue -> +num | -num | num | 'letter' | true | false
+VarDeclarations ->  | var VarDeclaration ;
+VarDeclaration -> id IdList | VarDeclaration ; id IdList
+Type -> BasicType | array [ Period ] of BasicType
+BasicType -> integer | real | boolean | char
+Period -> digits .. digits | Period , digits .. digits
+SubprogramDeclarations -> $\epsilon$ | SubprogramDeclarations Subprogram ;
+Subprogram -> SubprogramHead ; SubprogramBody
+SubprogramHead -> procedure id FormalParameter 
+                | function id FormalParameter : BasicType
+FormalParameter -> $\epsilon$ | () | ( ParameterList )
+ParameterList -> Parameter | ParameterList ; Parameter
+Parameter -> VarParameter | ValueParameter
+VarParameter -> var ValueParameter
+ValueParameter -> id IdList
+SubprogramBody -> ConstDeclarations
+                  VarDeclarations
+                  CompoundStatement
+CompoundStatement -> begin StatementList end
+StatementList -> Statement | StatementList ; Statement
+Statement -> $\epsilon$
+             | Variable assignOp Expression
+             | ProcedureCall
+             | CompoundStatement
+             | if Expression then Statement ElsePart
+             | for id assignOp Expression to Expression do Statement
+             | while Expression do Statement
+Variable -> id IdVarPart
+IdVarPart -> $\epsilon$ | [ ExpressionList ]
+ProcedureCall -> id | id () | id ( ExpressionList )
+ElsePart -> $\epsilon$ | else Statement
+ExpressionList -> Expression | ExpressionList , Expression
+Expression -> SimpleExpression | SimpleExpression RelationOperator SimpleExpression
+SimpleExpression -> Term | SimpleExpression AddOperator Term
+Term -> Factor | Term MultiplyOperator Factor
+Factor -> num 
+          | true
+          | false
+          | Variable
+          | ( Expression )
+          | id () 
+          | id ( ExpressionList )
+          | not Factor
+          | - Factor
+          | + Factor
+AddOperator -> + | - | or
+MultiplyOperator -> * | / | div | mod | and
+RelationOperator -> = | <> | < | <= | > | >=
+\end{lstlisting}
+
+\paragraph{对语法的调整} 相较于需求中给定的Pascal-S语法，我们在开发和实践的过程中对于语法做出了如下的调整和扩充。
+
+\begin{itemize}
+    \item 消除文法中存在的部分左递归，例如VarDeclaration。消除左递归使得我们可以使用S-属性的翻译方案进行类型检查和代码生成。
+    \item 将ProcedureCall中添加空括号的产生式。支持在调用无参的过程或者是函数时添加一对空括号。
+    \item 删除Statment中产生funcid的产生式。因为Pascal中的函数返回语句只是一个合法的赋值语句，在实际上并不会终止函数的执行。因此删除该产生式，并在类型检查和代码生成的阶段进行进一步的处理。
+    \item 添加Factor中对于加号的支持。支持在运算的过程中使用显式注明的整数，即$ 1 ++ 1$类型的表达式。
+    \item 调整对于Factor中对于ProcedureCall的定义为Id() | Id (ExpressionList)。支持调用没有参数的函数。
+    \item 在FormalParameter中添加一对空括号。支持在定义无参的过程和函数时添加一对空括号。
+    \item 增加while-do语句的支持。
+\end{itemize}
+
+\paragraph{冲突的处理} 在实现使用LR(1)分析技术的语法分析器时，我们发现在需求分析中给出的Pascal-S语法中存在着一处移进-归约冲突，即语法中的ElsePart非终结符：在对含有多个嵌套的If语句进行处理时，ElsePart既可以直接从空产生式中归约出来，也继续可以继续移进。但是在语法层面上，Else语句应该和最近的一个If语句相结合。因此，在语法分析器中做如下处理：(1) 在构建分析表出添加一个特殊判断，如果是检测到ElsePart的移进-归约冲突，则不报错继续处理；(2) 在按照分析表进行分析时，首先进行移进操作，然后再进行归约操作，这样就能保证ElsePart会优先和最近和If语句进行结合。
+
+\end{document}

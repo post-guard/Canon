@@ -1,0 +1,143 @@
+\documentclass[12pt, a4paper, oneside]{ctexart}
+\usepackage{amsmath, amsthm, amssymb, appendix, bm, graphicx, hyperref, mathrsfs, geometry}
+\usepackage{float}
+\usepackage{subcaption}
+\usepackage{listings}
+\usepackage{longtable}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{subfiles}
+\usepackage{fontspec}
+\usepackage{array}
+
+\linespread{1.5}
+\pagestyle{plain}
+\geometry{a4paper, scale=0.8}
+
+% 定义书写语法时的listings style
+\lstdefinestyle{grammar}{
+    basicstyle=\ttfamily,
+    breaklines=true,
+    mathescape=true,
+    morekeywords={ProgramStart, ProgramStruct, ProgramHead, ProgramBody, IdList, ConstDeclarations, ConstDeclaration, ConstValue, VarDeclarations, VarDeclaration, Type, BasicType, BasicType, Period, SubprogramDeclarations, Subprogram, SubprogramHead, FormalParameter, ParameterList, Parameter, VarParameter, ValueParameter, SubprogramBody, CompoundStatement, StatementList, Statement, Variable, IdVarPart, ProcedureCall, ElsePart, ExpressionList, Expression, SimpleExpression, Term, Factor, AddOperator, MultiplyOperator, RelationOperator},
+    keywordstyle=\bfseries\color{NavyBlue},
+    emphstyle={\bfseries\color{Rhodamine}},
+    emph={program, id, num, true, false,var, array, of, integer, real, boolean, char, digits, procedure, function, begin, end, assignOp, if, then, for, to ,do ,while, else, not, or, div, mod, and, const, letter}
+}
+
+% 定义书写C#时的listings style
+\lstdefinestyle{csharp}{
+    language=[sharp]c,
+    breaklines=true,
+    basicstyle=\ttfamily,
+    keywordstyle=\bfseries\color{violet},
+    emphstyle=\bfseries\color{blue},
+    morekeywords={required, get, set, init},
+    showstringspaces=false,
+}
+
+% 定义书写C时的listings style
+\lstdefinestyle{c}{
+    language=c,
+    breaklines=true,
+    basicstyle=\ttfamily,
+    keywordstyle=\bfseries\color{blue},
+    showstringspaces=false,
+}
+
+% 定义书写Pascal时的listings style
+\lstdefinestyle{pascal}{
+    language=Pascal,
+    breaklines=true,
+    basicstyle=\ttfamily,
+    keywordstyle=\bfseries\color{violet},
+    emphstyle=\bfseries\color{blue},
+}
+
+\begin{document}
+
+\begin{titlepage}
+% 标题
+\begin{center}
+    \Huge{\textbf{北\quad 京\quad 邮\quad 电\quad 大\quad 学}}
+
+    \vspace{2em}
+    
+    \Large{\textbf{《编译原理与技术课程设计》}}
+    
+    \Large{\textbf{报\qquad 告}}
+
+    \vspace{4em}
+
+    \large{指导教师： \underline{\makebox[8em][c]{王雅文}}}
+\end{center}
+
+\vspace{6em}
+
+% 个人信息
+\begin{table}[h]
+    \centering
+    \begin{tabular}{|c|c|c|c|}
+        \hline
+        \textbf{姓名} & \textbf{班级} & \textbf{学号} & \textbf{备注} \\
+        \hline
+        张弈纶 & 2021211308 & 2021211177 & \\
+        \hline
+        兰建国 & 2021211308 & 2021211179 & \\
+        \hline
+        任昌骏 & 2021211308 & 2021211180 & 组长 \\
+        \hline
+        肖可扬 & 2021211308 & 2021211186 & \\
+        \hline
+        杜含韵 & 2021211308 & 2021211188 & \\
+        \hline
+        陈劲淞 & 2020219308 & 2018211608 & \\
+        \hline
+    \end{tabular}
+\end{table}
+
+% 封底
+\vspace{8em}
+
+\begin{center}
+    \Large{\textbf{计算机学院（国家示范性软件学院）}}
+
+    \Large{2024年5月}
+\end{center}
+\end{titlepage}
+
+\clearpage
+
+% 目录
+% 目录的页码和正文的页码不一致
+\pagenumbering{Roman}
+\setcounter{page}{1}
+\tableofcontents
+
+\clearpage
+\setcounter{page}{1}
+\pagenumbering{arabic}
+
+\begin{center}
+    \Large{\textbf{Pascal-S 语言编译程序的设计与实现}}
+\end{center}
+
+\subfile{contents/tasks-and-objectives}
+
+\subfile{contents/requirements-analysis}
+
+\subfile{contents/general-design}
+
+\subfile{contents/detailed-design}
+
+\subfile{contents/source}
+
+\subfile{contents/program-test}
+
+\subfile{contents/summary}
+
+\clearpage
+
+\bibliographystyle{unsrt}
+\bibliography{ref}
+
+\end{document}

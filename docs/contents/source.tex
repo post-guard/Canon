@@ -1,0 +1,256 @@
+\documentclass[../main.tex]{subfiles}
+
+
+\begin{document}
+
+\section{源程序清单}
+
+为了使得项目开发更加清晰，程序中由五个C\#项目组成：
+\begin{itemize}
+    \item Canon.Core 编译器的核心库，含有编译器的所有核心功能。
+    \item Canon.Tests 编译器核心库的测试库，含有项目中编写的所有单元测试。
+    \item Canon.Console 编译器的命令行版本程序，在核心库的基础上以命令行的方式同编译器进行交互。
+    \item Canon.Server 编译器的服务器版本程序，以Web的方式同编译器进行交互。
+    \item Canon.Generator 用于生成源代码形式的LR(1)分析表的工具。
+\end{itemize}
+
+代码中的总行数如表\ref{tab:code_lines}所示。
+
+\begin{table}[htbp]
+    \centering
+    \begin{tabular}{|l|r|r|r|r|r|}
+        \hline
+        语言 & 文件数 & 行数 & 空白行数 & 注释数 & 代码行数 \\
+        \hline
+        C\# & 132 & 13263 & 1889  &    978 &  10396   \\
+        Pascal & 95 & 4989 & 368 & 34 &   4587  \\
+        TypeScript & 8   &   521   &   52   &     7   &  462 \\
+        MSBuild &  6    &  195   &   23   &     2   &  170 \\
+        TypeScript Typings &  2 & 149  &   7  &  13  & 129 \\
+        HTML  & 1     &  12   &    0    &    0     & 12 \\
+        Python & 1 & 111 & 26 &  0 & 85 \\
+        \hline
+    \end{tabular}
+    \caption{代码行数统计}
+    \label{tab:code_lines}
+\end{table}
+
+\subsection{Canon.Core项目}
+
+\begin{verbatim}
+.
+├── Abstractions
+│   ├── ICompilerLogger.cs
+│   ├── IGrammarParser.cs
+│   ├── ILexer.cs
+│   ├── ISourceReader.cs
+│   ├── ITransformer.cs
+│   └── SyntaxNodeVisitor.cs
+├── Canon.Core.csproj
+├── CodeGenerators
+│   └── CCodeBuilder.cs
+├── Enums
+│   ├── BasicType.cs
+│   ├── ErrorEnums.cs
+│   ├── GrammarEnums.cs
+│   └── SemanticEnums.cs
+├── Exceptions
+│   ├── GrammarException.cs
+│   ├── LexemeException.cs
+│   ├── ReduceAndShiftConflictException.cs
+│   └── ReduceConflictException.cs
+├── GrammarParser
+│   ├── Expression.cs
+│   ├── GeneratedParser.g.cs
+│   ├── GrammarBuilder.cs
+│   ├── Grammar.cs
+│   ├── LrState.cs
+│   ├── PascalGrammar.cs
+│   └── Terminator.cs
+├── LexicalParser
+│   ├── LexemeFactory.cs
+│   ├── Lexer.cs
+│   ├── LexRules.cs
+│   └── SemanticToken.cs
+├── SemanticParser
+│   ├── CodeGeneratorVisitor.cs
+│   ├── PascalArrayType.cs
+│   ├── PascalBasicType.cs
+│   ├── PascalFunctionType.cs
+│   ├── PascalParameterType.cs
+│   ├── PascalType.cs
+│   ├── Symbol.cs
+│   ├── SymbolTable.cs
+│   ├── SyntaxTreeTraveller.cs
+│   ├── TypeCheckVisitor.cs
+│   └── TypeTable.cs
+└── SyntaxNodes
+    ├── AddOperator.cs
+    ├── BasicType.cs
+    ├── CompoundStatement.cs
+    ├── ConstDeclaration.cs
+    ├── ConstDeclarations.cs
+    ├── ConstValue.cs
+    ├── ElsePart.cs
+    ├── Expression.cs
+    ├── ExpressionList.cs
+    ├── Factor.cs
+    ├── FormalParameter.cs
+    ├── IdentifierList.cs
+    ├── IdentifierVarPart.cs
+    ├── MultiplyOperator.cs
+    ├── NonTerminatedSyntaxNode.cs
+    ├── Parameter.cs
+    ├── ParameterList.cs
+    ├── Period.cs
+    ├── ProcedureCall.cs
+    ├── ProgramBody.cs
+    ├── ProgramHead.cs
+    ├── ProgramStruct.cs
+    ├── RelationOperator.cs
+    ├── SimpleExpression.cs
+    ├── Statement.cs
+    ├── StatementList.cs
+    ├── SubprogramBody.cs
+    ├── Subprogram.cs
+    ├── SubprogramDeclarations.cs
+    ├── SubprogramHead.cs
+    ├── SyntaxNodeBase.cs
+    ├── Term.cs
+    ├── TerminatedSyntaxNode.cs
+    ├── TypeSyntaxNode.cs
+    ├── ValueParameter.cs
+    ├── VarDeclaration.cs
+    ├── VarDeclarations.cs
+    ├── Variable.cs
+    └── VarParameter.cs
+\end{verbatim}
+
+\subsection{Canon.Console项目}
+
+\begin{verbatim}
+.
+├── Canon.Console.csproj
+├── Extensions
+│   └── RootCommandExtensions.cs
+├── Models
+│   └── CompilerOption.cs
+├── Program.cs
+└── Services
+    ├── Compiler.cs
+    ├── CompilerLogger.cs
+    └── StringSourceReader.cs
+\end{verbatim}
+
+\subsection{Canon.Server项目}
+
+\begin{verbatim}
+.
+├── appsettings.json
+├── Canon.Server.csproj
+├── client-app
+│   ├── index.html
+│   ├── package.json
+│   ├── pnpm-lock.yaml
+│   ├── public
+│   │   └── pic
+│   │       └── uncompiled.png
+│   ├── src
+│   │   ├── App.tsx
+│   │   ├── main.tsx
+│   │   ├── openapi.d.ts
+│   │   ├── Pages
+│   │   │   ├── HistoryPage.tsx
+│   │   │   ├── Index.tsx
+│   │   │   ├── InputField.tsx
+│   │   │   ├── Loader.tsx
+│   │   │   └── OutputField.tsx
+│   │   └── vite-env.d.ts
+│   ├── tsconfig.json
+│   ├── tsconfig.node.json
+│   └── vite.config.ts
+├── Controllers
+│   ├── CompilerController.cs
+│   └── FileController.cs
+├── DataTransferObjects
+│   ├── CompileResponse.cs
+│   └── SourceCode.cs
+├── Dockerfile
+├── Entities
+│   └── CompileResult.cs
+├── Extensions
+│   └── ServiceCollectionExtensions.cs
+├── Models
+│   ├── Brush.cs
+│   ├── CodeReader.cs
+│   ├── CompilerLogger.cs
+│   └── PresentableTreeNode.cs
+├── Program.cs
+├── Properties
+│   └── launchSettings.json
+├── Services
+│   ├── CompileDbContext.cs
+│   ├── CompilerService.cs
+│   ├── DatabaseSetupService.cs
+│   ├── GridFsService.cs
+│   └── SyntaxTreePresentationService.cs
+└── wwwroot
+\end{verbatim}
+
+\subsection{Canon.Generator项目}
+
+\begin{verbatim}
+.
+├── Canon.Generator.csproj
+├── Extensions
+│   └── RootCommandExtension.cs
+├── GrammarGenerator
+│   ├── GenerateCommand.cs
+│   ├── GeneratedGrammarParser.cs
+│   ├── GeneratedTransformer.cs
+│   └── GrammarExtensions.cs
+├── Program.cs
+└── SyntaxVisitorGenerator
+    └── SyntaxVisitorGenerator.cs
+\end{verbatim}
+
+\subsection{Canon.Tests项目}
+
+\begin{verbatim}
+.
+├── Canon.Tests.csproj
+├── GeneratedParserTests
+│   └── GenerateParserTests.cs
+├── GlobalUsings.cs
+├── GrammarParserTests
+│   ├── PascalGrammarFailedTests.cs
+│   ├── PascalGrammarTests.cs
+│   ├── SimpleGrammarTests.cs
+│   ├── SimpleGrammarWithEmptyTests.cs
+│   └── TerminatorTests.cs
+├── LexicalParserTests
+│   ├── CharacterTypeTests.cs
+│   ├── DelimiterTests.cs
+│   ├── ErrorSingleTests.cs
+│   ├── IndentifierTypeTests.cs
+│   ├── KeywordTypeTests.cs
+│   ├── LexicalFileTests.cs
+│   ├── NumberTests.cs
+│   └── OperatorTypeTests.cs
+├── SemanticTests
+│   ├── ConstValueTests.cs
+│   ├── PascalTypeTests.cs
+│   ├── SymbolTableTests.cs
+│   ├── SyntaxTreeTravellerTests.cs
+│   ├── Tests.cs
+│   └── TypeCheckVisitorTests.cs
+└── Utils
+    ├── CompilerHelpers.cs
+    ├── EnumerableExtensions.cs
+    ├── SampleSyntaxTreeVisitor.cs
+    ├── StringSourceReader.cs
+    ├── StringSourceReaderTests.cs
+    └── TestLogger.cs
+\end{verbatim}
+
+\end{document}

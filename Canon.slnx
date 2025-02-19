@@ -1,0 +1,23 @@
+<Solution>
+  <Folder Name="/.gitea/" />
+  <Folder Name="/.gitea/workflows/">
+    <File Path=".gitea/workflows/build.yaml" />
+    <File Path=".gitea/workflows/integration_test.yaml" />
+    <File Path=".gitea/workflows/test.yaml" />
+  </Folder>
+  <Folder Name="/scripts/">
+    <File Path="scripts/build.sh" />
+    <File Path="scripts/docker-compose.yaml" />
+    <File Path="scripts/Dockerfile-build" />
+    <File Path="scripts/integration_test.py" />
+  </Folder>
+  <Folder Name="/Solution Files/">
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="Canon.Console/Canon.Console.csproj" />
+  <Project Path="Canon.Core/Canon.Core.csproj" />
+  <Project Path="Canon.Generator/Canon.Generator.csproj" />
+  <Project Path="Canon.Server/Canon.Server.csproj" />
+  <Project Path="Canon.Tests/Canon.Tests.csproj" />
+</Solution>
